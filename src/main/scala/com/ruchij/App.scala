@@ -1,13 +1,14 @@
 package com.ruchij
 
-import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits._
 import com.ruchij.config.ServiceConfiguration
 import com.ruchij.web.Routes
 import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 
 object App extends IOApp {
+
   override def run(args: List[String]): IO[ExitCode] =
     for {
       serviceConfiguration <- IO.fromEither(ServiceConfiguration.load())

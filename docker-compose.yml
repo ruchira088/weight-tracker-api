@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+
+  weight-tracker-api:
+    build: .
+    ports:
+      - 5005:5005
+    volumes:
+      - "~/.sbt:/root/.sbt"
+      - "~/.ivy2:/root/.ivy2"
+      - ".:/opt/weight-tracker-api"
+      - "/opt/weight-tracker-api/target"
+      - "/opt/weight-tracker-api/project/target"
+      - "/root/.sbt/1.0/plugins"

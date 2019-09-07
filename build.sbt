@@ -12,11 +12,12 @@ lazy val root =
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
       testOptions in Test +=
-        Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-results")
+        Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-results"),
+      addCompilerPlugin(kindProjector)
     )
 
 lazy val rootDependencies =
-  Seq()
+  Seq(http4sDsl, http4sBlazeServer, http4sCirce, circeGeneric, pureconfig, jodaTime)
 
 lazy val rootTestDependencies =
   Seq(scalaTest, pegdown)

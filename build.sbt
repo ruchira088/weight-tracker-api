@@ -13,7 +13,8 @@ lazy val root =
       buildInfoPackage := "com.eed3si9n.ruchij",
       testOptions in Test +=
         Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-results"),
-      addCompilerPlugin(kindProjector)
+      addCompilerPlugin(kindProjector),
+      addCompilerPlugin(betterMonadicFor)
     )
 
 lazy val rootDependencies =

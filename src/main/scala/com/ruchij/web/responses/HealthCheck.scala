@@ -2,7 +2,7 @@ package com.ruchij.web.responses
 
 import cats.Applicative
 import com.eed3si9n.ruchij.BuildInfo
-import com.ruchij.web.circe.Encoders.jodaTimeDecoder
+import com.ruchij.web.circe.Encoders.jodaTimeEncoder
 import org.http4s.EntityEncoder
 import org.joda.time.DateTime
 import io.circe.generic.auto._

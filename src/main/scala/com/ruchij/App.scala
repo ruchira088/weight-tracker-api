@@ -14,7 +14,7 @@ object App extends IOApp {
       serviceConfiguration <- IO.fromEither(ServiceConfiguration.load())
       exitCode <-
         BlazeServerBuilder[IO]
-          .withHttpApp(Routes[IO].orNotFound)
+          .withHttpApp(Routes[IO](???).orNotFound)
           .bindHttp(serviceConfiguration.httpConfiguration.port)
           .serve.compile.drain.as(ExitCode.Success)
     }

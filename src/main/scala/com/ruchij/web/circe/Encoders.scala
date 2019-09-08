@@ -7,6 +7,6 @@ import org.joda.time.DateTime
 import scala.language.higherKinds
 
 object Encoders {
-  implicit def jodaTimeDecoder[F[_]: Applicative]: Encoder[DateTime] =
+  implicit def jodaTimeEncoder[F[_] : Applicative]: Encoder[DateTime] =
     (dateTime: DateTime) => Json.fromString(dateTime.toString)
 }

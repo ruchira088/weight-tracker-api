@@ -4,7 +4,7 @@ import pureconfig.error.ConfigReaderException
 import pureconfig.generic.auto._
 import pureconfig.loadConfig
 
-case class ServiceConfiguration(httpConfiguration: HttpConfiguration)
+case class ServiceConfiguration(httpConfiguration: HttpConfiguration, doobieConfiguration: DoobieConfiguration)
 
 object ServiceConfiguration {
   def load(): Either[Throwable, ServiceConfiguration] =

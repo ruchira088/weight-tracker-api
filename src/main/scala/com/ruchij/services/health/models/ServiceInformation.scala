@@ -1,17 +1,17 @@
-package com.ruchij.web.responses
+package com.ruchij.services.health.models
 
 import cats.Applicative
 import com.eed3si9n.ruchij.BuildInfo
-import com.ruchij.web.circe.Encoders.jodaTimeEncoder
-import org.http4s.EntityEncoder
-import org.joda.time.DateTime
 import io.circe.generic.auto._
+import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
+import org.joda.time.DateTime
+import com.ruchij.web.circe.Encoders.jodaTimeEncoder
 
 import scala.language.higherKinds
 import scala.util.Properties
 
-case class HealthCheck(
+case class ServiceInformation(
   serviceName: String,
   serviceVersion: String,
   javaVersion: String,
@@ -20,9 +20,9 @@ case class HealthCheck(
   currentTimestamp: DateTime
 )
 
-object HealthCheck {
-  def apply(dateTime: DateTime): HealthCheck =
-    HealthCheck(
+object ServiceInformation {
+  def apply(dateTime: DateTime): ServiceInformation =
+    ServiceInformation(
       BuildInfo.name,
       BuildInfo.version,
       Properties.javaVersion,
@@ -31,5 +31,5 @@ object HealthCheck {
       dateTime
     )
 
-  implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, HealthCheck] = jsonEncoderOf[F, HealthCheck]
+  implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, ServiceInformation] = jsonEncoderOf[F, ServiceInformation]
 }

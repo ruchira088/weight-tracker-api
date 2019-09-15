@@ -18,7 +18,7 @@ lazy val root =
     )
 
 lazy val rootDependencies =
-  Seq(http4sDsl, http4sBlazeServer, http4sCirce, circeGeneric, pureconfig, jodaTime, logbackClassic, scalaLogging)
+  Seq(http4sDsl, http4sBlazeServer, http4sCirce, circeGeneric, pureconfig, jodaTime, jbcrypt, doobiePostgres, logbackClassic, scalaLogging)
 
 lazy val rootTestDependencies =
   Seq(scalaTest, pegdown)

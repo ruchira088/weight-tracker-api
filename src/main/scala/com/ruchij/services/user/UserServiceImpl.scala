@@ -28,11 +28,10 @@ class UserServiceImpl[F[_]: Sync: Clock: RandomUuid](
   ): F[User] =
     for {
       usernameExists <- findByUsername(username).isDefined
-      _ <- if (usernameExists) Sync[F].raiseError[Unit](ResourceConflictException(s"Username = $username"))
-      else Sync[F].unit
+      _ <- if (usernameExists) Sync[F].raiseError[Unit](ResourceConflictException(s"username already exists: $username")) else Sync[F].unit
 
       emailExists <- findByEmail(email).isDefined
-      _ <- if (emailExists) Sync[F].raiseError[Unit](ResourceConflictException(s"Email = $email")) else Sync[F].unit
+      _ <- if (emailExists) Sync[F].raiseError[Unit](ResourceConflictException(s"email already exists: $email")) else Sync[F].unit
 
       hashedPassword <- authenticationService.hashPassword(password)
       timestamp <- Clock[F].realTime(MILLISECONDS)

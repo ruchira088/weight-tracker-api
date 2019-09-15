@@ -17,8 +17,30 @@ lazy val root =
       addCompilerPlugin(betterMonadicFor)
     )
 
+lazy val databaseMigration =
+  (project in file("./database-migration"))
+    .settings(
+      name := "database-migration",
+      organization := "com.ruchij",
+      scalaVersion := SCALA_VERSION,
+      maintainer := "me@ruchij.com",
+      libraryDependencies ++= Seq(postgresql, flywayCore)
+    )
+    .dependsOn(root)
+
 lazy val rootDependencies =
-  Seq(http4sDsl, http4sBlazeServer, http4sCirce, circeGeneric, pureconfig, jodaTime, jbcrypt, doobiePostgres, logbackClassic, scalaLogging)
+  Seq(
+    http4sDsl,
+    http4sBlazeServer,
+    http4sCirce,
+    circeGeneric,
+    pureconfig,
+    jodaTime,
+    jbcrypt,
+    doobiePostgres,
+    logbackClassic,
+    scalaLogging
+  )
 
 lazy val rootTestDependencies =
   Seq(scalaTest, pegdown)

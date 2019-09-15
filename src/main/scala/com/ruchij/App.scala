@@ -35,7 +35,7 @@ object App extends IOApp {
 
       exitCode <-
         BlazeServerBuilder[IO]
-          .withHttpApp(Routes[IO](userService, healthCheckService).orNotFound)
+          .withHttpApp(Routes(userService, healthCheckService).orNotFound)
           .bindHttp(serviceConfiguration.httpConfiguration.port)
           .serve.compile.drain.as(ExitCode.Success)
     }

@@ -14,5 +14,5 @@ trait DatabaseUserDao[F[_]] {
 
   def findByUsername(username: String): OptionT[F, DatabaseUser]
 
-  def findByEmail(username: String): OptionT[F, DatabaseUser]
+  def findByEmail(email: String): OptionT[F, DatabaseUser]
 }

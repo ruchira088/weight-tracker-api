@@ -18,8 +18,8 @@ import scala.language.higherKinds
 class DoobieDatabaseUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends DatabaseUserDao[F] {
   override def insert(databaseUser: DatabaseUser): F[DatabaseUser] =
     sql"""
-      insert into user (id, created_at, username, password, email, first_name, last_name) values
-      (${databaseUser.id}, ${databaseUser.createdAt}, ${databaseUser.username}, ${databaseUser.password}, ${databaseUser.firstName}, ${databaseUser.lastName})
+      insert into users (id, created_at, username, password, email, first_name, last_name) values
+      (${databaseUser.id}, ${databaseUser.createdAt}, ${databaseUser.username}, ${databaseUser.password}, ${databaseUser.email}, ${databaseUser.firstName}, ${databaseUser.lastName})
       """.update.run
       .transact(transactor)
       .flatMap { _ =>
@@ -29,20 +29,32 @@ class DoobieDatabaseUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) ext
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select (id, created_at, username, password, email, first_name, last_name) from user where id = $id"
+      sql"select id, created_at, username, password, email, first_name, last_name from users where id = $id"
         .query[DatabaseUser]
         .option
         .transact(transactor)
     }
 
-  override def findByUsername(username: String): OptionT[F, DatabaseUser] = ???
+  override def findByUsername(username: String): OptionT[F, DatabaseUser] =
+    OptionT {
+      sql"select id, created_at, username, password, email, first_name, last_name from users where username = $username"
+        .query[DatabaseUser]
+        .option
+        .transact(transactor)
+    }
 
-  override def findByEmail(username: String): OptionT[F, DatabaseUser] = ???
+  override def findByEmail(email: String): OptionT[F, DatabaseUser] =
+    OptionT {
+      sql"select id, created_at, username, password, email, first_name, last_name from users where email = $email"
+        .query[DatabaseUser]
+        .option
+        .transact(transactor)
+    }
 }
 
 object DoobieDatabaseUserDao {
   def fromConfiguration[M[_]: Async: ContextShift](doobieConfiguration: DoobieConfiguration): DoobieDatabaseUserDao[M] =
-    new DoobieDatabaseUserDao[M](
+    new DoobieDatabaseUserDao(
       Transactor.fromDriverManager[M](
         doobieConfiguration.driver,
         doobieConfiguration.url,

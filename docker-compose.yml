@@ -2,17 +2,18 @@ version: "3"
 
 services:
 
-  weight-tracker-api:
-    build: .
-    ports:
-      - 5005:5005
-    volumes:
-      - "~/.sbt:/root/.sbt"
-      - "~/.ivy2:/root/.ivy2"
-      - ".:/opt/weight-tracker-api"
-      - "/opt/weight-tracker-api/target"
-      - "/opt/weight-tracker-api/project/target"
-      - "/root/.sbt/1.0/plugins"
+#  weight-tracker-api:
+#    build: .
+#    ports:
+#      - 5005:5005
+#      - 8000:8000
+#    volumes:
+#      - "~/.sbt:/root/.sbt"
+#      - "~/.ivy2:/root/.ivy2"
+#      - ".:/opt/weight-tracker-api"
+#      - "/opt/weight-tracker-api/target"
+#      - "/opt/weight-tracker-api/project/target"
+#      - "/root/.sbt/1.0/plugins"
 
   postgres:
     image: postgres
@@ -22,3 +23,8 @@ services:
       POSTGRES_DB: weight-tracker
       POSTGRES_USER: weight-tracker
       POSTGRES_PASSWORD: pa55w0rd
+
+  redis:
+    image: redis
+    ports:
+      - 6378:6379

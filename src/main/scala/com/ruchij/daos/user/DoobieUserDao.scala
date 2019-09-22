@@ -7,7 +7,7 @@ import cats.effect.{Async, ContextShift, Sync}
 import cats.implicits.toFlatMapOps
 import com.ruchij.config.DoobieConfiguration
 import com.ruchij.daos.user.models.DatabaseUser
-import com.ruchij.exceptions.DatabaseException
+import com.ruchij.exceptions.InternalServiceException
 import doobie.postgres.implicits._
 import com.ruchij.daos.DoobieCustomMappings._
 import doobie.implicits._
@@ -15,7 +15,8 @@ import doobie.util.transactor.Transactor
 
 import scala.language.higherKinds
 
-class DoobieDatabaseUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends DatabaseUserDao[F] {
+class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends UserDao[F] {
+
   override def insert(databaseUser: DatabaseUser): F[DatabaseUser] =
     sql"""
       insert into users (id, created_at, username, password, email, first_name, last_name) values
@@ -24,7 +25,7 @@ class DoobieDatabaseUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) ext
       .transact(transactor)
       .flatMap { _ =>
         findById(databaseUser.id)
-          .getOrElseF(Sync[F].raiseError(DatabaseException("Unable to persist user")))
+          .getOrElseF(Sync[F].raiseError(InternalServiceException("Unable to persist user")))
       }
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
@@ -52,9 +53,9 @@ class DoobieDatabaseUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) ext
     }
 }
 
-object DoobieDatabaseUserDao {
-  def fromConfiguration[M[_]: Async: ContextShift](doobieConfiguration: DoobieConfiguration): DoobieDatabaseUserDao[M] =
-    new DoobieDatabaseUserDao(
+object DoobieUserDao {
+  def fromConfiguration[M[_]: Async: ContextShift](doobieConfiguration: DoobieConfiguration): DoobieUserDao[M] =
+    new DoobieUserDao(
       Transactor.fromDriverManager[M](
         doobieConfiguration.driver,
         doobieConfiguration.url,

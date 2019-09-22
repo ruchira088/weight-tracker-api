@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 import org.joda.time.DateTime
-import com.ruchij.web.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.jodaTimeEncoder
 
 import scala.language.higherKinds
 import scala.util.Properties

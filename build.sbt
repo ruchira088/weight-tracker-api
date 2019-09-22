@@ -34,10 +34,12 @@ lazy val rootDependencies =
     http4sBlazeServer,
     http4sCirce,
     circeGeneric,
+    circeParser,
     pureconfig,
     jodaTime,
     jbcrypt,
     doobiePostgres,
+    redisScala,
     logbackClassic,
     scalaLogging
   )

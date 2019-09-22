@@ -3,10 +3,10 @@ package com.ruchij.web
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.implicits._
-import com.ruchij.exceptions.ResourceConflictException
+import com.ruchij.exceptions.{AuthenticationException, ResourceConflictException, ResourceNotFoundException}
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
-import com.ruchij.web.circe.EntityEncoders.userEncoder
+import com.ruchij.circe.EntityEncoders.userEncoder
 import com.ruchij.web.requests.CreateUserRequest
 import com.ruchij.web.responses.ErrorResponse
 import org.http4s.dsl.Http4sDsl
@@ -51,6 +51,10 @@ object Routes {
   private def throwableStatusMapper(throwable: Throwable): Status =
     throwable match {
       case _: ResourceConflictException => Status.Conflict
+
+      case _: ResourceNotFoundException => Status.NotFound
+
+      case _: AuthenticationException => Status.Unauthorized
     }
 
   private def throwableErrorResponseMapper(throwable: Throwable): ErrorResponse =

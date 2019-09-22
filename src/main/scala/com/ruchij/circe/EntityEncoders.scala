@@ -1,4 +1,4 @@
-package com.ruchij.web.circe
+package com.ruchij.circe
 
 import cats.Applicative
 import com.ruchij.models.User

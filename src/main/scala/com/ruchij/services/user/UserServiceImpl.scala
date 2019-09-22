@@ -3,7 +3,7 @@ package com.ruchij.services.user
 import cats.implicits._
 import cats.data.OptionT
 import cats.effect.{Clock, Sync}
-import com.ruchij.daos.user.DatabaseUserDao
+import com.ruchij.daos.user.UserDao
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.ResourceConflictException
 import com.ruchij.models.User
@@ -15,8 +15,8 @@ import scala.concurrent.duration.MILLISECONDS
 import scala.language.higherKinds
 
 class UserServiceImpl[F[_]: Sync: Clock: RandomUuid](
-  databaseUserDao: DatabaseUserDao[F],
-  authenticationService: AuthenticationService[F]
+                                                      databaseUserDao: UserDao[F],
+                                                      authenticationService: AuthenticationService[F]
 ) extends UserService[F] {
 
   override def create(

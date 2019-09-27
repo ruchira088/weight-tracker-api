@@ -8,13 +8,13 @@ import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
+import com.ruchij.daos.doobie.DoobieTransactor
 import com.ruchij.daos.user.DoobieUserDao
-import com.ruchij.services.authentication.{AuthenticationSecretGenerator, AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
+import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.web.Routes
-import org.http4s.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
 
 import scala.concurrent.ExecutionContext
@@ -33,7 +33,9 @@ object App extends IOApp {
 
       redisClient = RedisAuthenticationTokenDao.redisClient(serviceConfiguration.redisConfiguration)
 
-      databaseUserDao = DoobieUserDao.fromConfiguration[IO](serviceConfiguration.doobieConfiguration)
+      doobieTransactor = DoobieTransactor.fromConfiguration[IO](serviceConfiguration.doobieConfiguration)
+      databaseUserDao = new DoobieUserDao(doobieTransactor)
+
       passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
       authenticationTokenDao = new RedisAuthenticationTokenDao[IO](redisClient)
       authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]

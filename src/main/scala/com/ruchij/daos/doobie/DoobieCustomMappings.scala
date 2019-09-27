@@ -1,4 +1,4 @@
-package com.ruchij.daos
+package com.ruchij.daos.doobie
 
 import java.sql.Timestamp
 

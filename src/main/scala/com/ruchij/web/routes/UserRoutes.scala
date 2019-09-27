@@ -5,9 +5,9 @@ import cats.implicits._
 import com.ruchij.models.User
 import com.ruchij.services.user.UserService
 import com.ruchij.web.requests.CreateUserRequest
-import org.http4s.{AuthedRoutes, HttpRoutes}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
+import org.http4s.{AuthedRoutes, HttpRoutes}
 
 import scala.language.higherKinds
 
@@ -26,7 +26,7 @@ object UserRoutes {
         } yield response
     }
 
-    val authenticatedRoutes =
+    val authenticatedRoutes: HttpRoutes[F] =
       authMiddleware {
         AuthedRoutes.of {
           case GET -> Root as user => Ok(user)

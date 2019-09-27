@@ -3,13 +3,12 @@ package com.ruchij.daos.user
 import java.util.UUID
 
 import cats.data.OptionT
-import cats.effect.{Async, ContextShift, Sync}
+import cats.effect.Sync
 import cats.implicits.toFlatMapOps
-import com.ruchij.config.DoobieConfiguration
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.InternalServiceException
 import doobie.postgres.implicits._
-import com.ruchij.daos.DoobieCustomMappings._
+import com.ruchij.daos.doobie.DoobieCustomMappings._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 
@@ -19,8 +18,16 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def insert(databaseUser: DatabaseUser): F[DatabaseUser] =
     sql"""
-      insert into users (id, created_at, username, password, email, first_name, last_name) values
-      (${databaseUser.id}, ${databaseUser.createdAt}, ${databaseUser.username}, ${databaseUser.password}, ${databaseUser.email}, ${databaseUser.firstName}, ${databaseUser.lastName})
+      insert into users (id, created_at, username, password, email, first_name, last_name)
+        values (
+          ${databaseUser.id},
+          ${databaseUser.createdAt},
+          ${databaseUser.username},
+          ${databaseUser.password},
+          ${databaseUser.email},
+          ${databaseUser.firstName},
+          ${databaseUser.lastName}
+        )
       """.update.run
       .transact(transactor)
       .flatMap { _ =>
@@ -51,16 +58,4 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
         .option
         .transact(transactor)
     }
-}
-
-object DoobieUserDao {
-  def fromConfiguration[M[_]: Async: ContextShift](doobieConfiguration: DoobieConfiguration): DoobieUserDao[M] =
-    new DoobieUserDao(
-      Transactor.fromDriverManager[M](
-        doobieConfiguration.driver,
-        doobieConfiguration.url,
-        doobieConfiguration.user,
-        doobieConfiguration.password
-      )
-    )
 }

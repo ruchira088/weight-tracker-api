@@ -13,12 +13,11 @@ import org.joda.time.DateTime
 import redis.ByteStringFormatter
 
 case class DatabaseAuthenticationToken(
-  id: UUID,
   userId: UUID,
   createdAt: DateTime,
   expiresAt: DateTime,
   renewalCount: Long,
-  secret: UUID,
+  secret: String,
   deletedAt: Option[DateTime]
 )
 

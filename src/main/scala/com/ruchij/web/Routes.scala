@@ -4,36 +4,38 @@ import cats.data.Kleisli
 import cats.effect.Sync
 import cats.implicits._
 import com.ruchij.exceptions.{AuthenticationException, ResourceConflictException, ResourceNotFoundException}
+import com.ruchij.models.User
+import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
-import com.ruchij.circe.EntityEncoders.userEncoder
-import com.ruchij.web.requests.CreateUserRequest
+import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
 import com.ruchij.web.responses.ErrorResponse
+import com.ruchij.web.routes.{HealthRoutes, SessionRoutes, UserRoutes}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.EntityResponseGenerator
+import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.{HttpApp, HttpRoutes, Request, Response, Status}
 
 import scala.language.higherKinds
 
 object Routes {
-  def apply[F[_]: Sync](userService: UserService[F], healthCheckService: HealthCheckService[F]): HttpRoutes[F] = {
-    val dsl = new Http4sDsl[F] {}
-    import dsl._
+  def apply[F[_]: Sync](
+    userService: UserService[F],
+    authenticationService: AuthenticationService[F],
+    healthCheckService: HealthCheckService[F]
+  ): HttpRoutes[F] = {
+    implicit val dsl: Http4sDsl[F] = new Http4sDsl[F] {}
+    implicit val authMiddleware: AuthMiddleware[F, User] =
+      RequestAuthenticator.authenticationMiddleware(
+        authenticationService,
+        AuthenticationTokenExtractor.bearerTokenExtractor
+      )
 
-    HttpRoutes.of {
-      case GET -> Root / "health" =>
-        for {
-          serviceInformation <- healthCheckService.serviceInformation()
-          response <- Ok(serviceInformation)
-        } yield response
-
-      case request @ POST -> Root / "user" =>
-        for {
-          CreateUserRequest(username, password, email, firstName, lastName) <- request.as[CreateUserRequest]
-          user <- userService.create(username, password, email, firstName, lastName)
-          response <- Created(user)
-        } yield response
-    }
+    Router(
+      "/user" -> UserRoutes(userService),
+      "/session" -> SessionRoutes(authenticationService),
+      "/health" -> HealthRoutes(healthCheckService)
+    )
   }
 
   def responseHandler[F[_]: Sync](routes: HttpRoutes[F]): HttpApp[F] =

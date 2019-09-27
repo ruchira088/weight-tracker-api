@@ -9,7 +9,7 @@ import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
 import com.ruchij.daos.user.DoobieUserDao
-import com.ruchij.services.authentication.AuthenticationServiceImpl
+import com.ruchij.services.authentication.{AuthenticationSecretGenerator, AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
@@ -33,20 +33,24 @@ object App extends IOApp {
 
       redisClient = RedisAuthenticationTokenDao.redisClient(serviceConfiguration.redisConfiguration)
 
-      healthCheckService = new HealthCheckServiceImpl[IO]
       databaseUserDao = DoobieUserDao.fromConfiguration[IO](serviceConfiguration.doobieConfiguration)
       passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
       authenticationTokenDao = new RedisAuthenticationTokenDao[IO](redisClient)
+      authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
+
+      healthCheckService = new HealthCheckServiceImpl[IO]
+
       authenticationService = new AuthenticationServiceImpl(
         passwordHashingService,
         databaseUserDao,
         authenticationTokenDao,
+        authenticationSecretGenerator,
         serviceConfiguration.authenticationConfiguration
       )
       userService = new UserServiceImpl(databaseUserDao, authenticationService)
 
       exitCode <- BlazeServerBuilder[IO]
-        .withHttpApp(Routes.responseHandler(Routes(userService, healthCheckService)))
+        .withHttpApp(Routes.responseHandler(Routes(userService, authenticationService, healthCheckService)))
         .bindHttp(serviceConfiguration.httpConfiguration.port)
         .serve
         .compile

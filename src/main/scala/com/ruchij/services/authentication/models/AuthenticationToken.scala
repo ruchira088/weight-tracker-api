@@ -2,10 +2,17 @@ package com.ruchij.services.authentication.models
 
 import java.util.UUID
 
+import cats.Applicative
+import com.ruchij.circe.Encoders.jodaTimeEncoder
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
+import io.circe.generic.auto._
+import org.http4s.EntityEncoder
+import org.http4s.circe.jsonEncoderOf
 import org.joda.time.DateTime
 
-case class AuthenticationToken(userId: UUID, expiresAt: DateTime, secret: UUID)
+import scala.language.higherKinds
+
+case class AuthenticationToken(userId: UUID, expiresAt: DateTime, secret: String)
 
 object AuthenticationToken {
   def fromDatabaseAuthenticationToken(databaseAuthenticationToken: DatabaseAuthenticationToken): AuthenticationToken =
@@ -14,4 +21,7 @@ object AuthenticationToken {
       databaseAuthenticationToken.expiresAt,
       databaseAuthenticationToken.secret
     )
+
+  implicit def authenticationTokenEntityEncoder[F[_]: Applicative]: EntityEncoder[F, AuthenticationToken] =
+    jsonEncoderOf[F, AuthenticationToken]
 }

@@ -1,6 +1,5 @@
 package com.ruchij.services.authentication
 
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import cats.Applicative
@@ -18,10 +17,11 @@ import org.joda.time.DateTime
 
 import scala.language.higherKinds
 
-class AuthenticationServiceImpl[F[_]: Sync: RandomUuid: Clock](
+class AuthenticationServiceImpl[F[_]: Sync: Clock](
   passwordHashingService: PasswordHashingService[F, String],
   databaseUserDao: UserDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
+  authenticationSecretGenerator: AuthenticationSecretGenerator[F],
   authenticationConfiguration: AuthenticationConfiguration
 ) extends AuthenticationService[F] {
 
@@ -38,7 +38,8 @@ class AuthenticationServiceImpl[F[_]: Sync: RandomUuid: Clock](
       else Sync[F].raiseError[Unit](AuthenticationException("Invalid credentials"))
 
       timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
-      secret <- RandomUuid[F].uuid
+      secret <- authenticationSecretGenerator.generate(User.fromDatabaseUser(databaseUser))
+
       authenticationToken <- authenticationTokenDao.createToken {
         AuthenticationToken(
           databaseUser.id,
@@ -48,10 +49,10 @@ class AuthenticationServiceImpl[F[_]: Sync: RandomUuid: Clock](
       }
     } yield authenticationToken
 
-  override def authenticate(userId: UUID, authenticationSecret: UUID): F[User] =
+  override def authenticate(secret: String): F[User] =
     for {
       authenticationToken <- authenticationTokenDao
-        .findByUserIdAndSecret(userId, authenticationSecret)
+        .find(secret)
         .getOrElseF(Sync[F].raiseError(AuthenticationException("Invalid credentials")))
 
       timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
@@ -63,7 +64,6 @@ class AuthenticationServiceImpl[F[_]: Sync: RandomUuid: Clock](
         .getOrElseF(Sync[F].raiseError(ResourceNotFoundException("User not found")))
 
       _ <- authenticationTokenDao.extendExpiry(
-        authenticationToken.userId,
         authenticationToken.secret,
         authenticationConfiguration.sessionTimeout
       )

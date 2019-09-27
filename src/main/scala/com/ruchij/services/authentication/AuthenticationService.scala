@@ -1,7 +1,5 @@
 package com.ruchij.services.authentication
 
-import java.util.UUID
-
 import com.ruchij.models.User
 import com.ruchij.services.authentication.models.AuthenticationToken
 
@@ -12,5 +10,5 @@ trait AuthenticationService[F[_]] {
 
   def login(username: String, password: String): F[AuthenticationToken]
 
-  def authenticate(userId: UUID, authenticationSecret: UUID): F[User]
+  def authenticate(secret: String): F[User]
 }

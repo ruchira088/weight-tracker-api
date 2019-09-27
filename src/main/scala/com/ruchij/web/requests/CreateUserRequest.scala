@@ -16,5 +16,5 @@ case class CreateUserRequest(
 )
 
 object CreateUserRequest {
-  implicit def createUserRequestDecoder[F[_]: Sync]: EntityDecoder[F, CreateUserRequest] = jsonOf[F, CreateUserRequest]
+  implicit def createUserRequestEntityDecoder[F[_]: Sync]: EntityDecoder[F, CreateUserRequest] = jsonOf[F, CreateUserRequest]
 }

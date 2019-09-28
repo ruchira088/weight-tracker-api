@@ -1,0 +1,321 @@
+{
+	"info": {
+		"_postman_id": "7bb55915-98fc-4e55-b660-46f6c3efa050",
+		"name": "Weight Tracker API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/health",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create user",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9ac0ea8e-7a0b-42d0-8f17-ae8038e5e9b1",
+						"exec": [
+							"const FIRST_NAMES = [ \"Ethelyn\", \"Cordia\", \"Anthony\", \"Lauren\", \"Asia\", \"Giovanni\", \"Jennefer\", \"Deedee\", \"Cherise\", \"Erminia\", \"Adolfo\", \"Jan\", \"Elliott\", \"Santo\", \"Griselda\", \"Wilbur\", \"John\", \"Dwain\", \"Giuseppe\", \"Bryanna\", \"Neomi\", \"Salvador\", \"Florentina\", \"Kareen\", \"Mac\", \"Vaughn\", \"Gretchen\", \"Cristopher\", \"Sharan\", \"Teodoro\", \"Leda\", \"Ok\", \"Orlando\", \"Percy\", \"Leon\", \"Isidro\", \"Margie\", \"Nell\", \"Dawne\", \"Adolph\", \"Sari\", \"Cari\", \"Ha\", \"Danny\", \"Wilhemina\", \"Earle\", \"Cory\", \"Ulysses\", \"Deidre\", \"Caroline\", \"Kerry\", \"Marlin\", \"Valery\", \"Cyril\", \"Julio\", \"Lance\", \"Fredia\", \"Mimi\", \"Jerrold\", \"Nathalie\", \"Jame\", \"Foster\", \"Larue\", \"Eboni\", \"Philip\", \"Dion\", \"Sherill\", \"Eliana\", \"Romeo\", \"Gay\", \"Lawrence\", \"Russell\", \"Joaquin\", \"Sherrie\", \"Sebastian\", \"Kip\", \"Mandi\", \"Corrina\", \"Diana\", \"Juana\", \"Cecila\", \"Coletta\", \"Raylene\", \"Preston\", \"Briana\", \"Isaias\", \"Twila\", \"Janise\", \"Ivana\", \"Toni\", \"Cameron\", \"Eli\", \"Katelynn\", \"Celinda\", \"Bette\", \"Danna\", \"Reed\", \"Marco\", \"Rex\", \"Brianne\", \"Makeda\", \"Tommie\", \"Joette\", \"Otis\", \"Dave\", \"Myron\", \"Margaretta\", \"Arden\", \"Hiram\", \"Eun\", \"Sadye\", \"Jacinto\", \"Kelvin\", \"Randell\", \"Flora\", \"Brigette\", \"Christen\", \"Dario\", \"Sandi\", \"Devin\", \"Donny\", \"Effie\", \"Rodger\", \"Yoshiko\", \"Troy\", \"Domenic\", \"Margarette\", \"Nick\", \"Ronda\", \"Alta\", \"Monty\", \"Mariann\", \"Darnell\", \"Thurman\", \"Jesus\", \"Ruby\", \"Dante\", \"Rudolph\", \"Harmony\", \"Darryl\", \"Sung\", \"Pearly\", \"Holley\", \"Mack\", \"Merilyn\", \"Rodney\", \"Stephan\", \"Oscar\", \"Suk\", \"Chase\", \"Gerald\", \"Evon\", \"Jamey\", \"Adriene\", \"Octavio\", \"Shemeka\", \"Kathey\", \"Samella\", \"Twanda\", \"Hyun\", \"Maxine\", \"Jed\", \"Lilia\", \"Anika\", \"Chang\", \"Von\", \"Milo\", \"Lai\", \"Waylon\", \"Willy\", \"Scott\", \"Lezlie\", \"Carrol\", \"Elton\", \"Cherrie\", \"Agueda\", \"Miki\", \"Tiesha\", \"Jayson\", \"Bridget\", \"Leanne\", \"Carmela\", \"Tameika\", \"Heide\", \"Elenore\", \"Clayton\", \"Morgan\", \"Nakesha\", \"Misti\", \"Brenton\", \"Jules\", \"Lovetta\", \"Stephany\", \"Mike\", \"Myrtice\", \"Shae\", \"Natosha\", \"Sofia\", \"Benjamin\", \"Donnell\" ]",
+							"",
+							"const LAST_NAMES = [ \"Hyatt\", \"Rolfson\", \"Graham\", \"Wyman\", \"Cummerata\", \"Barrows\", \"Flatley\", \"Koss\", \"Kling\", \"Herzog\", \"Brakus\", \"Hodkiewicz\", \"Cole\", \"Boyle\", \"Hoppe\", \"Hackett\", \"Schiller\", \"Ruecker\", \"Renner\", \"Doyle\", \"Wolf\", \"Weimann\", \"Mills\", \"Gulgowski\", \"Beatty\", \"O'Reilly\", \"Murray\", \"Hessel\", \"Thiel\", \"Gerhold\", \"Schuppe\", \"Roob\", \"Goyette\", \"Stehr\", \"Hirthe\", \"Trantow\", \"Ledner\", \"Kovacek\", \"Gibson\", \"Davis\", \"Bode\", \"Koepp\", \"Konopelski\", \"Spencer\", \"Rowe\", \"Feeney\", \"Haley\", \"McDermott\", \"Jacobs\", \"Cassin\", \"McLaughlin\", \"Brown\", \"Paucek\", \"Botsford\", \"Monahan\", \"Altenwerth\", \"Bernhard\", \"Kuhic\", \"Weber\", \"Hintz\", \"Gislason\", \"Marquardt\", \"Sauer\", \"Johns\", \"Nader\", \"Roberts\", \"Murphy\", \"Pouros\", \"Emmerich\", \"Huels\", \"Hartmann\", \"Skiles\", \"Fadel\", \"Glover\", \"Padberg\", \"Stiedemann\", \"Kertzmann\", \"Wilderman\", \"Lindgren\", \"Ryan\", \"Luettgen\", \"Ferry\", \"Weissnat\", \"Huel\", \"Quitzon\", \"Durgan\", \"Keebler\", \"Zulauf\", \"Kirlin\", \"Smith\", \"Grimes\", \"Hahn\", \"Zemlak\", \"Mitchell\", \"Cartwright\", \"Parisian\", \"Sipes\", \"Tremblay\", \"Strosin\", \"Kiehn\", \"Lang\", \"Williamson\", \"Smitham\", \"Hand\", \"Block\", \"Willms\", \"Grant\", \"Leannon\", \"Maggio\", \"Dietrich\", \"Towne\", \"Jaskolski\", \"Simonis\", \"O'Keefe\", \"Blanda\", \"Terry\", \"Rippin\", \"Thompson\", \"Bins\", \"Legros\", \"Walsh\", \"Bernier\", \"Moen\", \"Collier\", \"Gorczany\", \"Bradtke\", \"Cremin\", \"Crist\", \"Waters\", \"Wisoky\", \"Yundt\", \"Upton\", \"Pollich\", \"Ondricka\", \"Bailey\", \"Ankunding\", \"Wintheiser\", \"Yost\", \"Heaney\", \"Kunze\", \"Schaden\", \"Windler\", \"Aufderhar\", \"Macejkovic\", \"Wuckert\", \"Gutmann\", \"Lockman\", \"Larson\", \"Boehm\", \"Frami\", \"Langosh\", \"Bruen\", \"Collins\", \"Shields\", \"Nicolas\", \"Erdman\", \"Keeling\", \"Murazik\", \"Bosco\", \"Leuschke\", \"Dare\", \"Rau\", \"Lesch\", \"Senger\", \"Prosacco\", \"Krajcik\", \"Beier\", \"Hagenes\", \"Von\", \"Pagac\", \"Buckridge\", \"Zboncak\", \"Koelpin\", \"McCullough\", \"Stamm\", \"Kozey\", \"Stroman\", \"Satterfield\", \"Hilpert\", \"O'Hara\", \"Deckow\", \"O'Connell\", \"Prohaska\", \"Sporer\", \"Mayer\", \"Goldner\", \"Tillman\", \"Barton\", \"Harvey\", \"Stokes\", \"Mohr\", \"Jakubowski\", \"Schowalter\", \"Gleichner\", \"Mann\", \"Champlin\", \"Runte\", \"Armstrong\", \"Abernathy\", \"Cormier\" ]",
+							"",
+							"const EMAIL_DOMAINS = [ \"gmail.com\", \"live.com\", \"hotmail.com\", \"yahoo.com\", \"icloud.com\", \"outlook.com\", \"me.com\", \"zoho.com\", \"ruchij.com\" ]",
+							"",
+							"const PASSWORD = \"Pa$$w0rd\"",
+							"",
+							"const random = values => values[Math.floor(Math.random() * values.length)]",
+							"",
+							"const setValues = obj => Object.keys(obj).forEach(key => pm.environment.set(key, obj[key]))",
+							"",
+							"const firstName = random(FIRST_NAMES)",
+							"const lastName = random(LAST_NAMES)",
+							"const emailDomain = random(EMAIL_DOMAINS)",
+							"",
+							"const username = `${firstName}.${lastName}`.toLowerCase()",
+							"const email = `${username}@${emailDomain}`",
+							"",
+							"setValues({ firstName, lastName, username, email, password: PASSWORD })",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "85117311-bc38-42e3-ae7a-b9a2e9baaabf",
+						"exec": [
+							"pm.environment.set(\"userId\", pm.response.json().id)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"{{username}}\",\n\t\"password\": \"{{password}}\",\n\t\"email\": \"{{email}}\",\n\t\"firstName\": \"{{firstName}}\",\n\t\"lastName\": \"{{lastName}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a3251c2f-14f5-49d0-bd7c-968b2cf9ecaf",
+						"exec": [
+							"pm.environment.set(\"secret\", pm.response.json().secret)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/javascript",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"{{username}}\",\n\t\"password\": \"{{password}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "javascript"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/session",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"session"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authenticated user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user/{{userId}}",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add weight entry",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6db27ff8-b5f1-4ad9-bfc5-6cce15c902f3",
+						"exec": [
+							"const DESCRIPTIONS = [",
+							"    \"Age is an issue of mind over matter. If you don't mind, it doesn't matter.\",",
+							"    \"Genius is one percent inspiration and ninety-nine percent perspiration.\",",
+							"    \"You can observe a lot just by watching.\",",
+							"    \"A house divided against itself cannot stand.\",",
+							"    \"Difficulties increase the nearer we get to the goal.\",",
+							"    \"Fate is in your hands and no one elses.\",",
+							"    \"Life is a learning experience, only if you learn.\",",
+							"    \"Self-complacency is fatal to progress.\",",
+							"    \"Peace comes from within. Do not seek it without.\",",
+							"    \"Today is the tomorrow we worried about yesterday.\",",
+							"    \"It's easier to see the mistakes on someone else's paper.\",",
+							"    \"Doing nothing is better than being busy doing nothing.\",",
+							"    \"From error to error one discovers the entire truth.\",",
+							"    \"Work out your own salvation. Do not depend on others.\",",
+							"    \"Never mistake activity for achievement.\",",
+							"    \"What worries you masters you.\",",
+							"    \"A goal without a plan is just a wish.\",",
+							"    \"Learn from yesterday, live for today, hope for tomorrow.\",",
+							"    \"Do, or do not. There is no try.\",",
+							"    \"The best teacher is experience learned from failures.\",",
+							"    \"Don't wait. The time will never be just right.\",",
+							"    \"Time is the wisest counsellor of all.\",",
+							"    \"What you fear is that which requires action to overcome.\",",
+							"    \"Skill to do comes of doing.\",",
+							"    \"Courage is going from failure to failure without losing enthusiasm.\",",
+							"    \"Those who are free of resentful thoughts surely find peace.\",",
+							"    \"No one can make you feel inferior without your consent.\",",
+							"    \"Luck is what happens when preparation meets opportunity.\",",
+							"    \"Every new day is another chance to change your life.\",",
+							"    \"Don't ruin the present with the ruined past.\",",
+							"    \"You can't stop the waves, but you can learn to surf.\",",
+							"    \"The greatest remedy for anger is delay.\",",
+							"    \"Wherever you go, go with all your heart.\",",
+							"    \"Once we accept our limits, we go beyond them.\",",
+							"    \"No garden is without its weeds.\",",
+							"    \"There is no failure except in no longer trying.\",",
+							"    \"Problems are only opportunities with thorns on them.\",",
+							"    \"There is no greater harm than that of time wasted.\",",
+							"    \"The journey of a thousand miles begins with one step.\",",
+							"    \"To be wrong is nothing unless you continue to remember it.\",",
+							"    \"Yesterdays home runs don't win today's games.\",",
+							"    \"An ant on the move does more than a dozing ox\",",
+							"    \"I have often regretted my speech, never my silence.\",",
+							"    \"To avoid criticism, do nothing, say nothing, be nothing.\",",
+							"    \"To get something you never had, you have to do something you never did.\",",
+							"    \"Think as a wise man but communicate in the language of the people.\",",
+							"    \"Practice yourself, for heavens sake in little things, and then proceed to greater.\",",
+							"    \"Life is like riding a bicycle. To keep your balance you must keep moving.\",",
+							"    \"It does not matter how slowly you go as long as you do not stop.\"",
+							"]",
+							"",
+							"const random = values => values[Math.floor(Math.random() * values.length)]",
+							"",
+							"const timestamp = new Date().toISOString()",
+							"const weight = Math.ceil(Math.random() * 5000)/100 + 50",
+							"const description = random(DESCRIPTIONS)",
+							"",
+							"const setValues = obj => Object.keys(obj).forEach(key => pm.environment.set(key, obj[key]))",
+							"",
+							"setValues({ timestamp, weight, description })",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"timestamp\": \"{{timestamp}}\",\n\t\"weight\": {{weight}},\n\t\"description\": \"{{description}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user/{{userId}}/weight-entry",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user",
+						"{{userId}}",
+						"weight-entry"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

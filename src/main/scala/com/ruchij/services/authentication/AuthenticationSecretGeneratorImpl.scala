@@ -2,7 +2,7 @@ package com.ruchij.services.authentication
 
 import cats.Applicative
 import cats.implicits._
-import com.ruchij.models.User
+import com.ruchij.services.user.models.User
 import com.ruchij.types.RandomUuid
 
 import scala.language.higherKinds

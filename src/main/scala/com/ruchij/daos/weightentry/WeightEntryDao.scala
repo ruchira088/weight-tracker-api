@@ -8,7 +8,7 @@ import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import scala.language.higherKinds
 
 trait WeightEntryDao[F[_]] {
-  def insert(databaseWeightEntry: DatabaseWeightEntry): F[DatabaseWeightEntry]
+  def insert(databaseWeightEntry: DatabaseWeightEntry): F[Int]
 
   def findById(id: UUID): OptionT[F, DatabaseWeightEntry]
 

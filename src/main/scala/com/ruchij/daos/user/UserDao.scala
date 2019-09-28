@@ -8,7 +8,7 @@ import com.ruchij.daos.user.models.DatabaseUser
 import scala.language.higherKinds
 
 trait UserDao[F[_]] {
-  def insert(databaseUser: DatabaseUser): F[DatabaseUser]
+  def insert(databaseUser: DatabaseUser): F[Int]
 
   def findById(id: UUID): OptionT[F, DatabaseUser]
 

@@ -41,6 +41,7 @@ lazy val rootDependencies =
     jbcrypt,
     doobiePostgres,
     redisScala,
+    enumeratum,
     logbackClassic,
     scalaLogging
   )

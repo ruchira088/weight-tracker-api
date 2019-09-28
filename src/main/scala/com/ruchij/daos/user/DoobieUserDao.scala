@@ -4,9 +4,7 @@ import java.util.UUID
 
 import cats.data.OptionT
 import cats.effect.Sync
-import cats.implicits.toFlatMapOps
 import com.ruchij.daos.user.models.DatabaseUser
-import com.ruchij.exceptions.InternalServiceException
 import doobie.postgres.implicits._
 import com.ruchij.daos.doobie.DoobieCustomMappings._
 import doobie.implicits._
@@ -16,7 +14,7 @@ import scala.language.higherKinds
 
 class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends UserDao[F] {
 
-  override def insert(databaseUser: DatabaseUser): F[DatabaseUser] =
+  override def insert(databaseUser: DatabaseUser): F[Int] =
     sql"""
       insert into users (id, created_at, username, password, email, first_name, last_name)
         values (
@@ -30,10 +28,6 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
         )
       """.update.run
       .transact(transactor)
-      .flatMap { _ =>
-        findById(databaseUser.id)
-          .getOrElseF(Sync[F].raiseError(InternalServiceException("Unable to persist user")))
-      }
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
     OptionT {

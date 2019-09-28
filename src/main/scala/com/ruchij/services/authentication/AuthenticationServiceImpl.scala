@@ -9,7 +9,7 @@ import com.ruchij.config.AuthenticationConfiguration
 import com.ruchij.daos.authtokens.AuthenticationTokenDao
 import com.ruchij.daos.user.UserDao
 import com.ruchij.exceptions.{AuthenticationException, ResourceNotFoundException}
-import com.ruchij.models.User
+import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.models.AuthenticationToken
 import com.ruchij.services.hashing.PasswordHashingService
 import com.ruchij.types.RandomUuid

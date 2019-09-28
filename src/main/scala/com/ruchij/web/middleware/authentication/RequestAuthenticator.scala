@@ -2,7 +2,7 @@ package com.ruchij.web.middleware.authentication
 
 import cats.Monad
 import cats.data.{Kleisli, OptionT}
-import com.ruchij.models.User
+import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
 import org.http4s.Request
 import org.http4s.server._

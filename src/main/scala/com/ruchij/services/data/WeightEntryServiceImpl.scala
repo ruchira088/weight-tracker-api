@@ -3,31 +3,42 @@ package com.ruchij.services.data
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import cats.Monad
-import cats.effect.Clock
+import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.ruchij.daos.weightentry.WeightEntryDao
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
+import com.ruchij.exceptions.{InternalServiceException, ResourceNotFoundException}
 import com.ruchij.services.data.models.WeightEntry
 import com.ruchij.types.RandomUuid
 import org.joda.time.DateTime
 
 import scala.language.higherKinds
 
-class WeightEntryServiceImpl[F[_]: Clock: Monad: RandomUuid](weightEntryDao: WeightEntryDao[F])
+class WeightEntryServiceImpl[F[_]: Clock: Sync: RandomUuid](weightEntryDao: WeightEntryDao[F])
     extends WeightEntryService[F] {
 
-  override def create(weight: Double, description: Option[String], userId: UUID, createdBy: UUID): F[WeightEntry] =
+  override def create(timestamp: DateTime, weight: Double, description: Option[String], userId: UUID, createdBy: UUID): F[WeightEntry] =
     for {
-      timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
+      currentTimestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
       id <- RandomUuid[F].uuid
 
-      databaseWeightEntry <- weightEntryDao.insert {
-        DatabaseWeightEntry(id, 0, new DateTime(timestamp), createdBy, userId, weight, description)
+      _ <- weightEntryDao.insert {
+        DatabaseWeightEntry(id, 0, new DateTime(currentTimestamp), createdBy, userId, timestamp, weight, description)
       }
-    } yield WeightEntry.fromDatabaseWeightEntry(databaseWeightEntry)
+
+      weightEntry <-
+        getById(id).adaptError {
+          case _: ResourceNotFoundException => InternalServiceException("Unable to persist weight entry")
+        }
+    } yield weightEntry
+
+  override def getById(id: UUID): F[WeightEntry] =
+    weightEntryDao.findById(id)
+      .map(WeightEntry.fromDatabaseWeightEntry)
+      .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Weight entry not found for id = $id")))
 
   override def findByUser(userId: UUID): F[List[WeightEntry]] =
-    weightEntryDao.findByUser(userId)
-      .map(_.map(WeightEntry.fromDatabaseWeightEntry))
+  weightEntryDao.findByUser(userId)
+    .map(_.map(WeightEntry.fromDatabaseWeightEntry))
+
 }

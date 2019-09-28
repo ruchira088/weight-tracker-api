@@ -10,6 +10,7 @@ case class DatabaseWeightEntry(
   createdAt: DateTime,
   createdBy: UUID,
   userId: UUID,
+  timestamp: DateTime,
   weight: Double,
   description: Option[String]
 )

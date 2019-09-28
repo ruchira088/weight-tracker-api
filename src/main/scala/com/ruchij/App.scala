@@ -3,14 +3,17 @@ package com.ruchij
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO, IOApp, Sync}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
 import com.ruchij.daos.doobie.DoobieTransactor
 import com.ruchij.daos.user.DoobieUserDao
+import com.ruchij.daos.weightentry.DoobieWeightEntryDao
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
+import com.ruchij.services.authorization.AuthorizationServiceImpl
+import com.ruchij.services.data.WeightEntryServiceImpl
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
@@ -35,6 +38,7 @@ object App extends IOApp {
 
       doobieTransactor = DoobieTransactor.fromConfiguration[IO](serviceConfiguration.doobieConfiguration)
       databaseUserDao = new DoobieUserDao(doobieTransactor)
+      weightEntryDao = new DoobieWeightEntryDao(doobieTransactor)
 
       passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
       authenticationTokenDao = new RedisAuthenticationTokenDao[IO](redisClient)
@@ -49,10 +53,18 @@ object App extends IOApp {
         authenticationSecretGenerator,
         serviceConfiguration.authenticationConfiguration
       )
+
+      authorizationService = new AuthorizationServiceImpl[IO]
+
       userService = new UserServiceImpl(databaseUserDao, authenticationService)
+      weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
 
       exitCode <- BlazeServerBuilder[IO]
-        .withHttpApp(Routes.responseHandler(Routes(userService, authenticationService, healthCheckService)))
+        .withHttpApp {
+          Routes.responseHandler {
+            Routes(userService, weightEntryService, healthCheckService)(Sync[IO], authenticationService, authorizationService)
+          }
+        }
         .bindHttp(serviceConfiguration.httpConfiguration.port)
         .serve
         .compile

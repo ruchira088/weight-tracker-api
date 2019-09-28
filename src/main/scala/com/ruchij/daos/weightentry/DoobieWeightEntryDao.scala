@@ -6,7 +6,6 @@ import cats.implicits._
 import cats.data.OptionT
 import cats.effect.Sync
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
-import com.ruchij.exceptions.InternalServiceException
 import doobie.util.transactor.Transactor
 import com.ruchij.daos.doobie.DoobieCustomMappings._
 import doobie.postgres.implicits._
@@ -16,31 +15,25 @@ import scala.language.higherKinds
 
 class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends WeightEntryDao[F] {
 
-  override def insert(databaseWeightEntry: DatabaseWeightEntry): F[DatabaseWeightEntry] =
+  override def insert(databaseWeightEntry: DatabaseWeightEntry): F[Int] =
     sql"""
-        insert into weight_entry (id, created_at, created_by, user_id, weight, description)
+        insert into weight_entry (id, created_at, created_by, user_id, timestamp, weight, description)
           values (
             ${databaseWeightEntry.id},
             ${databaseWeightEntry.createdAt},
             ${databaseWeightEntry.createdBy},
             ${databaseWeightEntry.userId},
+            ${databaseWeightEntry.timestamp},
             ${databaseWeightEntry.weight},
             ${databaseWeightEntry.description}
           )
-      """
-        .update
-        .run
-        .transact(transactor)
-        .flatMap {
-          _ =>
-            findById(databaseWeightEntry.id)
-              .getOrElseF(Sync[F].raiseError(InternalServiceException("Unable to persist weight entry")))
-        }
+      """.update.run
+      .transact(transactor)
 
   override def findById(id: UUID): OptionT[F, DatabaseWeightEntry] =
     OptionT {
       sql"""
-        select id, index, created_at, created_by, user_id, weight, description from
+        select id, index, created_at, created_by, user_id, timestamp, weight, description from
           weight_entry where id = $id
        """
         .query[DatabaseWeightEntry]
@@ -50,7 +43,7 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
 
   override def findByUser(userId: UUID): F[List[DatabaseWeightEntry]] =
     sql"""
-        select id, index, created_at, created_by, user_id, weight, description from 
+        select id, index, created_at, created_by, user_id, timestamp, weight, description from
           weight_entry where user_id = $userId
     """
       .query[DatabaseWeightEntry]

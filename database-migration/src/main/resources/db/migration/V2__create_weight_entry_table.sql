@@ -4,6 +4,7 @@ create table weight_entry(
     created_at timestamp not null,
     created_by uuid not null,
     user_id uuid not null,
+    timestamp timestamp not null,
     weight double precision not null,
     description text,
     primary key (id),

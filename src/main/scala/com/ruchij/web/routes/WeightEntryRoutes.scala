@@ -1,6 +1,6 @@
 package com.ruchij.web.routes
 
-import com.ruchij.models.User
+import com.ruchij.services.user.models.User
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 

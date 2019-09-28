@@ -2,10 +2,11 @@ package com.ruchij.web
 
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.implicits._
 import com.ruchij.exceptions.{AuthenticationException, ResourceConflictException, ResourceNotFoundException}
-import com.ruchij.models.User
+import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
+import com.ruchij.services.authorization.AuthorizationService
+import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
 import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
@@ -21,10 +22,15 @@ import scala.language.higherKinds
 object Routes {
   def apply[F[_]: Sync](
     userService: UserService[F],
-    authenticationService: AuthenticationService[F],
+    weightEntryService: WeightEntryService[F],
     healthCheckService: HealthCheckService[F]
+  )(
+    implicit authenticationService: AuthenticationService[F],
+    authorizationService: AuthorizationService[F]
   ): HttpRoutes[F] = {
+
     implicit val dsl: Http4sDsl[F] = new Http4sDsl[F] {}
+
     implicit val authMiddleware: AuthMiddleware[F, User] =
       RequestAuthenticator.authenticationMiddleware(
         authenticationService,
@@ -32,7 +38,7 @@ object Routes {
       )
 
     Router(
-      "/user" -> UserRoutes(userService),
+      "/user" -> UserRoutes(userService, weightEntryService),
       "/session" -> SessionRoutes(authenticationService),
       "/health" -> HealthRoutes(healthCheckService)
     )

@@ -1,6 +1,6 @@
 package com.ruchij.services.authentication
 
-import com.ruchij.models.User
+import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.models.AuthenticationToken
 
 import scala.language.higherKinds

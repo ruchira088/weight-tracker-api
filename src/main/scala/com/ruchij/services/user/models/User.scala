@@ -1,4 +1,4 @@
-package com.ruchij.models
+package com.ruchij.services.user.models
 
 import java.util.UUID
 

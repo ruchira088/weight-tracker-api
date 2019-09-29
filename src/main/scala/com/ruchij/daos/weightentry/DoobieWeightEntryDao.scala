@@ -8,6 +8,7 @@ import cats.effect.Sync
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import doobie.util.transactor.Transactor
 import com.ruchij.daos.doobie.DoobieCustomMappings._
+import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
 import doobie.postgres.implicits._
 import doobie.implicits._
 
@@ -41,10 +42,10 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
         .transact(transactor)
     }
 
-  override def findByUser(userId: UUID): F[List[DatabaseWeightEntry]] =
+  override def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[DatabaseWeightEntry]] =
     sql"""
         select id, index, created_at, created_by, user_id, timestamp, weight, description from
-          weight_entry where user_id = $userId
+          weight_entry where user_id = $userId offset ${pageNumber * pageSize} limit ${pageSize.toInt}
     """
       .query[DatabaseWeightEntry]
       .to[List]

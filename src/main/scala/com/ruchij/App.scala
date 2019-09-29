@@ -17,6 +17,7 @@ import com.ruchij.services.data.WeightEntryServiceImpl
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
+import com.ruchij.types.Transformation
 import com.ruchij.web.Routes
 import org.http4s.server.blaze.BlazeServerBuilder
 
@@ -62,7 +63,7 @@ object App extends IOApp {
       exitCode <- BlazeServerBuilder[IO]
         .withHttpApp {
           Routes.responseHandler {
-            Routes(userService, weightEntryService, healthCheckService)(Sync[IO], authenticationService, authorizationService)
+            Routes(userService, weightEntryService, healthCheckService)(Sync[IO], authenticationService, authorizationService, Transformation.validatedNelToIo)
           }
         }
         .bindHttp(serviceConfiguration.httpConfiguration.port)

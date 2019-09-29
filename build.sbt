@@ -42,6 +42,7 @@ lazy val rootDependencies =
     doobiePostgres,
     redisScala,
     enumeratum,
+    shapeless,
     logbackClassic,
     scalaLogging
   )

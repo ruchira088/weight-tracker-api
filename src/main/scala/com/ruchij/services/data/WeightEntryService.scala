@@ -2,6 +2,7 @@ package com.ruchij.services.data
 
 import java.util.UUID
 
+import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
 import com.ruchij.services.data.models.WeightEntry
 import org.joda.time.DateTime
 
@@ -18,5 +19,5 @@ trait WeightEntryService[F[_]] {
 
   def getById(id: UUID): F[WeightEntry]
 
-  def findByUser(userId: UUID): F[List[WeightEntry]]
+  def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[WeightEntry]]
 }

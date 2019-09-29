@@ -1,16 +1,19 @@
 package com.ruchij.web
 
-import cats.data.Kleisli
+import cats.data.{Kleisli, ValidatedNel}
 import cats.effect.Sync
-import com.ruchij.exceptions.{AuthenticationException, ResourceConflictException, ResourceNotFoundException}
+import com.ruchij.exceptions.{AggregatedException, AuthenticationException, ResourceConflictException, ResourceNotFoundException}
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.authorization.AuthorizationService
+import com.ruchij.services.data.models.WeightEntry.weightEntryEncoder
 import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
+import com.ruchij.types.Transformation
 import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
 import com.ruchij.web.responses.ErrorResponse
+import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/user`}
 import com.ruchij.web.routes.{HealthRoutes, SessionRoutes, UserRoutes}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.EntityResponseGenerator
@@ -26,7 +29,8 @@ object Routes {
     healthCheckService: HealthCheckService[F]
   )(
     implicit authenticationService: AuthenticationService[F],
-    authorizationService: AuthorizationService[F]
+    authorizationService: AuthorizationService[F],
+    transformation: Transformation[ValidatedNel[Throwable, *], F]
   ): HttpRoutes[F] = {
 
     implicit val dsl: Http4sDsl[F] = new Http4sDsl[F] {}
@@ -38,9 +42,9 @@ object Routes {
       )
 
     Router(
-      "/user" -> UserRoutes(userService, weightEntryService),
-      "/session" -> SessionRoutes(authenticationService),
-      "/health" -> HealthRoutes(healthCheckService)
+      `/user` -> UserRoutes(userService, weightEntryService),
+      `/session` -> SessionRoutes(authenticationService),
+      `/health` -> HealthRoutes(healthCheckService)
     )
   }
 
@@ -67,6 +71,7 @@ object Routes {
 
   private def throwableErrorResponseMapper(throwable: Throwable): ErrorResponse =
     throwable match {
-      case _ => ErrorResponse(throwable)
+      case AggregatedException(errors) => ErrorResponse(errors.toList)
+      case _ => ErrorResponse(List(throwable))
     }
 }

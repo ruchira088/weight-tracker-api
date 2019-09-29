@@ -315,6 +315,138 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Find weight entries by user",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6db27ff8-b5f1-4ad9-bfc5-6cce15c902f3",
+						"exec": [
+							"const DESCRIPTIONS = [",
+							"    \"Age is an issue of mind over matter. If you don't mind, it doesn't matter.\",",
+							"    \"Genius is one percent inspiration and ninety-nine percent perspiration.\",",
+							"    \"You can observe a lot just by watching.\",",
+							"    \"A house divided against itself cannot stand.\",",
+							"    \"Difficulties increase the nearer we get to the goal.\",",
+							"    \"Fate is in your hands and no one elses.\",",
+							"    \"Life is a learning experience, only if you learn.\",",
+							"    \"Self-complacency is fatal to progress.\",",
+							"    \"Peace comes from within. Do not seek it without.\",",
+							"    \"Today is the tomorrow we worried about yesterday.\",",
+							"    \"It's easier to see the mistakes on someone else's paper.\",",
+							"    \"Doing nothing is better than being busy doing nothing.\",",
+							"    \"From error to error one discovers the entire truth.\",",
+							"    \"Work out your own salvation. Do not depend on others.\",",
+							"    \"Never mistake activity for achievement.\",",
+							"    \"What worries you masters you.\",",
+							"    \"A goal without a plan is just a wish.\",",
+							"    \"Learn from yesterday, live for today, hope for tomorrow.\",",
+							"    \"Do, or do not. There is no try.\",",
+							"    \"The best teacher is experience learned from failures.\",",
+							"    \"Don't wait. The time will never be just right.\",",
+							"    \"Time is the wisest counsellor of all.\",",
+							"    \"What you fear is that which requires action to overcome.\",",
+							"    \"Skill to do comes of doing.\",",
+							"    \"Courage is going from failure to failure without losing enthusiasm.\",",
+							"    \"Those who are free of resentful thoughts surely find peace.\",",
+							"    \"No one can make you feel inferior without your consent.\",",
+							"    \"Luck is what happens when preparation meets opportunity.\",",
+							"    \"Every new day is another chance to change your life.\",",
+							"    \"Don't ruin the present with the ruined past.\",",
+							"    \"You can't stop the waves, but you can learn to surf.\",",
+							"    \"The greatest remedy for anger is delay.\",",
+							"    \"Wherever you go, go with all your heart.\",",
+							"    \"Once we accept our limits, we go beyond them.\",",
+							"    \"No garden is without its weeds.\",",
+							"    \"There is no failure except in no longer trying.\",",
+							"    \"Problems are only opportunities with thorns on them.\",",
+							"    \"There is no greater harm than that of time wasted.\",",
+							"    \"The journey of a thousand miles begins with one step.\",",
+							"    \"To be wrong is nothing unless you continue to remember it.\",",
+							"    \"Yesterdays home runs don't win today's games.\",",
+							"    \"An ant on the move does more than a dozing ox\",",
+							"    \"I have often regretted my speech, never my silence.\",",
+							"    \"To avoid criticism, do nothing, say nothing, be nothing.\",",
+							"    \"To get something you never had, you have to do something you never did.\",",
+							"    \"Think as a wise man but communicate in the language of the people.\",",
+							"    \"Practice yourself, for heavens sake in little things, and then proceed to greater.\",",
+							"    \"Life is like riding a bicycle. To keep your balance you must keep moving.\",",
+							"    \"It does not matter how slowly you go as long as you do not stop.\"",
+							"]",
+							"",
+							"const random = values => values[Math.floor(Math.random() * values.length)]",
+							"",
+							"const timestamp = new Date().toISOString()",
+							"const weight = Math.ceil(Math.random() * 5000)/100 + 50",
+							"const description = random(DESCRIPTIONS)",
+							"",
+							"const setValues = obj => Object.keys(obj).forEach(key => pm.environment.set(key, obj[key]))",
+							"",
+							"setValues({ timestamp, weight, description })",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"timestamp\": \"{{timestamp}}\",\n\t\"weight\": {{weight}},\n\t\"description\": \"{{description}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user/{{userId}}/weight-entry?page-size=10&page-number=0",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user",
+						"{{userId}}",
+						"weight-entry"
+					],
+					"query": [
+						{
+							"key": "page-size",
+							"value": "10"
+						},
+						{
+							"key": "page-number",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}

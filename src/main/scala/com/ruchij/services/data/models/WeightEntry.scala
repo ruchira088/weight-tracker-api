@@ -5,7 +5,8 @@ import java.util.UUID
 import cats.Applicative
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.circe.Encoders.jodaTimeEncoder
-import io.circe.generic.auto._
+import io.circe.Encoder
+import io.circe.generic.semiauto._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 import org.joda.time.DateTime
@@ -30,5 +31,7 @@ object WeightEntry {
       databaseWeightEntry.description
     )
 
-  implicit def weightEntryEncoder[F[_]: Applicative]: EntityEncoder[F, WeightEntry] = jsonEncoderOf[F, WeightEntry]
+  implicit def weightEntryEncoder: Encoder[WeightEntry] = deriveEncoder[WeightEntry]
+
+  implicit def weightEntryEntityEncoder[F[_]: Applicative]: EntityEncoder[F, WeightEntry] = jsonEncoderOf[F, WeightEntry]
 }

@@ -1,4 +1,4 @@
-package com.ruchij.web.requests
+package com.ruchij.web.requests.bodies
 
 import cats.effect.Sync
 import io.circe.generic.auto._

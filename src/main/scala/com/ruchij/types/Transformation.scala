@@ -24,6 +24,6 @@ object Transformation {
   implicit def validatedNelToIo[Error <: Throwable]: Transformation[ValidatedNel[Error, *], IO] =
     new Transformation[ValidatedNel[Error, *], IO] {
       override def apply[A](value: => ValidatedNel[Error, A]): IO[A] =
-        value.fold[IO[A]](errors => IO.raiseError(AggregatedException(errors)), result => IO(result))
+        value.fold[IO[A]](errors => IO.raiseError(AggregatedException(errors.toList)), result => IO(result))
     }
 }

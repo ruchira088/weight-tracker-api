@@ -1,4 +1,4 @@
-package com.ruchij.web.requests
+package com.ruchij.web.requests.queryparameters
 
 import cats.data.ValidatedNel
 import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageNumberTag, PageSize, PageSizeTag}

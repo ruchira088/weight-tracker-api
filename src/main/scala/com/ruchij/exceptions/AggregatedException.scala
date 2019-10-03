@@ -1,5 +1,3 @@
 package com.ruchij.exceptions
 
-import cats.data.NonEmptyList
-
-case class AggregatedException[+A <: Throwable](errors: NonEmptyList[A]) extends Exception
+case class AggregatedException[+A <: Throwable](errors: List[A]) extends Exception

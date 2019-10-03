@@ -1,11 +1,11 @@
-package com.ruchij.web.requests
+package com.ruchij.web.requests.bodies
 
 import cats.effect.Sync
 import com.ruchij.circe.Decoders.jodaTimeDecoder
-import org.http4s.EntityDecoder
-import org.joda.time.DateTime
-import org.http4s.circe.jsonOf
 import io.circe.generic.auto._
+import org.http4s.EntityDecoder
+import org.http4s.circe.jsonOf
+import org.joda.time.DateTime
 
 import scala.language.higherKinds
 

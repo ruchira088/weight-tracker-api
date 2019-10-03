@@ -1,4 +1,4 @@
-package com.ruchij.web.requests
+package com.ruchij.web.requests.queryparameters
 
 import cats.data.Validated.Valid
 import cats.data.ValidatedNel

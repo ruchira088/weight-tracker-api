@@ -3,7 +3,7 @@ package com.ruchij.web.routes
 import cats.effect.Sync
 import cats.implicits._
 import com.ruchij.services.authentication.AuthenticationService
-import com.ruchij.web.requests.LoginRequest
+import com.ruchij.web.requests.bodies.LoginRequest
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 

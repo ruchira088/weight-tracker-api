@@ -98,6 +98,61 @@
 			"response": []
 		},
 		{
+			"name": "Create user - validation error",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9ac0ea8e-7a0b-42d0-8f17-ae8038e5e9b1",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "85117311-bc38-42e3-ae7a-b9a2e9baaabf",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"\",\n\t\"password\": \"\",\n\t\"email\": \"\",\n\t\"firstName\": \"\",\n\t\"lastName\": \"\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Login",
 			"event": [
 				{
@@ -164,6 +219,35 @@
 					],
 					"path": [
 						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Username exists",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/username/{{username}}/exists",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"username",
+						"{{username}}",
+						"exists"
 					]
 				}
 			},

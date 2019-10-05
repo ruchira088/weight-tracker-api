@@ -10,13 +10,13 @@ import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.{InternalServiceException, ResourceConflictException, ResourceNotFoundException}
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
-import com.ruchij.types.RandomUuid
+import com.ruchij.types.Random
 import org.joda.time.DateTime
 
 import scala.concurrent.duration.MILLISECONDS
 import scala.language.higherKinds
 
-class UserServiceImpl[F[_]: Sync: Clock: RandomUuid](
+class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
   databaseUserDao: UserDao[F],
   authenticationService: AuthenticationService[F]
 ) extends UserService[F] {
@@ -40,7 +40,7 @@ class UserServiceImpl[F[_]: Sync: Clock: RandomUuid](
 
       hashedPassword <- authenticationService.hashPassword(password)
       timestamp <- Clock[F].realTime(MILLISECONDS)
-      id <- RandomUuid[F].uuid
+      id <- Random[F, UUID].value
 
       _ <- databaseUserDao.insert(
         DatabaseUser(id, new DateTime(timestamp), username, hashedPassword, email, firstName, lastName)

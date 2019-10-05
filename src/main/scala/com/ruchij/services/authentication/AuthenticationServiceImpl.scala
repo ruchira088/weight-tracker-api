@@ -12,7 +12,7 @@ import com.ruchij.exceptions.{AuthenticationException, ResourceNotFoundException
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.models.AuthenticationToken
 import com.ruchij.services.hashing.PasswordHashingService
-import com.ruchij.types.RandomUuid
+import com.ruchij.types.Random
 import org.joda.time.DateTime
 
 import scala.language.higherKinds

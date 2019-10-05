@@ -10,18 +10,18 @@ import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.exceptions.{InternalServiceException, ResourceNotFoundException}
 import com.ruchij.services.data.models.WeightEntry
-import com.ruchij.types.RandomUuid
+import com.ruchij.types.Random
 import org.joda.time.DateTime
 
 import scala.language.higherKinds
 
-class WeightEntryServiceImpl[F[_]: Clock: Sync: RandomUuid](weightEntryDao: WeightEntryDao[F])
+class WeightEntryServiceImpl[F[_]: Clock: Sync: Lambda[X[_] => Random[X, UUID]]](weightEntryDao: WeightEntryDao[F])
     extends WeightEntryService[F] {
 
   override def create(timestamp: DateTime, weight: Double, description: Option[String], userId: UUID, createdBy: UUID): F[WeightEntry] =
     for {
       currentTimestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
-      id <- RandomUuid[F].uuid
+      id <- Random[F, UUID].value
 
       _ <- weightEntryDao.insert {
         DatabaseWeightEntry(id, 0, new DateTime(currentTimestamp), createdBy, userId, timestamp, weight, description)

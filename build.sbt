@@ -5,6 +5,7 @@ lazy val root =
     .enablePlugins(BuildInfoPlugin, JavaAppPackaging)
     .settings(
       name := "weight-tracker-api",
+      version := "0.0.1",
       organization := "com.ruchij",
       scalaVersion := SCALA_VERSION,
       maintainer := "me@ruchij.com",
@@ -12,8 +13,6 @@ lazy val root =
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
       scalacOptions ++= Seq("-Ypartial-unification"),
-      testOptions in Test +=
-        Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-results"),
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor)
     )

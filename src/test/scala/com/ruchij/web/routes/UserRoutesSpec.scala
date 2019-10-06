@@ -5,13 +5,14 @@ import java.util.UUID
 import cats.effect.IO
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
-import com.ruchij.test.utils.JsonUtils.{json, jsonRequest}
+import com.ruchij.test.utils.JsonUtils.json
+import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, jsonRequest}
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.types.Random
 import io.circe.Json
 import io.circe.literal._
-import org.http4s.{HttpApp, Method, Status}
+import org.http4s.{HttpApp, Method, Request, Status, Uri}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class UserRoutesSpec extends FlatSpec with MustMatchers {
@@ -103,6 +104,30 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
       }"""
 
     response.status mustBe Status.Conflict
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedResponse)
+  }
+
+  "GET /user" should "return the authenticated user" in {
+    val databaseUser = RandomGenerator.databaseUser()
+    val authenticationToken = RandomGenerator.authenticationToken(databaseUser.id)
+
+    val httpApp = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken).httpApp
+
+    val request = authenticatedRequest(authenticationToken, Request[IO](uri = Uri(path = "/user")))
+
+    val response = httpApp.run(request).unsafeRunSync()
+
+    val expectedResponse: Json =
+      json"""{
+        "id": ${databaseUser.id},
+        "username": ${databaseUser.username},
+        "email": ${databaseUser.email},
+        "firstName": ${databaseUser.firstName},
+        "lastName": ${databaseUser.lastName}
+      }"""
+
+    response.status mustBe Status.Ok
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
   }

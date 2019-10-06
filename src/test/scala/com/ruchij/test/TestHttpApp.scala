@@ -3,25 +3,21 @@ package com.ruchij.test
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
-import cats.Functor
 import cats.data.ValidatedNel
 import cats.effect.{Async, Clock, ContextShift, Sync}
 import com.ruchij.config.AuthenticationConfiguration
-import com.ruchij.daos.user.DoobieUserDao
+import com.ruchij.daos.authtokens.AuthenticationTokenDao
 import com.ruchij.daos.user.models.DatabaseUser
-import com.ruchij.daos.weightentry.DoobieWeightEntryDao
+import com.ruchij.daos.user.{DoobieUserDao, UserDao}
+import com.ruchij.daos.weightentry.{DoobieWeightEntryDao, WeightEntryDao}
 import com.ruchij.migration.MigrationApp
 import com.ruchij.services.authentication.models.AuthenticationToken
-import com.ruchij.services.authentication.{
-  AuthenticationSecretGeneratorImpl,
-  AuthenticationService,
-  AuthenticationServiceImpl
-}
+import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
-import com.ruchij.services.data.{WeightEntryService, WeightEntryServiceImpl}
+import com.ruchij.services.data.WeightEntryServiceImpl
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
-import com.ruchij.services.user.{UserService, UserServiceImpl}
+import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.test.daos.InMemoryAuthenticationTokenDao
 import com.ruchij.test.utils.DaoUtils
 import com.ruchij.types.Transformation.~>
@@ -35,12 +31,13 @@ import scala.language.{higherKinds, postfixOps}
 
 case class TestHttpApp[F[_]](
   httpApp: HttpApp[F],
-  userService: UserService[F],
-  authenticationService: AuthenticationService[F],
-  weightEntryService: WeightEntryService[F]
+  userDao: UserDao[F],
+  authenticationTokenDao: AuthenticationTokenDao[F],
+  weightEntryDao: WeightEntryDao[F]
 )
 
 object TestHttpApp {
+
   def apply[F[_]: Async: ContextShift: Clock: Lambda[X[_] => Random[X, UUID]]: Lambda[
     X[_] => ValidatedNel[Throwable, *] ~> X
   ]](): TestHttpApp[F] = {
@@ -48,12 +45,14 @@ object TestHttpApp {
 
     val userDao: DoobieUserDao[F] = new DoobieUserDao[F](DaoUtils.h2Transactor)
     val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](DaoUtils.h2Transactor)
+    val authenticationTokenDao: InMemoryAuthenticationTokenDao[F] =
+      new InMemoryAuthenticationTokenDao[F](new ConcurrentHashMap[String, AuthenticationToken]())
 
     val authenticationService =
       new AuthenticationServiceImpl[F](
         new BCryptService[F](ExecutionContext.global),
         userDao,
-        new InMemoryAuthenticationTokenDao[F](new ConcurrentHashMap[String, AuthenticationToken]()),
+        authenticationTokenDao,
         new AuthenticationSecretGeneratorImpl[F],
         AuthenticationConfiguration(30 seconds)
       )
@@ -72,20 +71,21 @@ object TestHttpApp {
         )
       }
 
-    TestHttpApp(httpApp, userService, authenticationService, weightEntryService)
+    TestHttpApp(httpApp, userDao, authenticationTokenDao, weightEntryDao)
   }
 
   implicit class TestHttpAppOps[F[_]: UnsafeCopoint](val testHttpApp: TestHttpApp[F]) {
     def withUser(databaseUser: DatabaseUser): TestHttpApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
-          testHttpApp.userService.create(
-            databaseUser.username,
-            databaseUser.password,
-            databaseUser.email,
-            databaseUser.firstName,
-            databaseUser.lastName
-          )
+          testHttpApp.userDao.insert(databaseUser)
+        }
+      }
+
+    def withAuthenticationToken(authenticationToken: AuthenticationToken): TestHttpApp[F] =
+      self {
+        UnsafeCopoint.unsafeExtract {
+          testHttpApp.authenticationTokenDao.createToken(authenticationToken)
         }
       }
 

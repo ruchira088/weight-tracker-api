@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.github.javafaker.Faker
 import com.ruchij.daos.user.models.DatabaseUser
+import com.ruchij.services.authentication.models.AuthenticationToken
 import com.ruchij.services.user.models.User
 import org.joda.time.DateTime
 
@@ -32,6 +33,9 @@ object RandomGenerator {
 
   def databaseUser(): DatabaseUser =
     DatabaseUser(uuid(), DateTime.now(), username(), password(), email(), option(firstName()), option(lastName()))
+
+  def authenticationToken(userId: UUID): AuthenticationToken =
+    AuthenticationToken(userId, DateTime.now().plusSeconds(30), uuid().toString)
 
   def boolean(): Boolean = ScalaRandom.nextBoolean()
 

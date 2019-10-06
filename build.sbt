@@ -16,6 +16,7 @@ lazy val root =
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor)
     )
+    .dependsOn(databaseMigration)
 
 lazy val databaseMigration =
   (project in file("./database-migration"))
@@ -24,9 +25,8 @@ lazy val databaseMigration =
       organization := "com.ruchij",
       scalaVersion := SCALA_VERSION,
       maintainer := "me@ruchij.com",
-      libraryDependencies ++= Seq(postgresql, flywayCore)
+      libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2)
     )
-    .dependsOn(root)
 
 lazy val rootDependencies =
   Seq(
@@ -35,6 +35,7 @@ lazy val rootDependencies =
     http4sCirce,
     circeGeneric,
     circeParser,
+    jawnFs2,
     pureconfig,
     jodaTime,
     jbcrypt,
@@ -47,6 +48,6 @@ lazy val rootDependencies =
   )
 
 lazy val rootTestDependencies =
-  Seq(scalaTest, pegdown)
+  Seq(scalaTest, h2, circeLiteral, javaFaker, pegdown)
 
 addCommandAlias("testWithCoverage", "; coverage; test; coverageReport")

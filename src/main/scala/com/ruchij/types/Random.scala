@@ -2,7 +2,7 @@ package com.ruchij.types
 
 import java.util.UUID
 
-import cats.effect.IO
+import cats.effect.Sync
 
 import scala.language.higherKinds
 
@@ -13,7 +13,7 @@ trait Random[F[_], +A] {
 object Random {
   def apply[F[_], A](implicit random: Random[F, A]): Random[F, A] = random
 
-  implicit val ioRandomUuid: Random[IO, UUID] = new Random[IO, UUID] {
-    override def value[B >: UUID]: IO[B] = IO.delay(UUID.randomUUID())
+  implicit def randomUuid[F[_]: Sync]: Random[F, UUID] = new Random[F, UUID] {
+    override def value[B >: UUID]: F[B] = Sync[F].delay(UUID.randomUUID())
   }
 }

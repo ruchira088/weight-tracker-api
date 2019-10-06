@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  compile_and_test:
+  build:
     docker:
       - image: openjdk:8-jdk
     steps:

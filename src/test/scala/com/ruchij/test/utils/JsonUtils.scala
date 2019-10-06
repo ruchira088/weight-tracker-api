@@ -14,7 +14,7 @@ import scala.language.higherKinds
 
 object JsonUtils {
 
-  def jsonPostRequest[F[_]: Sync](method: Method, url: String, body: Json): Request[F] =
+  def jsonRequest[F[_]: Sync](method: Method, url: String, body: Json): Request[F] =
     Request(
       method,
       uri = Uri(path = url),

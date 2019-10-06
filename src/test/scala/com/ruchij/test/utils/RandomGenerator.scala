@@ -1,43 +1,39 @@
 package com.ruchij.test.utils
 
-import cats.{Applicative, Id, Monad}
-import cats.implicits._
-import cats.effect.Sync
+import java.util.UUID
+
 import com.github.javafaker.Faker
-import com.ruchij.types.Random
+import com.ruchij.daos.user.models.DatabaseUser
+import com.ruchij.services.user.models.User
+import org.joda.time.DateTime
 
 import scala.language.higherKinds
 import scala.util.{Random => ScalaRandom}
 
 object RandomGenerator {
-  type RandomValue[+A] = Random[Id, A]
-
   val faker: Faker = Faker.instance()
 
   import faker._
 
-  def random[A](randomValue: => A): RandomValue[A] = new Random[Id, A] {
-    override def value[B >: A]: Id[B] = randomValue
-  }
+  def username(): String = name().username()
 
-  def username(): RandomValue[String] = random(name().username())
+  def password(): String = internet().password()
 
-  def password(): RandomValue[String] = random(internet().password())
+  def email(): String = internet().emailAddress()
 
-  def email(): RandomValue[String] = random(internet().emailAddress())
+  def firstName(): String = name().firstName()
 
-  def firstName(): RandomValue[String] = random(name().firstName())
+  def lastName(): String = name().lastName()
 
-  def lastName(): RandomValue[String] = random(name().lastName())
+  def uuid(): UUID = UUID.randomUUID()
 
-  def boolean[F[_]: Applicative]: Random[F, Boolean] =
-    new Random[F, Boolean] {
-      override def value[B >: Boolean]: F[B] = Applicative[F].pure(ScalaRandom.nextBoolean())
-    }
+  def user(): User =
+    User(uuid(), username(), email(), option(firstName()), option(lastName()))
 
-  def option[F[_]: Monad, A](random: Random[F, A]): Random[F, Option[A]] =
-    new Random[F, Option[A]] {
-      override def value[B >: Option[A]]: F[B] =
-        boolean[F].value.flatMap { if (_) random.value.map(Some.apply) else Applicative[F].pure(None) }
-    }
+  def databaseUser(): DatabaseUser =
+    DatabaseUser(uuid(), DateTime.now(), username(), password(), email(), option(firstName()), option(lastName()))
+
+  def boolean(): Boolean = ScalaRandom.nextBoolean()
+
+  def option[A](value: => A): Option[A] = if (boolean()) Some(value) else None
 }

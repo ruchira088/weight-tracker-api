@@ -1,5 +1,7 @@
 package com.ruchij.types
 
+import cats.effect.IO
+
 import scala.language.higherKinds
 import scala.util.Try
 
@@ -12,5 +14,9 @@ object UnsafeCopoint {
 
   implicit val tryUnsafeCopoint: UnsafeCopoint[Try] = new UnsafeCopoint[Try] {
     override def extract[A](value: Try[A]): A = value.get
+  }
+
+  implicit val ioUnsafeCopoint: UnsafeCopoint[IO] = new UnsafeCopoint[IO] {
+    override def extract[A](value: IO[A]): A = value.unsafeRunSync()
   }
 }

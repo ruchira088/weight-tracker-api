@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.effect.IO
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
-import com.ruchij.test.utils.JsonUtils.{json, jsonPostRequest}
+import com.ruchij.test.utils.JsonUtils.{json, jsonRequest}
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.types.Random
@@ -23,27 +23,59 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
       override def value[B >: UUID]: IO[B] = IO(uuid)
     }
 
-    val httpApp: HttpApp[IO] = TestHttpApp[IO]()
+    val httpApp: HttpApp[IO] = TestHttpApp[IO]().httpApp
 
-    val username = RandomGenerator.username().value
-    val password = RandomGenerator.password().value
-    val email = RandomGenerator.email().value
-    val firstName = RandomGenerator.option(RandomGenerator.firstName()).value
-    val lastName = RandomGenerator.option(RandomGenerator.lastName()).value
+    val username = RandomGenerator.username()
+    val password = RandomGenerator.password()
+    val email = RandomGenerator.email()
+    val firstName = RandomGenerator.option(RandomGenerator.firstName())
+    val lastName = RandomGenerator.option(RandomGenerator.lastName())
 
     val requestBody: Json =
       json"""{
-        "username": $username, "password": $password, "email": $email, "firstName": $firstName, "lastName": $lastName
+        "username": $username,
+        "password": $password,
+        "email": $email,
+        "firstName": $firstName,
+        "lastName": $lastName
       }"""
+
+    val response = httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
 
     val expectedResponse =
       json"""{
-        "id": $uuid, "username": $username, "email": $email, "firstName": $firstName, "lastName": $lastName
+        "id": $uuid,
+        "username": $username,
+        "email": $email,
+        "firstName": $firstName,
+        "lastName": $lastName
       }"""
 
-    val response = httpApp.run(jsonPostRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
-
     response.status mustBe Status.Created
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedResponse)
+  }
+
+  it should "return a conflict error response if the username already exists" in {
+    val databaseUser = RandomGenerator.databaseUser()
+
+    val httpApp = TestHttpApp[IO]().withUser(databaseUser).httpApp
+
+    val requestBody =
+      json"""{
+        "username": ${databaseUser.username},
+        "password": ${databaseUser.password},
+        "email": ${databaseUser.email}
+      }"""
+
+    val response = httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
+
+    val expectedResponse =
+      json"""{
+        "errorMessages": [ ${"username already exists: " + databaseUser.username} ]
+      }"""
+
+    response.status mustBe Status.Conflict
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
   }

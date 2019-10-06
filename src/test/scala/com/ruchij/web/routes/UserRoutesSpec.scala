@@ -79,4 +79,31 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
   }
+
+  it should "return a conflict error response if the email address already exists" in {
+    val databaseUser = RandomGenerator.databaseUser()
+
+    val httpApp = TestHttpApp[IO]().withUser(databaseUser).httpApp
+
+    val username = RandomGenerator.username()
+    val password = RandomGenerator.password()
+
+    val requestBody =
+      json"""{
+        "username": $username,
+        "password": $password,
+        "email": ${databaseUser.email}
+      }"""
+
+    val response = httpApp.run(jsonRequest(Method.POST, "/user", requestBody)).unsafeRunSync()
+
+    val expectedResponse =
+      json"""{
+        "errorMessages": [ ${"email already exists: " + databaseUser.email} ]
+      }"""
+
+    response.status mustBe Status.Conflict
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedResponse)
+  }
 }

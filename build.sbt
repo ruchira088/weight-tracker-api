@@ -48,6 +48,6 @@ lazy val rootDependencies =
   )
 
 lazy val rootTestDependencies =
-  Seq(scalaTest, h2, circeLiteral, javaFaker, pegdown)
+  Seq(scalaTest, h2, circeLiteral, embeddedRedis, javaFaker, pegdown)
 
 addCommandAlias("testWithCoverage", "; coverage; test; coverageReport")

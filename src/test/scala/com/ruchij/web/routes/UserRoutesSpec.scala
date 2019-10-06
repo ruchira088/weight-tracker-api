@@ -6,13 +6,13 @@ import cats.effect.IO
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
-import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, jsonRequest}
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
+import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, jsonRequest}
 import com.ruchij.types.Random
 import io.circe.Json
 import io.circe.literal._
-import org.http4s.{HttpApp, Method, Request, Status, Uri}
+import org.http4s.{Method, Request, Status, Uri}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class UserRoutesSpec extends FlatSpec with MustMatchers {
@@ -24,7 +24,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
       override def value[B >: UUID]: IO[B] = IO(uuid)
     }
 
-    val httpApp: HttpApp[IO] = TestHttpApp[IO]().httpApp
+    val application: TestHttpApp[IO] = TestHttpApp[IO]()
 
     val username = RandomGenerator.username()
     val password = RandomGenerator.password()
@@ -41,7 +41,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "lastName": $lastName
       }"""
 
-    val response = httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
+    val response = application.httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
 
     val expectedResponse =
       json"""{
@@ -55,12 +55,14 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response.status mustBe Status.Created
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
+
+    application.shutdown()
   }
 
   it should "return a conflict error response if the username already exists" in {
     val databaseUser = RandomGenerator.databaseUser()
 
-    val httpApp = TestHttpApp[IO]().withUser(databaseUser).httpApp
+    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
 
     val requestBody =
       json"""{
@@ -69,7 +71,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "email": ${databaseUser.email}
       }"""
 
-    val response = httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
+    val response = application.httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
 
     val expectedResponse =
       json"""{
@@ -79,12 +81,14 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response.status mustBe Status.Conflict
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
+
+    application.shutdown()
   }
 
   it should "return a conflict error response if the email address already exists" in {
     val databaseUser = RandomGenerator.databaseUser()
 
-    val httpApp = TestHttpApp[IO]().withUser(databaseUser).httpApp
+    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
 
     val username = RandomGenerator.username()
     val password = RandomGenerator.password()
@@ -96,7 +100,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "email": ${databaseUser.email}
       }"""
 
-    val response = httpApp.run(jsonRequest(Method.POST, "/user", requestBody)).unsafeRunSync()
+    val response = application.httpApp.run(jsonRequest(Method.POST, "/user", requestBody)).unsafeRunSync()
 
     val expectedResponse =
       json"""{
@@ -106,17 +110,20 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response.status mustBe Status.Conflict
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
+
+    application.shutdown()
   }
 
   "GET /user" should "return the authenticated user" in {
     val databaseUser = RandomGenerator.databaseUser()
     val authenticationToken = RandomGenerator.authenticationToken(databaseUser.id)
 
-    val httpApp = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken).httpApp
+    val application: TestHttpApp[IO] =
+      TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
     val request = authenticatedRequest(authenticationToken, Request[IO](uri = Uri(path = "/user")))
 
-    val response = httpApp.run(request).unsafeRunSync()
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedResponse: Json =
       json"""{
@@ -130,5 +137,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response.status mustBe Status.Ok
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
+
+    application.shutdown()
   }
 }

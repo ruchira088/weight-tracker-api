@@ -16,6 +16,8 @@ object Dependencies
 
   lazy val circeParser = "io.circe" %% "circe-parser" % CIRCE_VERSION
 
+  lazy val circeLiteral = "io.circe" %% "circe-literal" % CIRCE_VERSION
+
   lazy val jawnFs2 = "org.http4s" %% "jawn-fs2" % "0.15.0"
 
   lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.1"
@@ -50,9 +52,9 @@ object Dependencies
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8"
 
-  lazy val javaFaker = "com.github.javafaker" % "javafaker" % "1.0.1"
+  lazy val embeddedRedis = "com.github.kstyrc" % "embedded-redis" % "0.6"
 
-  lazy val circeLiteral = "io.circe" %% "circe-literal" % CIRCE_VERSION
+  lazy val javaFaker = "com.github.javafaker" % "javafaker" % "1.0.1"
 
   lazy val pegdown = "org.pegdown" % "pegdown" % "1.6.0"
 }

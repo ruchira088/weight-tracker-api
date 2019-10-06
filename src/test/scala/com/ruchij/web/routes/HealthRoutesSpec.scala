@@ -8,7 +8,7 @@ import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
 import io.circe.literal._
-import org.http4s.{HttpApp, Request, Response, Status, Uri}
+import org.http4s.{Request, Response, Status, Uri}
 import org.joda.time.DateTime
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -20,12 +20,12 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
     val currentDateTime = DateTime.now()
     implicit val clock: Clock[IO] = stubClock[IO](currentDateTime)
 
-    val httpApp: HttpApp[IO] = TestHttpApp[IO]().httpApp
+    val application: TestHttpApp[IO] = TestHttpApp[IO]()
 
     val request = Request[IO](uri = Uri(path = "/health"))
 
     val response: Response[IO] =
-      httpApp.run(request).unsafeRunSync()
+      application.httpApp.run(request).unsafeRunSync()
 
     val expectedResponse =
       json"""{
@@ -40,5 +40,7 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
     response.status mustBe Status.Ok
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedResponse)
+
+    application.shutdown()
   }
 }

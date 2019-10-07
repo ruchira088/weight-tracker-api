@@ -8,11 +8,9 @@ import com.ruchij.services.user.models.User
 import scala.language.higherKinds
 
 trait UserService[F[_]] {
-  def create(username: String, password: String, email: String, firstName: Option[String], lastName: Option[String]): F[User]
+  def create(email: String, password: String, firstName: String, lastName: Option[String]): F[User]
 
   def getById(id: UUID): F[User]
-
-  def findByUsername(username: String): OptionT[F, User]
 
   def findByEmail(email: String): OptionT[F, User]
 }

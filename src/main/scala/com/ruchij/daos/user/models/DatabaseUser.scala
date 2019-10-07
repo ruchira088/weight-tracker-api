@@ -7,9 +7,8 @@ import org.joda.time.DateTime
 case class DatabaseUser(
   id: UUID,
   createdAt: DateTime,
-  username: String,
-  password: String,
   email: String,
-  firstName: Option[String],
+  password: String,
+  firstName: String,
   lastName: Option[String]
 )

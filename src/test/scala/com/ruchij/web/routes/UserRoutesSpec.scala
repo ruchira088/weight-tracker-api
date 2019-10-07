@@ -26,17 +26,15 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
 
     val application: TestHttpApp[IO] = TestHttpApp[IO]()
 
-    val username = RandomGenerator.username()
-    val password = RandomGenerator.password()
     val email = RandomGenerator.email()
-    val firstName = RandomGenerator.option(RandomGenerator.firstName())
+    val password = RandomGenerator.password()
+    val firstName = RandomGenerator.firstName()
     val lastName = RandomGenerator.option(RandomGenerator.lastName())
 
     val requestBody: Json =
       json"""{
-        "username": $username,
-        "password": $password,
         "email": $email,
+        "password": $password,
         "firstName": $firstName,
         "lastName": $lastName
       }"""
@@ -46,7 +44,6 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     val expectedResponse =
       json"""{
         "id": $uuid,
-        "username": $username,
         "email": $email,
         "firstName": $firstName,
         "lastName": $lastName
@@ -59,45 +56,19 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     application.shutdown()
   }
 
-  it should "return a conflict error response if the username already exists" in {
-    val databaseUser = RandomGenerator.databaseUser()
-
-    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
-
-    val requestBody =
-      json"""{
-        "username": ${databaseUser.username},
-        "password": ${databaseUser.password},
-        "email": ${databaseUser.email}
-      }"""
-
-    val response = application.httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
-
-    val expectedResponse =
-      json"""{
-        "errorMessages": [ ${"username already exists: " + databaseUser.username} ]
-      }"""
-
-    response.status mustBe Status.Conflict
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedResponse)
-
-    application.shutdown()
-  }
-
   it should "return a conflict error response if the email address already exists" in {
     val databaseUser = RandomGenerator.databaseUser()
 
     val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
 
-    val username = RandomGenerator.username()
     val password = RandomGenerator.password()
+    val firstName = RandomGenerator.firstName()
 
     val requestBody =
       json"""{
-        "username": $username,
+        "email": ${databaseUser.email},
         "password": $password,
-        "email": ${databaseUser.email}
+        "firstName": $firstName
       }"""
 
     val response = application.httpApp.run(jsonRequest(Method.POST, "/user", requestBody)).unsafeRunSync()
@@ -128,7 +99,6 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     val expectedResponse: Json =
       json"""{
         "id": ${databaseUser.id},
-        "username": ${databaseUser.username},
         "email": ${databaseUser.email},
         "firstName": ${databaseUser.firstName},
         "lastName": ${databaseUser.lastName}

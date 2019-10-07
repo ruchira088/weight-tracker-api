@@ -28,7 +28,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "9ac0ea8e-7a0b-42d0-8f17-ae8038e5e9b1",
+						"id": "3e2f3b27-6b8b-4dde-bf80-cd9bdbf4db7e",
 						"exec": [
 							"const FIRST_NAMES = [ \"Ethelyn\", \"Cordia\", \"Anthony\", \"Lauren\", \"Asia\", \"Giovanni\", \"Jennefer\", \"Deedee\", \"Cherise\", \"Erminia\", \"Adolfo\", \"Jan\", \"Elliott\", \"Santo\", \"Griselda\", \"Wilbur\", \"John\", \"Dwain\", \"Giuseppe\", \"Bryanna\", \"Neomi\", \"Salvador\", \"Florentina\", \"Kareen\", \"Mac\", \"Vaughn\", \"Gretchen\", \"Cristopher\", \"Sharan\", \"Teodoro\", \"Leda\", \"Ok\", \"Orlando\", \"Percy\", \"Leon\", \"Isidro\", \"Margie\", \"Nell\", \"Dawne\", \"Adolph\", \"Sari\", \"Cari\", \"Ha\", \"Danny\", \"Wilhemina\", \"Earle\", \"Cory\", \"Ulysses\", \"Deidre\", \"Caroline\", \"Kerry\", \"Marlin\", \"Valery\", \"Cyril\", \"Julio\", \"Lance\", \"Fredia\", \"Mimi\", \"Jerrold\", \"Nathalie\", \"Jame\", \"Foster\", \"Larue\", \"Eboni\", \"Philip\", \"Dion\", \"Sherill\", \"Eliana\", \"Romeo\", \"Gay\", \"Lawrence\", \"Russell\", \"Joaquin\", \"Sherrie\", \"Sebastian\", \"Kip\", \"Mandi\", \"Corrina\", \"Diana\", \"Juana\", \"Cecila\", \"Coletta\", \"Raylene\", \"Preston\", \"Briana\", \"Isaias\", \"Twila\", \"Janise\", \"Ivana\", \"Toni\", \"Cameron\", \"Eli\", \"Katelynn\", \"Celinda\", \"Bette\", \"Danna\", \"Reed\", \"Marco\", \"Rex\", \"Brianne\", \"Makeda\", \"Tommie\", \"Joette\", \"Otis\", \"Dave\", \"Myron\", \"Margaretta\", \"Arden\", \"Hiram\", \"Eun\", \"Sadye\", \"Jacinto\", \"Kelvin\", \"Randell\", \"Flora\", \"Brigette\", \"Christen\", \"Dario\", \"Sandi\", \"Devin\", \"Donny\", \"Effie\", \"Rodger\", \"Yoshiko\", \"Troy\", \"Domenic\", \"Margarette\", \"Nick\", \"Ronda\", \"Alta\", \"Monty\", \"Mariann\", \"Darnell\", \"Thurman\", \"Jesus\", \"Ruby\", \"Dante\", \"Rudolph\", \"Harmony\", \"Darryl\", \"Sung\", \"Pearly\", \"Holley\", \"Mack\", \"Merilyn\", \"Rodney\", \"Stephan\", \"Oscar\", \"Suk\", \"Chase\", \"Gerald\", \"Evon\", \"Jamey\", \"Adriene\", \"Octavio\", \"Shemeka\", \"Kathey\", \"Samella\", \"Twanda\", \"Hyun\", \"Maxine\", \"Jed\", \"Lilia\", \"Anika\", \"Chang\", \"Von\", \"Milo\", \"Lai\", \"Waylon\", \"Willy\", \"Scott\", \"Lezlie\", \"Carrol\", \"Elton\", \"Cherrie\", \"Agueda\", \"Miki\", \"Tiesha\", \"Jayson\", \"Bridget\", \"Leanne\", \"Carmela\", \"Tameika\", \"Heide\", \"Elenore\", \"Clayton\", \"Morgan\", \"Nakesha\", \"Misti\", \"Brenton\", \"Jules\", \"Lovetta\", \"Stephany\", \"Mike\", \"Myrtice\", \"Shae\", \"Natosha\", \"Sofia\", \"Benjamin\", \"Donnell\" ]",
 							"",
@@ -49,7 +49,7 @@
 							"const username = `${firstName}.${lastName}`.toLowerCase()",
 							"const email = `${username}@${emailDomain}`",
 							"",
-							"setValues({ firstName, lastName, username, email, password: PASSWORD })",
+							"setValues({ firstName, lastName, email, password: PASSWORD })",
 							""
 						],
 						"type": "text/javascript"
@@ -58,7 +58,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "85117311-bc38-42e3-ae7a-b9a2e9baaabf",
+						"id": "97e6a1e2-ea81-4bbd-8a4f-e9067fd60a47",
 						"exec": [
 							"pm.environment.set(\"userId\", pm.response.json().id)"
 						],
@@ -78,7 +78,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"username\": \"{{username}}\",\n\t\"password\": \"{{password}}\",\n\t\"email\": \"{{email}}\",\n\t\"firstName\": \"{{firstName}}\",\n\t\"lastName\": \"{{lastName}}\"\n}",
+					"raw": "{\n\t\"email\": \"{{email}}\",\n\t\"password\": \"{{password}}\",\n\t\"firstName\": \"{{firstName}}\",\n\t\"lastName\": \"{{lastName}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -133,7 +133,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"username\": \"\",\n\t\"password\": \"\",\n\t\"email\": \"\",\n\t\"firstName\": \"\",\n\t\"lastName\": \"\"\n}",
+					"raw": "{\n\t\"email\": \"\",\n\t\"password\": \"\",\n\t\"firstName\": \"\",\n\t\"lastName\": \"\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -172,16 +172,16 @@
 					{
 						"key": "Content-Type",
 						"name": "Content-Type",
-						"value": "application/javascript",
+						"value": "application/json",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"username\": \"{{username}}\",\n\t\"password\": \"{{password}}\"\n}",
+					"raw": "{\n\t\"email\": \"{{email}}\",\n\t\"password\": \"{{password}}\"\n}",
 					"options": {
 						"raw": {
-							"language": "javascript"
+							"language": "json"
 						}
 					}
 				},
@@ -219,35 +219,6 @@
 					],
 					"path": [
 						"user"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Username exists",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{weightTrackerApiHost}}/username/{{username}}/exists",
-					"host": [
-						"{{weightTrackerApiHost}}"
-					],
-					"path": [
-						"username",
-						"{{username}}",
-						"exists"
 					]
 				}
 			},

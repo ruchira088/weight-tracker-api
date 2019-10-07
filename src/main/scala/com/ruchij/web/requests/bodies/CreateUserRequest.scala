@@ -13,13 +13,7 @@ import org.http4s.circe.jsonOf
 
 import scala.language.higherKinds
 
-case class CreateUserRequest(
-  username: String,
-  password: String,
-  email: String,
-  firstName: Option[String],
-  lastName: Option[String]
-)
+case class CreateUserRequest(email: String, password: String, firstName: String, lastName: Option[String])
 
 object CreateUserRequest {
   implicit def createUserRequestEntityDecoder[F[_]: Sync]: EntityDecoder[F, CreateUserRequest] =
@@ -31,9 +25,8 @@ object CreateUserRequest {
       override def validate[B <: CreateUserRequest](value: B): F[B] =
         Transformation[ValidatedNel[Throwable, *], F]
           .apply {
-            value.username.isNotEmpty("username") |+|
-              value.password.isNotEmpty("password") |+|
-              value.email.isNotEmpty("email")
+            value.email.isNotEmpty("email") |+|
+              value.password.isNotEmpty("password")
           }
           .as(value)
     }

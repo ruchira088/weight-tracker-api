@@ -16,11 +16,9 @@ object RandomGenerator {
 
   import faker._
 
-  def username(): String = name().username()
+  def email(): String = internet().emailAddress()
 
   def password(): String = internet().password()
-
-  def email(): String = internet().emailAddress()
 
   def firstName(): String = name().firstName()
 
@@ -29,10 +27,10 @@ object RandomGenerator {
   def uuid(): UUID = UUID.randomUUID()
 
   def user(): User =
-    User(uuid(), username(), email(), option(firstName()), option(lastName()))
+    User(uuid(), email(), firstName(), option(lastName()))
 
   def databaseUser(): DatabaseUser =
-    DatabaseUser(uuid(), DateTime.now(), username(), password(), email(), option(firstName()), option(lastName()))
+    DatabaseUser(uuid(), DateTime.now(), email(), password(), firstName(), option(lastName()))
 
   def authenticationToken(userId: UUID): AuthenticationToken =
     AuthenticationToken(userId, DateTime.now().plusSeconds(30), uuid().toString)

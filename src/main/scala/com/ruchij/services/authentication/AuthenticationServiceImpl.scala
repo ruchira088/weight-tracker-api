@@ -27,11 +27,10 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
 
   override def hashPassword(password: String): F[String] = passwordHashingService.hash(password)
 
-  override def login(username: String, password: String): F[AuthenticationToken] =
+  override def login(email: String, password: String): F[AuthenticationToken] =
     for {
-      databaseUser <- databaseUserDao
-        .findByUsername(username)
-        .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Username not found: $username")))
+      databaseUser <- databaseUserDao.findByEmail(email)
+        .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Email not found: $email")))
 
       isSuccess <- passwordHashingService.checkPassword(password, databaseUser.password)
       _ <- if (isSuccess) Applicative[F].unit

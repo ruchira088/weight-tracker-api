@@ -10,13 +10,13 @@ import com.ruchij.services.user.UserService
 import com.ruchij.services.user.models.User
 import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authorization.Authorizer
+import com.ruchij.web.requests.RequestParser._
 import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest}
 import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{PageNumberQueryParameterMatcher, PageSizeQueryParameterMatcher}
-import com.ruchij.web.responses.{ExistsResponse, PaginatedResultsResponse}
-import com.ruchij.web.routes.Paths.{`weight-entry`, exists}
+import com.ruchij.web.responses.PaginatedResultsResponse
+import com.ruchij.web.routes.Paths.`weight-entry`
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
-import com.ruchij.web.requests.RequestParser._
 import org.http4s.{AuthedRoutes, HttpRoutes}
 
 import scala.language.higherKinds
@@ -34,9 +34,9 @@ object UserRoutes {
     val publicRoutes: HttpRoutes[F] = HttpRoutes.of {
       case request @ POST -> Root =>
         for {
-          CreateUserRequest(username, password, email, firstName, lastName) <- request.to[CreateUserRequest]
+          CreateUserRequest(email, password, firstName, lastName) <- request.to[CreateUserRequest]
 
-          user <- userService.create(username, password, email, firstName, lastName)
+          user <- userService.create(email, password, firstName, lastName)
           response <- Created(user)
         } yield response
     }
@@ -78,18 +78,5 @@ object UserRoutes {
       }
 
     publicRoutes <+> authenticatedRoutes
-  }
-
-  def username[F[_]: Sync](userService: UserService[F])(implicit dsl: Http4sDsl[F]): HttpRoutes[F] = {
-    import dsl._
-
-    HttpRoutes.of {
-      case GET -> Root / username / `exists` =>
-        for {
-          exists <- userService.findByUsername(username).isDefined
-          response <- Ok(ExistsResponse(exists))
-        }
-        yield response
-    }
   }
 }

@@ -12,7 +12,7 @@ import com.ruchij.services.user.models.User
 import com.ruchij.types.Transformation
 import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
 import com.ruchij.web.responses.ErrorResponse
-import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/user`, `/username`}
+import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/user`}
 import com.ruchij.web.routes.{HealthRoutes, SessionRoutes, UserRoutes}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.EntityResponseGenerator
@@ -42,7 +42,6 @@ object Routes {
 
     Router(
       `/user` -> UserRoutes(userService, weightEntryService),
-      `/username` -> UserRoutes.username(userService),
       `/session` -> SessionRoutes(authenticationService),
       `/health` -> HealthRoutes(healthCheckService)
     )

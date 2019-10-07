@@ -17,7 +17,7 @@ object SessionRoutes {
       case request @ POST -> Root =>
         for {
           loginRequest <- request.as[LoginRequest]
-          authenticationToken <- authenticationService.login(loginRequest.username, loginRequest.password)
+          authenticationToken <- authenticationService.login(loginRequest.email, loginRequest.password)
           response <- Created(authenticationToken)
         } yield response
     }

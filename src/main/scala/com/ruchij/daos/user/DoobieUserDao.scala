@@ -16,13 +16,12 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def insert(databaseUser: DatabaseUser): F[Int] =
     sql"""
-      insert into users (id, created_at, username, password, email, first_name, last_name)
+      insert into users (id, created_at, email, password, first_name, last_name)
         values (
           ${databaseUser.id},
           ${databaseUser.createdAt},
-          ${databaseUser.username},
-          ${databaseUser.password},
           ${databaseUser.email},
+          ${databaseUser.password},
           ${databaseUser.firstName},
           ${databaseUser.lastName}
         )
@@ -31,15 +30,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select id, created_at, username, password, email, first_name, last_name from users where id = $id"
-        .query[DatabaseUser]
-        .option
-        .transact(transactor)
-    }
-
-  override def findByUsername(username: String): OptionT[F, DatabaseUser] =
-    OptionT {
-      sql"select id, created_at, username, password, email, first_name, last_name from users where username = $username"
+      sql"select id, created_at, email, password, first_name, last_name from users where id = $id"
         .query[DatabaseUser]
         .option
         .transact(transactor)
@@ -47,7 +38,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def findByEmail(email: String): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select id, created_at, username, password, email, first_name, last_name from users where email = $email"
+      sql"select id, created_at, email, password, first_name, last_name from users where email = $email"
         .query[DatabaseUser]
         .option
         .transact(transactor)

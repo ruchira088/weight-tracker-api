@@ -12,7 +12,5 @@ trait UserDao[F[_]] {
 
   def findById(id: UUID): OptionT[F, DatabaseUser]
 
-  def findByUsername(username: String): OptionT[F, DatabaseUser]
-
   def findByEmail(email: String): OptionT[F, DatabaseUser]
 }

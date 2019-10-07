@@ -16,6 +16,9 @@ object RandomGenerator {
 
   import faker._
 
+  val PASSWORD = "Pa$$w0rd"
+  val SALTED_PASSWORD = "$2a$10$afXIMtS3CcuWZMdDOkBmdOdGlnivbG/IgFtilPDvK40BHt8a7QUV2"
+
   def email(): String = internet().emailAddress()
 
   def password(): String = internet().password()
@@ -30,7 +33,7 @@ object RandomGenerator {
     User(uuid(), email(), firstName(), option(lastName()))
 
   def databaseUser(): DatabaseUser =
-    DatabaseUser(uuid(), DateTime.now(), email(), password(), firstName(), option(lastName()))
+    DatabaseUser(uuid(), DateTime.now(), email(), SALTED_PASSWORD, firstName(), option(lastName()))
 
   def authenticationToken(userId: UUID): AuthenticationToken =
     AuthenticationToken(userId, DateTime.now().plusSeconds(30), uuid().toString)

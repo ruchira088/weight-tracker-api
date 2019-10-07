@@ -7,6 +7,7 @@ import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
+import com.ruchij.web.routes.Paths.`/health`
 import io.circe.literal._
 import org.http4s.{Request, Response, Status, Uri}
 import org.joda.time.DateTime
@@ -22,7 +23,7 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
 
     val application: TestHttpApp[IO] = TestHttpApp[IO]()
 
-    val request = Request[IO](uri = Uri(path = "/health"))
+    val request = Request[IO](uri = Uri(path = `/health`))
 
     val response: Response[IO] =
       application.httpApp.run(request).unsafeRunSync()

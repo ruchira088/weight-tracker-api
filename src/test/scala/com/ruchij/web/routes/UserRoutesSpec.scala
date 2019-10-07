@@ -9,6 +9,7 @@ import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, jsonRequest}
+import com.ruchij.web.routes.Paths.`/user`
 import com.ruchij.types.Random
 import io.circe.Json
 import io.circe.literal._
@@ -39,7 +40,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "lastName": $lastName
       }"""
 
-    val response = application.httpApp.run(jsonRequest[IO](Method.POST, "/user", requestBody)).unsafeRunSync()
+    val response = application.httpApp.run(jsonRequest[IO](Method.POST, `/user`, requestBody)).unsafeRunSync()
 
     val expectedResponse =
       json"""{
@@ -71,7 +72,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "firstName": $firstName
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, "/user", requestBody)).unsafeRunSync()
+    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
 
     val expectedResponse =
       json"""{
@@ -92,7 +93,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     val application: TestHttpApp[IO] =
       TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
-    val request = authenticatedRequest(authenticationToken, Request[IO](uri = Uri(path = "/user")))
+    val request = authenticatedRequest(authenticationToken, Request[IO](uri = Uri(path = `/user`)))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 

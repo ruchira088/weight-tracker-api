@@ -9,7 +9,7 @@ services:
 #      - 8000:8000
 #    volumes:
 #      - "~/.sbt:/root/.sbt"
-#      - "~/.ivy2:/root/.ivy2"
+#      - "~/.coursier:/root/.coursier"
 #      - ".:/opt/weight-tracker-api"
 #      - "/opt/weight-tracker-api/target"
 #      - "/opt/weight-tracker-api/project/target"

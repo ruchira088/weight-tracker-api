@@ -12,13 +12,7 @@ WORKDIR /opt/weight-tracker-api
 
 COPY . .
 
-#RUN sbt assembly
-#
-#ENTRYPOINT ["java"]
-#
-#CMD ["-jar", "target/scala-2.12/weight-tracker-api-assembly.jar"]
-
-EXPOSE 5005
+EXPOSE 8000 5005
 
 ENTRYPOINT ["sbt"]
 

@@ -66,7 +66,7 @@ object App extends IOApp {
             Routes(userService, weightEntryService, healthCheckService)(Sync[IO], authenticationService, authorizationService, Transformation.validatedNelToIo)
           }
         }
-        .bindHttp(serviceConfiguration.httpConfiguration.port)
+        .bindHttp(serviceConfiguration.httpConfiguration.port, "0.0.0.0")
         .serve
         .compile
         .drain

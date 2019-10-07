@@ -1,0 +1,21 @@
+FROM ubuntu:18.04 as builder
+
+WORKDIR /opt
+
+RUN apt update && \
+    apt install unzip -y
+
+COPY target/universal .
+
+RUN unzip weight-tracker-api-*.zip -d build && \
+    mv build/weight-tracker-api-* weight-tracker-api
+
+FROM openjdk:8-jdk-slim
+
+WORKDIR /opt/weight-tracker-api
+
+COPY --from=builder /opt/weight-tracker-api .
+
+EXPOSE 8000
+
+CMD [ "/opt/weight-tracker-api/bin/weight-tracker-api" ]

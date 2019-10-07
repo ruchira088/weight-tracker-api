@@ -15,6 +15,17 @@ services:
 #      - "/opt/weight-tracker-api/project/target"
 #      - "/root/.sbt/1.0/plugins"
 
+  weight-tracker-api-prod:
+    image: weight-tracker-api
+    ports:
+      - 8000:8000
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
+      DB_USER: weight-tracker
+      DB_PASSWORD: pa55w0rd
+
   postgres:
     image: postgres
     ports:

@@ -76,7 +76,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
 
     val expectedResponse =
       json"""{
-        "errorMessages": [ ${"email already exists: " + databaseUser.email} ]
+        "errorMessages": [ ${s"email already exists: ${databaseUser.email}"} ]
       }"""
 
     response.status mustBe Status.Conflict

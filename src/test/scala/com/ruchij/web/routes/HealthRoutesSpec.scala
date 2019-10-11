@@ -6,6 +6,7 @@ import com.ruchij.circe.Encoders.jodaTimeEncoder
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
+import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
 import com.ruchij.web.routes.Paths.`/health`
 import io.circe.literal._
@@ -23,12 +24,12 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
 
     val application: TestHttpApp[IO] = TestHttpApp[IO]()
 
-    val request = Request[IO](uri = Uri(path = `/health`))
+    val request = getRequest[IO](`/health`)
 
     val response: Response[IO] =
       application.httpApp.run(request).unsafeRunSync()
 
-    val expectedResponse =
+    val expectedJsonResponse =
       json"""{
          "serviceName": "weight-tracker-api",
          "serviceVersion": "0.0.1",
@@ -40,7 +41,7 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
 
     response.status mustBe Status.Ok
     response must beJsonResponse[IO]
-    json(response) must matchWith(expectedResponse)
+    json(response) must matchWith(expectedJsonResponse)
 
     application.shutdown()
   }

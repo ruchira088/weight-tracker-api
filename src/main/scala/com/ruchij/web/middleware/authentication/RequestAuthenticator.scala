@@ -2,8 +2,9 @@ package com.ruchij.web.middleware.authentication
 
 import cats.Monad
 import cats.data.{Kleisli, OptionT}
-import com.ruchij.services.user.models.User
+import cats.effect.Sync
 import com.ruchij.services.authentication.AuthenticationService
+import com.ruchij.services.user.models.User
 import org.http4s.Request
 import org.http4s.server._
 
@@ -22,7 +23,7 @@ object RequestAuthenticator {
       } yield user
     }
 
-  def authenticationMiddleware[F[_]: Monad](
+  def authenticationMiddleware[F[_]: Sync](
     authenticationService: AuthenticationService[F],
     tokenExtractor: AuthenticationTokenExtractor[F]
   ): AuthMiddleware[F, User] =

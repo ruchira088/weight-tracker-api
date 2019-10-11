@@ -48,14 +48,14 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
     val response: Response[IO] =
       application.httpApp.run(jsonRequest(Method.POST, `/session`, requestBody)).unsafeRunSync()
 
-    val expectedResponse: Json =
+    val expectedJsonResponse: Json =
       json"""{
         "errorMessages": [ "Invalid credentials" ]
       }"""
 
     response.status mustBe Status.Unauthorized
     response must beJsonResponse[IO]
-    json(response) must matchWith(expectedResponse)
+    json(response) must matchWith(expectedJsonResponse)
 
     application.shutdown()
   }
@@ -72,14 +72,14 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
 
     val response = application.httpApp.run(jsonRequest(Method.POST, `/session`, requestBody)).unsafeRunSync()
 
-    val expectedResponse =
+    val expectedJsonResponse =
       json"""{
         "errorMessages": [ ${s"Email not found: $email"} ]
       }"""
 
     response.status mustBe Status.NotFound
     response must beJsonResponse[IO]
-    json(response) must matchWith(expectedResponse)
+    json(response) must matchWith(expectedJsonResponse)
 
     application.shutdown()
   }

@@ -21,6 +21,9 @@ object RequestUtils {
       body = Stream.fromIterator[F](body.toString.map(_.toByte).toIterator)
     )
 
+  def getRequest[F[_]](url: String, headers: Headers = Headers.empty): Request[F] =
+    Request[F](uri = Uri(path = url), headers = headers)
+
   def authenticatedRequest[F[_]](authenticationToken: AuthenticationToken, request: Request[F]): Request[F] =
     request.withHeaders {
       Authorization(Token(CaseInsensitiveString("Bearer"), authenticationToken.secret))

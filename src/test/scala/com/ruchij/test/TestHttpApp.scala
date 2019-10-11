@@ -59,8 +59,7 @@ object TestHttpApp {
 
     redisServer.start()
 
-    implicit val actorSystem: ActorSystem =
-      ActorSystem(s"redis-${RandomGenerator.uuid()}")
+    implicit val actorSystem: ActorSystem = ActorSystem(s"redis-${RandomGenerator.uuid()}")
 
     val authenticationTokenDao = new RedisAuthenticationTokenDao[F](RedisClient(port = redisPort))
 

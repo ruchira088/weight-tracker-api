@@ -9,11 +9,11 @@ import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
-import com.ruchij.web.routes.Paths.`/user`
 import com.ruchij.types.Random
+import com.ruchij.web.routes.Paths.`/user`
 import io.circe.Json
 import io.circe.literal._
-import org.http4s.{Method, Request, Response, Status, Uri}
+import org.http4s.{Method, Response, Status}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class UserRoutesSpec extends FlatSpec with MustMatchers {

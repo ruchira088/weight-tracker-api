@@ -45,8 +45,8 @@ object Routes {
         `/health` -> HealthRoutes(healthCheckService)
       )
 
-    ExceptionHandler {
-      CORS {
+    CORS {
+      ExceptionHandler {
         Kleisli { request: Request[F] =>
           router.run(request).getOrElse(Response.notFound)
         }

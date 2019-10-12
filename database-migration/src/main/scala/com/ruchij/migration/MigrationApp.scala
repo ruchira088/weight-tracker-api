@@ -12,7 +12,7 @@ object MigrationApp extends IOApp {
 
       result <- migrate(migrationConfiguration.databaseConfiguration)
 
-      _ <- IO(println(result))
+      _ <- IO(println(s"Migration result: $result"))
     }
     yield ExitCode.Success
 

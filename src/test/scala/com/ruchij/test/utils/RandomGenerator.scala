@@ -20,7 +20,7 @@ object RandomGenerator {
 
   def email(): String = internet().emailAddress()
 
-  def password(): String = internet().password(8, 100, true, true, true)
+  def password(): String = "5ca|a" + internet().password(8, 100, true, true, true)
 
   def firstName(): String = name().firstName()
 

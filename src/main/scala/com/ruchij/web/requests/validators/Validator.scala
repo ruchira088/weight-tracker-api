@@ -38,7 +38,7 @@ object Validator {
   val validEmailAddress: ValueValidator[String] =
     new ValueValidator[String] {
       override def validate[B <: String](key: String, value: B): ValidatedNel[ValidationException, B] =
-        predicate(value, EmailValidator.getInstance().isValid(value), s"$value is not a valid email address")
+        predicate(value, EmailValidator.getInstance().isValid(value), s"$key does not have a valid email address")
     }
 
   val strongPassword: ValueValidator[String] =

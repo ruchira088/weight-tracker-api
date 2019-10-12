@@ -39,9 +39,9 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
          "currentTimestamp": $currentDateTime
       }"""
 
-    response.status mustBe Status.Ok
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Ok
 
     application.shutdown()
   }

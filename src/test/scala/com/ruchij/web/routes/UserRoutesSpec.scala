@@ -50,13 +50,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "lastName": $lastName
       }"""
 
-    println("_____________________________")
-    println(json(response).unsafeRunSync())
-    println("_____________________________")
-
-    response.status mustBe Status.Created
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Created
 
     application.shutdown()
   }
@@ -83,9 +79,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "errorMessages": [ ${s"email already exists: ${databaseUser.email}"} ]
       }"""
 
-    response.status mustBe Status.Conflict
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Conflict
 
     application.shutdown()
   }
@@ -109,9 +105,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "lastName": ${databaseUser.lastName}
       }"""
 
-    response.status mustBe Status.Ok
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Ok
 
     application.shutdown()
   }
@@ -131,9 +127,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "errorMessages": [ "Missing Authorization header" ]
       }"""
 
-    response.status mustBe Status.Unauthorized
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Unauthorized
 
     application.shutdown()
   }
@@ -156,9 +152,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "lastName": ${databaseUser.lastName}
       }"""
 
-    response.status mustBe Status.Ok
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonBody)
+    response.status mustBe Status.Ok
 
     application.shutdown()
   }

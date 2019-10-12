@@ -62,9 +62,7 @@ object App extends IOApp {
 
       exitCode <- BlazeServerBuilder[IO]
         .withHttpApp {
-          Routes.responseHandler {
-            Routes(userService, weightEntryService, healthCheckService)(Sync[IO], authenticationService, authorizationService, Transformation.validatedNelToIo)
-          }
+          Routes(userService, weightEntryService, healthCheckService, authenticationService, authorizationService)
         }
         .bindHttp(serviceConfiguration.httpConfiguration.port, "0.0.0.0")
         .serve

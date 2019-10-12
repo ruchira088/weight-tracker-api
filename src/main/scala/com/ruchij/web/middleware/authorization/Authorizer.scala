@@ -12,9 +12,9 @@ import scala.language.higherKinds
 
 object Authorizer {
 
-  def authorize[F[_]: Sync](
+  def authorize[F[_]: Sync](authorizationService: AuthorizationService[F])(
     authenticatedUser: User, userId: UUID, permission: Permission
-  )(block: => F[Response[F]])(implicit authorizationService: AuthorizationService[F]): F[Response[F]] =
+  )(block: => F[Response[F]]): F[Response[F]] =
     Monad[F].flatMap(authorizationService.isAuthorized(authenticatedUser, userId, permission)) {
       if (_) block else Sync[F].raiseError(???)
     }

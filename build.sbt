@@ -44,7 +44,8 @@ lazy val rootDependencies =
     enumeratum,
     shapeless,
     logbackClassic,
-    scalaLogging
+    scalaLogging,
+    commonsValidator
   )
 
 lazy val rootTestDependencies =

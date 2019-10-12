@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import cats.data.ValidatedNel
-import cats.effect.{Async, Clock, ContextShift, Sync}
+import cats.effect.{Async, Clock, ContextShift}
 import com.ruchij.config.AuthenticationConfiguration
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
 import com.ruchij.daos.user.models.DatabaseUser
@@ -20,16 +20,16 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.test.utils.{DaoUtils, RandomGenerator}
 import com.ruchij.types.Transformation.~>
-import com.ruchij.types.{Random, Transformation, UnsafeCopoint}
+import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
 import org.http4s.HttpApp
 import redis.RedisClient
 import redis.embedded.RedisServer
 import redis.embedded.ports.EphemeralPortProvider
 
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.{higherKinds, postfixOps}
 
 case class TestHttpApp[F[_]](
@@ -75,16 +75,10 @@ object TestHttpApp {
     val userService = new UserServiceImpl[F](userDao, authenticationService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
     val healthCheckService = new HealthCheckServiceImpl[F]
+    val authorizationService = new AuthorizationServiceImpl[F]
 
     val httpApp =
-      Routes.responseHandler {
-        Routes[F](userService, weightEntryService, healthCheckService)(
-          Sync[F],
-          authenticationService,
-          new AuthorizationServiceImpl[F],
-          Transformation[ValidatedNel[Throwable, *], F]
-        )
-      }
+      Routes[F](userService, weightEntryService, healthCheckService, authenticationService, authorizationService)
 
     val shutdownHook: () => Unit = () => {
       Await.ready(actorSystem.terminate(), 5 seconds)

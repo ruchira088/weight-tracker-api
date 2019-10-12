@@ -50,6 +50,8 @@ object Dependencies
 
   lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
+  lazy val commonsValidator = "commons-validator" % "commons-validator" % "1.6"
+
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8"
 
   lazy val embeddedRedis = "com.github.kstyrc" % "embedded-redis" % "0.6"

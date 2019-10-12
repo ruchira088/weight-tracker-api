@@ -50,6 +50,10 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
         "lastName": $lastName
       }"""
 
+    println("_____________________________")
+    println(json(response).unsafeRunSync())
+    println("_____________________________")
+
     response.status mustBe Status.Created
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)

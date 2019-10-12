@@ -8,7 +8,6 @@ import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
 import com.ruchij.services.user.models.User
-import com.ruchij.types.Transformation
 import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
 import com.ruchij.web.middleware.exception.ExceptionHandler

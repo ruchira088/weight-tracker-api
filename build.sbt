@@ -12,7 +12,7 @@ lazy val root =
       libraryDependencies ++= rootDependencies ++ rootTestDependencies.map(_ % Test),
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
-      scalacOptions ++= Seq("-Ypartial-unification"),
+      scalacOptions ++= Seq("-Ypartial-unification", "-Xlint"),
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor)
     )

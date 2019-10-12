@@ -3,7 +3,7 @@ package com.ruchij
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import cats.effect.{ExitCode, IO, IOApp, Sync}
+import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
@@ -17,7 +17,6 @@ import com.ruchij.services.data.WeightEntryServiceImpl
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
-import com.ruchij.types.Transformation
 import com.ruchij.web.Routes
 import org.http4s.server.blaze.BlazeServerBuilder
 

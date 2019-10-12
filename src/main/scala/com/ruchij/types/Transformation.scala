@@ -25,15 +25,15 @@ object Transformation {
       override def apply[A](value: => Future[A]): IO[A] = IO.fromFuture(IO(value))
     }
 
-  implicit def validatedNelToIo[Error <: Throwable]: ValidatedNel[Error, *] ~> IO =
-    new Transformation[ValidatedNel[Error, *], IO] {
-      override def apply[A](value: => ValidatedNel[Error, A]): IO[A] =
+  implicit def validatedNelToIo[Err <: Throwable]: ValidatedNel[Err, *] ~> IO =
+    new Transformation[ValidatedNel[Err, *], IO] {
+      override def apply[A](value: => ValidatedNel[Err, A]): IO[A] =
         value.fold[IO[A]](errors => IO.raiseError(AggregatedException(errors.toList)), result => IO(result))
     }
 
-  implicit def eitherThrowableToIo[Error <: Throwable]: Either[Error, *] ~> IO =
-    new Transformation[Either[Error, *], IO] {
-      override def apply[A](value: => Either[Error, A]): IO[A] =
+  implicit def eitherThrowableToIo[Err <: Throwable]: Either[Err, *] ~> IO =
+    new Transformation[Either[Err, *], IO] {
+      override def apply[A](value: => Either[Err, A]): IO[A] =
         value.fold(IO.raiseError, IO.pure)
     }
 }

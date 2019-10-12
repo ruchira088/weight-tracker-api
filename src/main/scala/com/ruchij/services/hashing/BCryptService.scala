@@ -1,6 +1,6 @@
 package com.ruchij.services.hashing
 
-import cats.effect.{Blocker, ContextShift, IO, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import org.mindrot.jbcrypt.BCrypt
 
 import scala.concurrent.ExecutionContext

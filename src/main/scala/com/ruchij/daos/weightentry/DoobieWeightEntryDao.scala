@@ -2,7 +2,6 @@ package com.ruchij.daos.weightentry
 
 import java.util.UUID
 
-import cats.implicits._
 import cats.data.OptionT
 import cats.effect.Sync
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry

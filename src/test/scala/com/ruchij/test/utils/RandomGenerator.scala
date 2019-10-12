@@ -8,7 +8,6 @@ import com.ruchij.services.authentication.models.AuthenticationToken
 import com.ruchij.services.user.models.User
 import org.joda.time.DateTime
 
-import scala.language.higherKinds
 import scala.util.{Random => ScalaRandom}
 
 object RandomGenerator {

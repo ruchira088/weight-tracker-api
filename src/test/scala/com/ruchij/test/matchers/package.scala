@@ -1,7 +1,5 @@
 package com.ruchij.test
 
-import cats.effect.IO
-
 import scala.language.higherKinds
 
 package object matchers {

@@ -10,7 +10,7 @@ import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
 import com.ruchij.web.routes.Paths.`/health`
 import io.circe.literal._
-import org.http4s.{Request, Response, Status, Uri}
+import org.http4s.{Response, Status}
 import org.joda.time.DateTime
 import org.scalatest.{FlatSpec, MustMatchers}
 

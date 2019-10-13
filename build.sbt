@@ -13,6 +13,7 @@ lazy val root =
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
       scalacOptions ++= Seq("-Ypartial-unification", "-Xlint"),
+      coverageExcludedPackages := "<empty>;com.ruchij.App",
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor)
     )

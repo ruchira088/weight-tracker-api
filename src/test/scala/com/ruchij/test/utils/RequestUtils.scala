@@ -1,7 +1,6 @@
 package com.ruchij.test.utils
 
 import cats.effect.Sync
-import com.ruchij.services.authentication.models.AuthenticationToken
 import fs2.Stream
 import io.circe.Json
 import org.http4s.Credentials.Token
@@ -24,8 +23,8 @@ object RequestUtils {
   def getRequest[F[_]](url: String, headers: Headers = Headers.empty): Request[F] =
     Request[F](uri = Uri(path = url), headers = headers)
 
-  def authenticatedRequest[F[_]](authenticationToken: AuthenticationToken, request: Request[F]): Request[F] =
+  def authenticatedRequest[F[_]](secret: String, request: Request[F]): Request[F] =
     request.withHeaders {
-      Authorization(Token(CaseInsensitiveString("Bearer"), authenticationToken.secret))
+      Authorization(Token(CaseInsensitiveString("Bearer"), secret))
     }
 }

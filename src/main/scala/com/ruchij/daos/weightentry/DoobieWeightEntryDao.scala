@@ -44,7 +44,7 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
   override def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[DatabaseWeightEntry]] =
     sql"""
         select id, index, created_at, created_by, user_id, timestamp, weight, description from
-          weight_entry where user_id = $userId offset ${pageNumber * pageSize} limit ${pageSize.toInt}
+          weight_entry where user_id = $userId limit ${pageSize.toInt} offset ${pageNumber * pageSize}
     """
       .query[DatabaseWeightEntry]
       .to[List]

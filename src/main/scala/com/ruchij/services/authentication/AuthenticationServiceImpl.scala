@@ -7,6 +7,7 @@ import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.ruchij.config.AuthenticationConfiguration
 import com.ruchij.daos.authtokens.AuthenticationTokenDao
+import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.user.UserDao
 import com.ruchij.exceptions.{AuthenticationException, ResourceNotFoundException}
 import com.ruchij.services.user.models.User
@@ -38,14 +39,17 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
       timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
       secret <- authenticationSecretGenerator.generate(User.fromDatabaseUser(databaseUser))
 
-      authenticationToken <- authenticationTokenDao.createToken {
-        AuthenticationToken(
+      databaseAuthenticationToken <- authenticationTokenDao.createToken {
+        DatabaseAuthenticationToken(
           databaseUser.id,
+          new DateTime(timestamp),
           new DateTime(timestamp + authenticationConfiguration.sessionTimeout.toMillis),
-          secret
+          0,
+          secret,
+          None
         )
       }
-    } yield authenticationToken
+    } yield AuthenticationToken.fromDatabaseAuthenticationToken(databaseAuthenticationToken)
 
   override def authenticate(secret: String): F[User] =
     for {

@@ -32,11 +32,11 @@ object Dependencies
 
   lazy val doobiePostgres =  "org.tpolecat" %% "doobie-postgres" % "0.8.4"
 
-  lazy val flywayCore = "org.flywaydb" % "flyway-core" % "6.0.3"
+  lazy val flywayCore = "org.flywaydb" % "flyway-core" % "6.0.6"
 
-  lazy val postgresql = "org.postgresql" % "postgresql" % "42.2.7"
+  lazy val postgresql = "org.postgresql" % "postgresql" % "42.2.8"
 
-  lazy val h2 = "com.h2database" % "h2" % "1.4.199"
+  lazy val h2 = "com.h2database" % "h2" % "1.4.200"
 
   lazy val redisScala = "com.github.etaty" %% "rediscala" % "1.9.0"
 

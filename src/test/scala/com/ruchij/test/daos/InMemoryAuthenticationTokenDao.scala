@@ -7,36 +7,41 @@ import cats.data.OptionT
 import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.ruchij.daos.authtokens.AuthenticationTokenDao
+import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.exceptions.ResourceNotFoundException
-import com.ruchij.services.authentication.models.AuthenticationToken
 import org.joda.time.DateTime
 
 import scala.concurrent.duration.FiniteDuration
 import scala.language.higherKinds
 
 class InMemoryAuthenticationTokenDao[F[_]: Sync: Clock](
-  concurrentHashMap: ConcurrentHashMap[String, AuthenticationToken]
+  concurrentHashMap: ConcurrentHashMap[String, DatabaseAuthenticationToken]
 ) extends AuthenticationTokenDao[F] {
 
-  override def createToken(authenticationToken: AuthenticationToken): F[AuthenticationToken] =
+  override def createToken(databaseAuthenticationToken: DatabaseAuthenticationToken): F[DatabaseAuthenticationToken] =
     Applicative[F]
-      .pure(concurrentHashMap.put(authenticationToken.secret, authenticationToken))
-      .as(authenticationToken)
+      .pure(concurrentHashMap.put(databaseAuthenticationToken.secret, databaseAuthenticationToken))
+      .as(databaseAuthenticationToken)
 
-  override def find(secret: String): OptionT[F, AuthenticationToken] =
+  override def find(secret: String): OptionT[F, DatabaseAuthenticationToken] =
     OptionT.fromOption[F](Option(concurrentHashMap.get(secret)))
 
-  override def extendExpiry(secret: String, duration: FiniteDuration): F[AuthenticationToken] =
+  override def extendExpiry(secret: String, duration: FiniteDuration): F[DatabaseAuthenticationToken] =
     for {
       timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
-      authenticationToken <- find(secret).getOrElseF {
+      databaseAuthenticationToken <- find(secret).getOrElseF {
         Sync[F].raiseError(ResourceNotFoundException("Unable to find Authentication token"))
       }
-      updated <- createToken(authenticationToken.copy(expiresAt = new DateTime(timestamp + duration.toMillis)))
+      updated <- createToken {
+        databaseAuthenticationToken.copy(
+          expiresAt = new DateTime(timestamp + duration.toMillis),
+          renewalCount = databaseAuthenticationToken.renewalCount + 1
+        )
+      }
     } yield updated
 
-  override def remove(secret: String): F[AuthenticationToken] =
-    Option(concurrentHashMap.remove(secret)).fold[F[AuthenticationToken]](
+  override def remove(secret: String): F[DatabaseAuthenticationToken] =
+    Option(concurrentHashMap.remove(secret)).fold[F[DatabaseAuthenticationToken]](
       Sync[F].raiseError(ResourceNotFoundException("Unable to find Authentication token"))
     ) {
       Applicative[F].pure

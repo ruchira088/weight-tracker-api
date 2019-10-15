@@ -3,15 +3,18 @@ package com.ruchij.test
 import java.util.UUID
 
 import akka.actor.ActorSystem
+import cats.Applicative
 import cats.data.ValidatedNel
+import cats.implicits._
 import cats.effect.{Async, Clock, ContextShift}
-import com.ruchij.config.AuthenticationConfiguration
+import com.ruchij.config.{AuthenticationConfiguration, RedisConfiguration}
+import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.user.{DoobieUserDao, UserDao}
+import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.daos.weightentry.{DoobieWeightEntryDao, WeightEntryDao}
 import com.ruchij.migration.MigrationApp
-import com.ruchij.services.authentication.models.AuthenticationToken
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
@@ -23,7 +26,6 @@ import com.ruchij.types.Transformation.~>
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
 import org.http4s.HttpApp
-import redis.RedisClient
 import redis.embedded.RedisServer
 import redis.embedded.ports.EphemeralPortProvider
 
@@ -61,7 +63,10 @@ object TestHttpApp {
 
     implicit val actorSystem: ActorSystem = ActorSystem(s"redis-${RandomGenerator.uuid()}")
 
-    val authenticationTokenDao = new RedisAuthenticationTokenDao[F](RedisClient(port = redisPort))
+    val authenticationTokenDao =
+      new RedisAuthenticationTokenDao[F] (
+        RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort))
+      )
 
     val authenticationService =
       new AuthenticationServiceImpl[F](
@@ -88,7 +93,7 @@ object TestHttpApp {
     TestHttpApp(httpApp, userDao, authenticationTokenDao, weightEntryDao, shutdownHook)
   }
 
-  implicit class TestHttpAppOps[F[_]: UnsafeCopoint](val testHttpApp: TestHttpApp[F]) {
+  implicit class TestHttpAppOps[F[_]: UnsafeCopoint: Applicative](val testHttpApp: TestHttpApp[F]) {
     def withUser(databaseUser: DatabaseUser): TestHttpApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
@@ -96,10 +101,17 @@ object TestHttpApp {
         }
       }
 
-    def withAuthenticationToken(authenticationToken: AuthenticationToken): TestHttpApp[F] =
+    def withAuthenticationToken(databaseAuthenticationToken: DatabaseAuthenticationToken): TestHttpApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
-          testHttpApp.authenticationTokenDao.createToken(authenticationToken)
+          testHttpApp.authenticationTokenDao.createToken(databaseAuthenticationToken)
+        }
+      }
+
+    def withWeightEntries(databaseWeightEntries: DatabaseWeightEntry*): TestHttpApp[F] =
+      self {
+        UnsafeCopoint.unsafeExtract {
+          databaseWeightEntries.toList.traverse(testHttpApp.weightEntryDao.insert)
         }
       }
 

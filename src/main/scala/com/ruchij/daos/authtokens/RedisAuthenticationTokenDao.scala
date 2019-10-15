@@ -9,7 +9,6 @@ import cats.implicits._
 import com.ruchij.config.RedisConfiguration
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.exceptions.{AuthenticationException, InternalServiceException}
-import com.ruchij.services.authentication.models.AuthenticationToken
 import com.ruchij.types.Transformation
 import com.ruchij.types.Transformation.~>
 import org.joda.time.DateTime
@@ -25,30 +24,18 @@ class RedisAuthenticationTokenDao[F[_]: Clock: Sync](redisClient: RedisClient)(
   executionContext: ExecutionContext
 ) extends AuthenticationTokenDao[F] {
 
-  override def createToken(authenticationToken: AuthenticationToken): F[AuthenticationToken] =
+  override def createToken(databaseAuthenticationToken: DatabaseAuthenticationToken): F[DatabaseAuthenticationToken] =
     for {
-      timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
-
       _ <- Transformation[Future, F].apply {
-        redisClient.set(
-          authenticationToken.secret,
-          DatabaseAuthenticationToken(
-            authenticationToken.userId,
-            new DateTime(timestamp),
-            authenticationToken.expiresAt,
-            0,
-            authenticationToken.secret,
-            None
-          )
-        )
+        redisClient.set(databaseAuthenticationToken.secret, databaseAuthenticationToken)
       }
 
-      persistedToken <- find(authenticationToken.secret)
+      persistedToken <- find(databaseAuthenticationToken.secret)
         .getOrElseF(Sync[F].raiseError(InternalServiceException("Unable to persist authentication token")))
 
     } yield persistedToken
 
-  override def find(secret: String): OptionT[F, AuthenticationToken] =
+  override def find(secret: String): OptionT[F, DatabaseAuthenticationToken] =
     for {
       databaseAuthenticationToken <- OptionT {
         Transformation[Future, F].apply {
@@ -59,14 +46,14 @@ class RedisAuthenticationTokenDao[F[_]: Clock: Sync](redisClient: RedisClient)(
       timestamp <- OptionT.liftF(Clock[F].realTime(TimeUnit.MILLISECONDS))
 
       token <- if (databaseAuthenticationToken.expiresAt.isAfter(timestamp))
-        OptionT.pure[F](AuthenticationToken.fromDatabaseAuthenticationToken(databaseAuthenticationToken))
+        OptionT.pure[F](databaseAuthenticationToken)
       else
-        OptionT.liftF[F, AuthenticationToken] {
+        OptionT.liftF[F, DatabaseAuthenticationToken] {
           Sync[F].raiseError(AuthenticationException("Expired authentication token"))
         }
     } yield token
 
-  override def extendExpiry(secret: String, duration: FiniteDuration): F[AuthenticationToken] =
+  override def extendExpiry(secret: String, duration: FiniteDuration): F[DatabaseAuthenticationToken] =
     for {
       databaseAuthenticationToken <- getToken(secret)
 
@@ -87,12 +74,12 @@ class RedisAuthenticationTokenDao[F[_]: Clock: Sync](redisClient: RedisClient)(
       )
     } yield updatedAuthenticationToken
 
-  override def remove(secret: String): F[AuthenticationToken] =
+  override def remove(secret: String): F[DatabaseAuthenticationToken] =
     for {
       databaseAuthToken <- getToken(secret)
       _ <- Transformation[Future, F].apply(redisClient.del(secret))
     }
-    yield AuthenticationToken.fromDatabaseAuthenticationToken(databaseAuthToken)
+    yield databaseAuthToken
 
   private def getToken(secret: String): F[DatabaseAuthenticationToken] =
     Transformation[Future, F].apply {

@@ -8,4 +8,7 @@ import scala.util.Try
 object Decoders {
   implicit val jodaTimeDecoder: Decoder[DateTime] =
     Decoder.decodeString.emapTry(string => Try(DateTime.parse(string)))
+
+  implicit val optionStringDecoder: Decoder[Option[String]] =
+    Decoder.decodeOption[String].emap(value => Right(value.filter(_.trim.nonEmpty)))
 }

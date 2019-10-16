@@ -3,6 +3,7 @@ package com.ruchij.web.requests.bodies
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
+import com.ruchij.circe.Decoders.optionStringDecoder
 import com.ruchij.exceptions.ValidationException
 import com.ruchij.web.requests.validators.Validator
 import com.ruchij.web.requests.validators.Validator._

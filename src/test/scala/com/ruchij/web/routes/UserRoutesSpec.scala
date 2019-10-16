@@ -6,6 +6,7 @@ import cats.effect.IO
 import com.ruchij.circe.Encoders.jodaTimeEncoder
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
+import com.ruchij.test.stubs.FlexibleClock
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
@@ -228,7 +229,33 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     application.shutdown()
   }
 
-  it should "return error response when the Authorization header is missing" in {
+  it should "return unauthorized error response when the authentication token is expired" in {
+    val databaseUser = RandomGenerator.databaseUser()
+    val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
+
+    implicit val flexibleClock: FlexibleClock[IO] = new FlexibleClock[IO](DateTime.now())
+
+    val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
+
+    flexibleClock.setDateTime(DateTime.now().plusDays(1))
+
+    val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(`/user`))
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonBody =
+      json"""{
+        "errorMessages": [ "Expired authentication token" ]
+      }"""
+
+    json(response) must matchWith(expectedJsonBody)
+    response must beJsonResponse[IO]
+    response.status mustBe Status.Unauthorized
+
+    application.shutdown()
+  }
+
+  it should "return unauthorized error response when the Authorization header is missing" in {
     val databaseUser = RandomGenerator.databaseUser()
     val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 

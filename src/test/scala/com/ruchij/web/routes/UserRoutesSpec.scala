@@ -56,6 +56,41 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     application.shutdown()
   }
 
+  it should "ignore the lastName field if it is empty, and successfully create a user" in {
+    val uuid = RandomGenerator.uuid()
+    implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random[IO, UUID](uuid)
+
+    val application = TestHttpApp[IO]()
+
+    val email = RandomGenerator.email()
+    val password = RandomGenerator.password()
+    val firstName = RandomGenerator.firstName()
+
+    val requestBody =
+      json"""{
+        "email": $email,
+        "password": $password,
+        "firstName": $firstName,
+        "lastName": " "
+      }"""
+
+    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "id": $uuid,
+        "email": $email,
+        "firstName": $firstName,
+        "lastName": null
+      }"""
+
+    json(response) must matchWith(expectedJsonResponse)
+    response must beJsonResponse[IO]
+    response.status mustBe Status.Created
+
+    application.shutdown()
+  }
+
   it should "return a conflict error response if the email address already exists" in {
     val databaseUser = RandomGenerator.databaseUser()
 
@@ -81,6 +116,88 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
     response.status mustBe Status.Conflict
+
+    application.shutdown()
+  }
+
+  it should "return a validation error response for invalid an invalid email" in {
+    val application = TestHttpApp[IO]()
+
+    val requestBody =
+      json"""{
+        "email": "not.valid",
+        "password": ${RandomGenerator.password()},
+        "firstName": ${RandomGenerator.firstName()}
+      }"""
+
+    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [ "email is not valid" ]
+      }"""
+
+    json(response) must matchWith(expectedJsonResponse)
+    response must beJsonResponse[IO]
+    response.status mustBe Status.BadRequest
+
+    application.shutdown()
+  }
+
+  it should "return a validation error response for an invalid password" in {
+    val application = TestHttpApp[IO]()
+
+    val requestBody =
+      json"""{
+        "email": ${RandomGenerator.email()},
+        "password": "password",
+        "firstName": ${RandomGenerator.firstName()}
+      }"""
+
+    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [
+          "password must contain at least one digit",
+          "password must contain at least one special character"
+        ]
+      }"""
+
+    json(response) must matchWith(expectedJsonResponse)
+    response must beJsonResponse[IO]
+    response.status mustBe Status.BadRequest
+
+    application.shutdown()
+  }
+
+  it should "return an validation response for multiple invalid parameters" in {
+    val application = TestHttpApp[IO]()
+
+    val requestBody =
+      json"""{
+        "email": "",
+        "password": "",
+        "firstName": ""
+      }"""
+
+    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [
+          "firstName must not be empty",
+          "email is not valid",
+          "password must contain at least 8 characters",
+          "password must contain at least one letter",
+          "password must contain at least one digit",
+          "password must contain at least one special character"
+        ]
+      }"""
+
+    json(response) must matchWith(expectedJsonResponse)
+    response must beJsonResponse[IO]
+    response.status mustBe Status.BadRequest
 
     application.shutdown()
   }
@@ -218,7 +335,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
 
     val request = authenticatedRequest[IO](
       databaseAuthenticationToken.secret,
-      Request[IO](uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-number=0&page-size=2"))
+      Request[IO](uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-size=2"))
     )
 
     val response = application.httpApp.run(request).unsafeRunSync()

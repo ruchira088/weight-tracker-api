@@ -4,6 +4,7 @@ import java.util.UUID
 
 import cats.Monad
 import cats.effect.Sync
+import com.ruchij.exceptions.AuthorizationException
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authorization.{AuthorizationService, Permission}
 import org.http4s.Response
@@ -16,6 +17,6 @@ object Authorizer {
     authenticatedUser: User, userId: UUID, permission: Permission
   )(block: => F[Response[F]]): F[Response[F]] =
     Monad[F].flatMap(authorizationService.isAuthorized(authenticatedUser, userId, permission)) {
-      if (_) block else Sync[F].raiseError(???)
+      if (_) block else Sync[F].raiseError(AuthorizationException(s"$permission permissions not found for $userId"))
     }
 }

@@ -276,6 +276,35 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     application.shutdown()
   }
 
+  it should "return a forbidden error response when the authenticated user does not have READ permissions for the resource user" in {
+    val authenticatedDatabaseUser = RandomGenerator.databaseUser()
+    val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(authenticatedDatabaseUser.id)
+
+    val resourceUser = RandomGenerator.databaseUser()
+
+    val application =
+      TestHttpApp[IO]()
+        .withUser(authenticatedDatabaseUser)
+        .withUser(resourceUser)
+        .withAuthenticationToken(databaseAuthenticationToken)
+
+    val request =
+      authenticatedRequest[IO](databaseAuthenticationToken.secret, getRequest(s"${`/user`}/${resourceUser.id}"))
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonBody =
+      json"""{
+        "errorMessages": [ ${s"READ permissions not found for ${resourceUser.id}"} ]
+      }"""
+
+    json(response) must matchWith(expectedJsonBody)
+    response must beJsonResponse[IO]
+    response.status mustBe Status.Forbidden
+
+    application.shutdown()
+  }
+
   "POST /user/:userId/weight-entry" should "successfully create a weight entry" in {
     val databaseUser = RandomGenerator.databaseUser()
     val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)

@@ -25,13 +25,15 @@ object ExceptionHandler {
 
   private def throwableStatusMapper(throwable: Throwable): Status =
     throwable match {
+      case ValidationException(_) => Status.BadRequest
+
       case _: ResourceConflictException => Status.Conflict
 
       case _: ResourceNotFoundException => Status.NotFound
 
       case _: AuthenticationException => Status.Unauthorized
 
-      case ValidationException(_) => Status.BadRequest
+      case _: AuthorizationException => Status.Forbidden
 
       case _: MessageFailure => Status.BadRequest
 

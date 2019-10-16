@@ -53,7 +53,6 @@ object RandomGenerator {
       faker.rickAndMorty().quote(),
       faker.gameOfThrones().quote(),
       faker.chuckNorris().fact(),
-      faker.howIMetYourMother().quote(),
       faker.superhero().descriptor(),
       faker.shakespeare().romeoAndJulietQuote()
     )

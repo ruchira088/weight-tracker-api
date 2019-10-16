@@ -1,8 +1,9 @@
 package com.ruchij.config
 
+import cats.data.ReaderT
 import pureconfig.error.ConfigReaderException
 import pureconfig.generic.auto._
-import pureconfig.ConfigSource
+import pureconfig.ConfigObjectSource
 
 case class ServiceConfiguration(
   httpConfiguration: HttpConfiguration,
@@ -12,6 +13,8 @@ case class ServiceConfiguration(
 )
 
 object ServiceConfiguration {
-  def load(): Either[Exception, ServiceConfiguration] =
-    ConfigSource.default.load[ServiceConfiguration].left.map(ConfigReaderException.apply)
+  val load: ReaderT[Either[Exception, *], ConfigObjectSource, ServiceConfiguration] =
+    ReaderT {
+      _.load[ServiceConfiguration].left.map(ConfigReaderException.apply)
+    }
 }

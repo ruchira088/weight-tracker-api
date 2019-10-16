@@ -19,6 +19,7 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.web.Routes
 import org.http4s.server.blaze.BlazeServerBuilder
+import pureconfig.ConfigSource
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,7 +29,7 @@ object App extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      serviceConfiguration <- IO.fromEither(ServiceConfiguration.load())
+      serviceConfiguration <- IO.fromEither(ServiceConfiguration.load(ConfigSource.default))
 
       systemCoreCount <- IO(Runtime.getRuntime.availableProcessors())
 

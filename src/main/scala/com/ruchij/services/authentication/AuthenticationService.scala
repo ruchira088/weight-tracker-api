@@ -10,5 +10,7 @@ trait AuthenticationService[F[_]] {
 
   def login(email: String, password: String): F[AuthenticationToken]
 
+  def logout(secret: String): F[AuthenticationToken]
+
   def authenticate(secret: String): F[User]
 }

@@ -51,6 +51,9 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
       }
     } yield AuthenticationToken.fromDatabaseAuthenticationToken(databaseAuthenticationToken)
 
+  override def logout(secret: String): F[AuthenticationToken] =
+    authenticationTokenDao.remove(secret).map(AuthenticationToken.fromDatabaseAuthenticationToken)
+
   override def authenticate(secret: String): F[User] =
     for {
       authenticationToken <- authenticationTokenDao

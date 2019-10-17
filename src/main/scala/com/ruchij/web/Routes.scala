@@ -32,16 +32,18 @@ object Routes {
 
     implicit val dsl: Http4sDsl[F] = new Http4sDsl[F] {}
 
+    val authenticationTokenExtractor = AuthenticationTokenExtractor.bearerTokenExtractor[F]
+
     implicit val authMiddleware: AuthMiddleware[F, User] =
       RequestAuthenticator.authenticationMiddleware(
         authenticationService,
-        AuthenticationTokenExtractor.bearerTokenExtractor
+        authenticationTokenExtractor
       )
 
     val router: Kleisli[OptionT[F, *], Request[F], Response[F]] =
       Router(
         `/user` -> UserRoutes(userService, weightEntryService, authorizationService),
-        `/session` -> SessionRoutes(authenticationService),
+        `/session` -> SessionRoutes(authenticationService, authenticationTokenExtractor),
         `/health` -> HealthRoutes(healthCheckService)
       )
 

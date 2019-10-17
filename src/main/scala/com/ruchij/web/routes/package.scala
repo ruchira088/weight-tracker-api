@@ -10,7 +10,6 @@ package object routes {
 
     val `weight-entry` = "weight-entry"
 
-    val exists = "exists"
+    val user = "user"
   }
-
 }

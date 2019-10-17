@@ -61,7 +61,7 @@ object UserRoutes {
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
                 user <- userService.getById(userId)
-                response <- Ok(user)
+                response <- Ok.apply(user)
               } yield response
             }
 

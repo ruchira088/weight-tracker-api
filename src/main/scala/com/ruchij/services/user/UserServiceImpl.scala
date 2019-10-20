@@ -7,10 +7,11 @@ import cats.data.OptionT
 import cats.effect.{Clock, Sync}
 import com.ruchij.daos.user.UserDao
 import com.ruchij.daos.user.models.DatabaseUser
-import com.ruchij.exceptions.{InternalServiceException, ResourceConflictException, ResourceNotFoundException}
+import com.ruchij.exceptions.{AuthenticationException, InternalServiceException, ResourceConflictException, ResourceNotFoundException}
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.types.Random
+import com.ruchij.types.Utils.predicate
 import org.joda.time.DateTime
 
 import scala.concurrent.duration.MILLISECONDS
@@ -24,16 +25,15 @@ class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
   override def create(email: String, password: String, firstName: String, lastName: Option[String]): F[User] =
     for {
       emailExists <- findByEmail(email).isDefined
-      _ <- if (emailExists) Sync[F].raiseError[Unit](ResourceConflictException(s"email already exists: $email"))
-      else Sync[F].unit
+      _ <- predicate(emailExists, ResourceConflictException(s"email already exists: $email"))
 
       hashedPassword <- authenticationService.hashPassword(password)
       timestamp <- Clock[F].realTime(MILLISECONDS)
       id <- Random[F, UUID].value
 
-      _ <- databaseUserDao.insert(
+      _ <- databaseUserDao.insert {
         DatabaseUser(id, new DateTime(timestamp), email, hashedPassword, firstName, lastName)
-      )
+      }
 
       user <- getById(id).adaptError {
         case _: ResourceNotFoundException => InternalServiceException("Unable to persist user")
@@ -48,4 +48,21 @@ class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
 
   override def findByEmail(email: String): OptionT[F, User] =
     databaseUserDao.findByEmail(email).map(User.fromDatabaseUser)
+
+  override def updatePassword(userId: UUID, secret: String, password: String): F[User] =
+    for {
+      resetPasswordToken <- authenticationService.getResetPasswordToken(userId, secret)
+      _ <- predicate(resetPasswordToken.used, AuthenticationException("Token has already been used"))
+
+      timestamp <- Clock[F].realTime(MILLISECONDS)
+      _ <- predicate(resetPasswordToken.expiresAt.isBefore(timestamp), AuthenticationException("Token is expired"))
+
+      hashedPassword <- authenticationService.hashPassword(password)
+      success <- databaseUserDao.updatePassword(userId, hashedPassword)
+      _ <- predicate(!success, ResourceNotFoundException(s"User not found for id = $userId"))
+      _ <- authenticationService.passwordResetCompleted(userId, secret)
+
+      updatedUser <- getById(userId)
+    }
+    yield updatedUser
 }

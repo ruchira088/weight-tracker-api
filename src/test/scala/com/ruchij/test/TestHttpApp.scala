@@ -10,6 +10,7 @@ import cats.effect.{Async, Clock, ContextShift}
 import com.ruchij.config.{AuthenticationConfiguration, RedisConfiguration}
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
+import com.ruchij.daos.resetpassword.DoobieResetPasswordTokenDao
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.user.{DoobieUserDao, UserDao}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
@@ -51,6 +52,7 @@ object TestHttpApp {
     MigrationApp.migrate(DaoUtils.H2_DATABASE_CONFIGURATION).unsafeRunSync()
 
     val userDao: DoobieUserDao[F] = new DoobieUserDao[F](DaoUtils.h2Transactor)
+    val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] = new DoobieResetPasswordTokenDao[F](DaoUtils.h2Transactor)
     val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](DaoUtils.h2Transactor)
 
     //    val authenticationTokenDao: InMemoryAuthenticationTokenDao[F] =
@@ -72,6 +74,7 @@ object TestHttpApp {
       new AuthenticationServiceImpl[F](
         new BCryptService[F](ExecutionContext.global),
         userDao,
+        resetPasswordTokenDao,
         authenticationTokenDao,
         new AuthenticationSecretGeneratorImpl[F],
         AuthenticationConfiguration(30 seconds)

@@ -10,7 +10,7 @@ import shapeless.tag.@@
 import scala.language.higherKinds
 
 trait WeightEntryDao[F[_]] {
-  def insert(databaseWeightEntry: DatabaseWeightEntry): F[Int]
+  def insert(databaseWeightEntry: DatabaseWeightEntry): F[Boolean]
 
   def findById(id: UUID): OptionT[F, DatabaseWeightEntry]
 

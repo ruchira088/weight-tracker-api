@@ -13,13 +13,10 @@ import com.ruchij.services.user.models.User
 import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authorization.Authorizer
 import com.ruchij.web.requests.RequestParser._
-import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest}
-import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{
-  PageNumberQueryParameterMatcher,
-  PageSizeQueryParameterMatcher
-}
+import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest, UpdatePasswordRequest}
+import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{PageNumberQueryParameterMatcher, PageSizeQueryParameterMatcher}
 import com.ruchij.web.responses.PaginatedResultsResponse
-import com.ruchij.web.routes.Paths.`weight-entry`
+import com.ruchij.web.routes.Paths.{`reset-password`, `weight-entry`}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes, Response}
@@ -50,6 +47,14 @@ object UserRoutes {
           user <- userService.create(email, password, firstName, lastName)
           response <- Created(user)
         } yield response
+
+      case request @ PUT -> Root / UUIDVar(userId) / `reset-password` =>
+        for {
+          UpdatePasswordRequest(secret, password) <- request.as[UpdatePasswordRequest]
+          updatedUser <- userService.updatePassword(userId, secret, password)
+          response <- Ok(updatedUser)
+        }
+        yield response
     }
 
     val authenticatedRoutes: HttpRoutes[F] =
@@ -61,7 +66,7 @@ object UserRoutes {
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
                 user <- userService.getById(userId)
-                response <- Ok.apply(user)
+                response <- Ok(user)
               } yield response
             }
 

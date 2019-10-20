@@ -9,6 +9,7 @@ import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
 import com.ruchij.daos.doobie.DoobieTransactor
+import com.ruchij.daos.resetpassword.DoobieResetPasswordTokenDao
 import com.ruchij.daos.user.DoobieUserDao
 import com.ruchij.daos.weightentry.DoobieWeightEntryDao
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
@@ -39,6 +40,7 @@ object App extends IOApp {
 
       doobieTransactor = DoobieTransactor.fromConfiguration[IO](serviceConfiguration.doobieConfiguration)
       databaseUserDao = new DoobieUserDao(doobieTransactor)
+      resetPasswordTokenDao = new DoobieResetPasswordTokenDao(doobieTransactor)
       weightEntryDao = new DoobieWeightEntryDao(doobieTransactor)
 
       passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
@@ -50,6 +52,7 @@ object App extends IOApp {
       authenticationService = new AuthenticationServiceImpl(
         passwordHashingService,
         databaseUserDao,
+        resetPasswordTokenDao,
         authenticationTokenDao,
         authenticationSecretGenerator,
         serviceConfiguration.authenticationConfiguration

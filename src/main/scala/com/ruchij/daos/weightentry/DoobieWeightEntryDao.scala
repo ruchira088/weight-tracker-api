@@ -7,6 +7,7 @@ import cats.effect.Sync
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import doobie.util.transactor.Transactor
 import com.ruchij.daos.doobie.DoobieCustomMappings._
+import com.ruchij.daos.doobie.singleUpdate
 import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
 import doobie.postgres.implicits._
 import doobie.implicits._
@@ -15,8 +16,9 @@ import scala.language.higherKinds
 
 class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends WeightEntryDao[F] {
 
-  override def insert(databaseWeightEntry: DatabaseWeightEntry): F[Int] =
-    sql"""
+  override def insert(databaseWeightEntry: DatabaseWeightEntry): F[Boolean] =
+    singleUpdate {
+      sql"""
         insert into weight_entry (id, created_at, created_by, user_id, timestamp, weight, description)
           values (
             ${databaseWeightEntry.id},
@@ -28,7 +30,8 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
             ${databaseWeightEntry.description}
           )
       """.update.run
-      .transact(transactor)
+        .transact(transactor)
+    }
 
   override def findById(id: UUID): OptionT[F, DatabaseWeightEntry] =
     OptionT {

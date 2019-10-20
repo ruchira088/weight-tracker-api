@@ -198,6 +198,99 @@
 			"response": []
 		},
 		{
+			"name": "Forgot password",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a3251c2f-14f5-49d0-bd7c-968b2cf9ecaf",
+						"exec": [
+							"pm.environment.set(\"secret\", pm.response.json().secret)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"{{email}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/session/reset-password",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"session",
+						"reset-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset password",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a3251c2f-14f5-49d0-bd7c-968b2cf9ecaf",
+						"exec": [
+							"pm.environment.set(\"secret\", pm.response.json().secret)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"secret\": \"<password reset token secret>\",\n\t\"password\": \"5calaIsAwesome!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/user/{{userId}}/reset-password",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"user",
+						"{{userId}}",
+						"reset-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Authenticated user",
 			"request": {
 				"auth": {

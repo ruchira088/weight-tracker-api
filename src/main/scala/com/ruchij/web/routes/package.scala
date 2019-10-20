@@ -11,5 +11,7 @@ package object routes {
     val `weight-entry` = "weight-entry"
 
     val user = "user"
+
+    val `reset-password` = "reset-password"
   }
 }

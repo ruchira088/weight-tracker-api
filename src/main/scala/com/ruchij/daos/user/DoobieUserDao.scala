@@ -7,6 +7,7 @@ import cats.effect.Sync
 import com.ruchij.daos.user.models.DatabaseUser
 import doobie.postgres.implicits._
 import com.ruchij.daos.doobie.DoobieCustomMappings._
+import com.ruchij.daos.doobie.singleUpdate
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 
@@ -14,8 +15,9 @@ import scala.language.higherKinds
 
 class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends UserDao[F] {
 
-  override def insert(databaseUser: DatabaseUser): F[Int] =
-    sql"""
+  override def insert(databaseUser: DatabaseUser): F[Boolean] =
+    singleUpdate {
+      sql"""
       insert into users (id, created_at, email, password, first_name, last_name)
         values (
           ${databaseUser.id},
@@ -26,7 +28,8 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
           ${databaseUser.lastName}
         )
       """.update.run
-      .transact(transactor)
+        .transact(transactor)
+    }
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
     OptionT {
@@ -41,6 +44,12 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
       sql"select id, created_at, email, password, first_name, last_name from users where email = $email"
         .query[DatabaseUser]
         .option
+        .transact(transactor)
+    }
+
+  override def updatePassword(id: UUID, password: String): F[Boolean] =
+    singleUpdate {
+      sql"update users set password = $password where id = $id".update.run
         .transact(transactor)
     }
 }

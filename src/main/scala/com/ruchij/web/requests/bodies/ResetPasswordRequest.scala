@@ -21,6 +21,6 @@ object ResetPasswordRequest {
   implicit val resetPasswordRequestValidator: Validator[ResetPasswordRequest] =
     new Validator[ResetPasswordRequest] {
       override def validate[B <: ResetPasswordRequest](value: B): ValidatedNel[ValidationException, B] =
-        value.email as "email" mustBe validEmailAddress as value
+        (value.email as "email" mustBe validEmailAddress) as value
     }
 }

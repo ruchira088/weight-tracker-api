@@ -50,7 +50,7 @@ object UserRoutes {
 
       case request @ PUT -> Root / UUIDVar(userId) / `reset-password` =>
         for {
-          UpdatePasswordRequest(secret, password) <- request.as[UpdatePasswordRequest]
+          UpdatePasswordRequest(secret, password) <- request.to[UpdatePasswordRequest]
           updatedUser <- userService.updatePassword(userId, secret, password)
           response <- Ok(updatedUser)
         }

@@ -1,13 +1,16 @@
 package com.ruchij.web.routes
 
+import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
 import com.ruchij.exceptions.ResourceNotFoundException
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.user.models.User
+import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authentication.AuthenticationTokenExtractor
 import com.ruchij.web.requests.bodies.{LoginRequest, ResetPasswordRequest}
 import com.ruchij.web.responses.ResetPasswordResponse
+import com.ruchij.web.requests.RequestParser.Parser
 import com.ruchij.web.routes.Paths.{`reset-password`, user}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
@@ -16,7 +19,7 @@ import org.http4s.{AuthedRoutes, HttpRoutes}
 import scala.language.higherKinds
 
 object SessionRoutes {
-  def apply[F[_]: Sync](authenticationService: AuthenticationService[F], authenticationTokenExtractor: AuthenticationTokenExtractor[F])(implicit dsl: Http4sDsl[F], authMiddleware: AuthMiddleware[F, User]): HttpRoutes[F] = {
+  def apply[F[_]: Sync: Lambda[X[_] => ValidatedNel[Throwable, *] ~> X]](authenticationService: AuthenticationService[F], authenticationTokenExtractor: AuthenticationTokenExtractor[F])(implicit dsl: Http4sDsl[F], authMiddleware: AuthMiddleware[F, User]): HttpRoutes[F] = {
     import dsl._
 
     val publicRoutes: HttpRoutes[F] =
@@ -30,7 +33,7 @@ object SessionRoutes {
 
         case request @ POST -> Root / `reset-password` =>
           for {
-            ResetPasswordRequest(email) <- request.as[ResetPasswordRequest]
+            ResetPasswordRequest(email) <- request.to[ResetPasswordRequest]
             resetPasswordToken <- authenticationService.resetPassword(email)
             response <- Created(ResetPasswordResponse(email, resetPasswordToken.expiresAt))
           }

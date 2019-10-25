@@ -4,7 +4,7 @@ object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
   val HTTP4S_VERSION = "0.20.11"
-  val CIRCE_VERSION = "0.12.2"
+  val CIRCE_VERSION = "0.12.3"
 
   lazy val http4sDsl = "org.http4s" %% "http4s-dsl" % HTTP4S_VERSION
 
@@ -22,7 +22,7 @@ object Dependencies
 
   lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.1"
 
-  lazy val jodaTime = "joda-time" % "joda-time" % "2.10.4"
+  lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
 
   lazy val jbcrypt = "org.mindrot" % "jbcrypt" % "0.4"
 

@@ -38,7 +38,6 @@ object SessionRoutes {
             response <- Created(ResetPasswordResponse(email, resetPasswordToken.expiresAt))
           }
           yield response
-
       }
 
     val authenticatedRoutes: HttpRoutes[F] =

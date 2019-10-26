@@ -21,8 +21,10 @@ lazy val root =
 
 lazy val databaseMigration =
   (project in file("./database-migration"))
+    .enablePlugins(JavaAppPackaging)
     .settings(
       name := "database-migration",
+      version := "0.0.1",
       organization := "com.ruchij",
       scalaVersion := SCALA_VERSION,
       maintainer := "me@ruchij.com",

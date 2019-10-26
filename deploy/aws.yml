@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    terraform_s3_backend: weight-tracker.ruchij.com
+
+  tasks:
+    - name: Create Terraform backend in S3
+      aws_s3:
+        bucket: "{{ terraform_s3_backend }}"
+        region: ap-southeast-2
+        mode: create
+
+    - name: Create shared AWS resources
+      terraform:
+        project_path: terraform/shared
+        force_init: yes
+        backend_config:
+          bucket: "{{ terraform_s3_backend }}"
+          key: weight-tracker.tfstate
+          region: ap-southeast-2
+      register: terraform_shared_output
+
+    - name: Create branch specific AWS resources
+      terraform:
+        project_path: terraform/branch
+        force_init: yes
+        backend_config:
+          bucket: "{{ terraform_s3_backend }}"
+          key: "{{ git_branch }}/weight-tracker.tfstate"
+          region: ap-southeast-2

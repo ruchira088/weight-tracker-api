@@ -1,0 +1,21 @@
+FROM ubuntu:18.04 as builder
+
+WORKDIR /opt
+
+RUN apt update && \
+    apt install unzip -y
+
+COPY target/universal .
+
+RUN unzip {{ project_name }}-*.zip -d build && \
+    mv build/{{ project_name }}-* {{ project_name }}
+
+FROM openjdk:8-jdk-slim
+
+WORKDIR /opt/{{ project_name }}
+
+COPY --from=builder /opt/{{ project_name }} .
+
+EXPOSE 8000
+
+CMD [ "/opt/{{ project_name }}/bin/{{ project_name }}" ]

@@ -1,7 +1,7 @@
 package com.ruchij.web.routes
 
 import cats.effect.{Clock, IO}
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers.{beJsonResponse, matchWith}
 import com.ruchij.test.stubs.FlexibleClock

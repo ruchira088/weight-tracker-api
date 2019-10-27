@@ -8,6 +8,7 @@ import com.ruchij.daos.user.models.DatabaseUser
 import doobie.postgres.implicits._
 import com.ruchij.daos.doobie.DoobieCustomMappings._
 import com.ruchij.daos.doobie.singleUpdate
+import com.ruchij.services.email.models.Email.EmailAddress
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 
@@ -39,7 +40,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
         .transact(transactor)
     }
 
-  override def findByEmail(email: String): OptionT[F, DatabaseUser] =
+  override def findByEmail(email: EmailAddress): OptionT[F, DatabaseUser] =
     OptionT {
       sql"select id, created_at, email, password, first_name, last_name from users where email = $email"
         .query[DatabaseUser]

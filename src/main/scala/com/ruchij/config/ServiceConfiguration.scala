@@ -9,7 +9,8 @@ case class ServiceConfiguration(
   httpConfiguration: HttpConfiguration,
   doobieConfiguration: DoobieConfiguration,
   authenticationConfiguration: AuthenticationConfiguration,
-  redisConfiguration: RedisConfiguration
+  redisConfiguration: RedisConfiguration,
+  emailConfiguration: EmailConfiguration
 )
 
 object ServiceConfiguration {

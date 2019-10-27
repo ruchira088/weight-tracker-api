@@ -3,7 +3,7 @@ package com.ruchij.web.routes
 import java.util.UUID
 
 import cats.effect.IO
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json

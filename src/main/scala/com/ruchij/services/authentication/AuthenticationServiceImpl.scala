@@ -13,6 +13,8 @@ import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.daos.user.UserDao
 import com.ruchij.exceptions.{AuthenticationException, ResourceNotFoundException}
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
+import com.ruchij.services.email.EmailService
+import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.services.hashing.PasswordHashingService
 import com.ruchij.services.user.models.User
 import com.ruchij.types.Utils.predicate
@@ -22,6 +24,7 @@ import scala.language.higherKinds
 
 class AuthenticationServiceImpl[F[_]: Sync: Clock](
   passwordHashingService: PasswordHashingService[F, String],
+  emailService: EmailService[F],
   userDao: UserDao[F],
   resetPasswordTokenDao: ResetPasswordTokenDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
@@ -31,7 +34,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
 
   override def hashPassword(password: String): F[String] = passwordHashingService.hash(password)
 
-  override def login(email: String, password: String): F[AuthenticationToken] =
+  override def login(email: EmailAddress, password: String): F[AuthenticationToken] =
     for {
       databaseUser <- userDao
         .findByEmail(email)
@@ -74,7 +77,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
       _ <- authenticationTokenDao.extendExpiry(authenticationToken.secret, authenticationConfiguration.sessionTimeout)
     } yield User.fromDatabaseUser(databaseUser)
 
-  override def resetPassword(email: String): F[ResetPasswordToken] =
+  override def resetPassword(email: EmailAddress): F[ResetPasswordToken] =
     for {
       databaseUser <- userDao
         .findByEmail(email)

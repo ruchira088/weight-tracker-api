@@ -2,7 +2,7 @@ import Dependencies._
 
 lazy val root =
   (project in file("."))
-    .enablePlugins(BuildInfoPlugin, JavaAppPackaging)
+    .enablePlugins(BuildInfoPlugin, JavaAppPackaging, SbtTwirl)
     .settings(
       name := "weight-tracker-api",
       version := "0.0.1",
@@ -14,6 +14,8 @@ lazy val root =
       buildInfoPackage := "com.eed3si9n.ruchij",
       scalacOptions ++= Seq("-Ypartial-unification", "-Xlint"),
       coverageExcludedPackages := "<empty>;com.ruchij.App",
+      javaOptions in Test += s"-Dconfig.resource=application.test.conf",
+      fork in Test := true,
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor)
     )
@@ -48,7 +50,8 @@ lazy val rootDependencies =
     shapeless,
     logbackClassic,
     scalaLogging,
-    commonsValidator
+    commonsValidator,
+    sendgrid
   )
 
 lazy val rootTestDependencies =

@@ -3,8 +3,9 @@ package com.ruchij.web.requests.bodies
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
-import com.ruchij.circe.Decoders.optionStringDecoder
+import com.ruchij.circe.Decoders.{optionStringDecoder, taggedStringDecoder}
 import com.ruchij.exceptions.ValidationException
+import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.web.requests.validators.Validator
 import com.ruchij.web.requests.validators.Validator._
 import io.circe.generic.auto._
@@ -13,7 +14,7 @@ import org.http4s.circe.jsonOf
 
 import scala.language.higherKinds
 
-case class CreateUserRequest(email: String, password: String, firstName: String, lastName: Option[String])
+case class CreateUserRequest(email: EmailAddress, password: String, firstName: String, lastName: Option[String])
 
 object CreateUserRequest {
   implicit def createUserRequestEntityDecoder[F[_]: Sync]: EntityDecoder[F, CreateUserRequest] =

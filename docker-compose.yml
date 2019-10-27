@@ -24,6 +24,7 @@ services:
       DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
       DB_USER: weight-tracker
       DB_PASSWORD: pa55w0rd
+      SENDGRID_API_KEY: ""
 
   database-migration:
     build: .

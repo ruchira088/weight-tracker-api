@@ -3,7 +3,9 @@ package com.ruchij.web.requests.bodies
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
+import com.ruchij.circe.Decoders.taggedStringDecoder
 import com.ruchij.exceptions.ValidationException
+import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.web.requests.validators.Validator
 import com.ruchij.web.requests.validators.Validator._
 import io.circe.generic.auto._
@@ -12,7 +14,7 @@ import org.http4s.circe.jsonOf
 
 import scala.language.higherKinds
 
-case class ResetPasswordRequest(email: String)
+case class ResetPasswordRequest(email: EmailAddress)
 
 object ResetPasswordRequest {
   implicit def resetPasswordRequestEntityDecoder[F[_]: Sync]: EntityDecoder[F, ResetPasswordRequest] =

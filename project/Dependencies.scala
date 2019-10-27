@@ -52,6 +52,8 @@ object Dependencies
 
   lazy val commonsValidator = "commons-validator" % "commons-validator" % "1.6"
 
+  lazy val sendgrid = "com.sendgrid" % "sendgrid-java" % "4.4.1"
+
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8"
 
   lazy val embeddedRedis = "com.github.kstyrc" % "embedded-redis" % "0.6"

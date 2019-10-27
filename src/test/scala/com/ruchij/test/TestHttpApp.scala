@@ -1,6 +1,7 @@
 package com.ruchij.test
 
 import java.util.UUID
+import java.util.concurrent.ConcurrentLinkedQueue
 
 import akka.actor.ActorSystem
 import cats.Applicative
@@ -19,9 +20,11 @@ import com.ruchij.migration.MigrationApp
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
+import com.ruchij.services.email.models.Email
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
+import com.ruchij.test.stubs.StubbedEmailService
 import com.ruchij.test.utils.{DaoUtils, RandomGenerator}
 import com.ruchij.types.Transformation.~>
 import com.ruchij.types.{Random, UnsafeCopoint}
@@ -40,6 +43,7 @@ case class TestHttpApp[F[_]](
   userDao: UserDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
   weightEntryDao: WeightEntryDao[F],
+  emailMailBox: ConcurrentLinkedQueue[Email],
   shutdownHook: () => Unit
 )
 
@@ -70,9 +74,13 @@ object TestHttpApp {
         RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort))
       )
 
+    val emailMailBox = new ConcurrentLinkedQueue[Email]()
+    val stubbedEmailService = new StubbedEmailService[F](emailMailBox)
+
     val authenticationService =
       new AuthenticationServiceImpl[F](
         new BCryptService[F](ExecutionContext.global),
+        stubbedEmailService,
         userDao,
         resetPasswordTokenDao,
         authenticationTokenDao,
@@ -80,7 +88,7 @@ object TestHttpApp {
         AuthenticationConfiguration(30 seconds)
       )
 
-    val userService = new UserServiceImpl[F](userDao, authenticationService)
+    val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
     val healthCheckService = new HealthCheckServiceImpl[F]
     val authorizationService = new AuthorizationServiceImpl[F]
@@ -93,7 +101,7 @@ object TestHttpApp {
       redisServer.stop()
     }
 
-    TestHttpApp(httpApp, userDao, authenticationTokenDao, weightEntryDao, shutdownHook)
+    TestHttpApp(httpApp, userDao, authenticationTokenDao, weightEntryDao, emailMailBox, shutdownHook)
   }
 
   implicit class TestHttpAppOps[F[_]: UnsafeCopoint: Applicative](val testHttpApp: TestHttpApp[F]) {

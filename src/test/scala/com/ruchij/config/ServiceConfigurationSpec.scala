@@ -31,14 +31,24 @@ class ServiceConfigurationSpec extends FlatSpec with MustMatchers {
          |  host = "redis-server"
          |  port = 6379
          |}
+         |
+         |email-configuration {
+         |  sendgrid-api-key = "secret-sendgrid-key"
+         |}
          |""".stripMargin
 
     val expectedServiceConfiguration =
       ServiceConfiguration(
         HttpConfiguration(port = 80),
-        DoobieConfiguration(driver = "ruchij.com", url = "jdbc://ruchij.com/awesome_db", user = "john.doe", password = "my-password"),
+        DoobieConfiguration(
+          driver = "ruchij.com",
+          url = "jdbc://ruchij.com/awesome_db",
+          user = "john.doe",
+          password = "my-password"
+        ),
         AuthenticationConfiguration(FiniteDuration(60, TimeUnit.SECONDS)),
-        RedisConfiguration(host = "redis-server", port = 6379)
+        RedisConfiguration(host = "redis-server", port = 6379),
+        EmailConfiguration("secret-sendgrid-key")
       )
 
     ServiceConfiguration.load(ConfigSource.string(configurationFile)) mustBe Right(expectedServiceConfiguration)

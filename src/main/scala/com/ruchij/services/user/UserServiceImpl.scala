@@ -10,6 +10,8 @@ import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.{AuthenticationException, InternalServiceException, ResourceConflictException, ResourceNotFoundException}
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
+import com.ruchij.services.email.EmailService
+import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.types.Random
 import com.ruchij.types.Utils.predicate
 import org.joda.time.DateTime
@@ -19,10 +21,11 @@ import scala.language.higherKinds
 
 class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
   databaseUserDao: UserDao[F],
-  authenticationService: AuthenticationService[F]
+  authenticationService: AuthenticationService[F],
+  emailService: EmailService[F]
 ) extends UserService[F] {
 
-  override def create(email: String, password: String, firstName: String, lastName: Option[String]): F[User] =
+  override def create(email: EmailAddress, password: String, firstName: String, lastName: Option[String]): F[User] =
     for {
       emailExists <- findByEmail(email).isDefined
       _ <- predicate(emailExists, ResourceConflictException(s"email already exists: $email"))
@@ -38,6 +41,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
       user <- getById(id).adaptError {
         case _: ResourceNotFoundException => InternalServiceException("Unable to persist user")
       }
+
     } yield user
 
   override def getById(id: UUID): F[User] =
@@ -46,7 +50,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
       .map(User.fromDatabaseUser)
       .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"User not found for id = $id")))
 
-  override def findByEmail(email: String): OptionT[F, User] =
+  override def findByEmail(email: EmailAddress): OptionT[F, User] =
     databaseUserDao.findByEmail(email).map(User.fromDatabaseUser)
 
   override def updatePassword(userId: UUID, secret: String, password: String): F[User] =

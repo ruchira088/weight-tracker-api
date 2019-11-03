@@ -2,3 +2,6 @@
 target
 .DS_Store
 Dockerfile-prod
+.terraform
+deploy/output
+set-values.sh

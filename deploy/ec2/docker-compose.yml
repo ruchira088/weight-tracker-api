@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - "/home/ubuntu/Data/postgresql:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: weight-tracker
+      POSTGRES_USER: "<replace me>"
+      POSTGRES_PASSWORD: "<replace me>"
+
+  redis:
+    image: bitnami/redis
+    ports:
+      - 6379:6379
+    volumes:
+      - "/home/ubuntu/Data/redis:/bitnami/redis/data"
+    environment:
+      REDIS_PASSWORD: "<replace me>"

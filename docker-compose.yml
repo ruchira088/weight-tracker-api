@@ -21,6 +21,7 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: gErL7mV9BZADzkd
       DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
       DB_USER: weight-tracker
       DB_PASSWORD: pa55w0rd
@@ -53,6 +54,8 @@ services:
       POSTGRES_PASSWORD: pa55w0rd
 
   redis:
-    image: redis
+    image: bitnami/redis
     ports:
       - 6378:6379
+    environment:
+      REDIS_PASSWORD: gErL7mV9BZADzkd

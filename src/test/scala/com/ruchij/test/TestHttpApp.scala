@@ -71,7 +71,7 @@ object TestHttpApp {
 
     val authenticationTokenDao =
       new RedisAuthenticationTokenDao[F] (
-        RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort))
+        RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort, None))
       )
 
     val emailMailBox = new ConcurrentLinkedQueue[Email]()

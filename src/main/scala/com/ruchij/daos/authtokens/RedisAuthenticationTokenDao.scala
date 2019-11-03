@@ -90,5 +90,5 @@ class RedisAuthenticationTokenDao[F[_]: Clock: Sync](redisClient: RedisClient)(
 
 object RedisAuthenticationTokenDao {
   def redisClient(redisConfiguration: RedisConfiguration)(implicit actorSystem: ActorSystem): RedisClient =
-    RedisClient(redisConfiguration.host, redisConfiguration.port)
+    RedisClient(redisConfiguration.host, redisConfiguration.port, redisConfiguration.password)
 }

@@ -1,21 +1,17 @@
-FROM ubuntu:18.04 as builder
+FROM openjdk:8-jdk-slim
+
+ARG git_commit
+ARG git_branch
+ARG build_timestamp
+
+ENV GIT_COMMIT $git_commit
+ENV GIT_BRANCH $git_branch
+ENV BUILD_TIMESTAMP $build_timestamp
 
 WORKDIR /opt
 
-RUN apt update && \
-    apt install unzip -y
+ADD target/universal/{{ project_name }}-*.tgz .
 
-COPY target/universal .
-
-RUN unzip {{ project_name }}-*.zip -d build && \
-    mv build/{{ project_name }}-* {{ project_name }}
-
-FROM openjdk:8-jdk-slim
-
-WORKDIR /opt/{{ project_name }}
-
-COPY --from=builder /opt/{{ project_name }} .
-
-EXPOSE 8000
+RUN mv {{ project_name }}-* {{ project_name }}
 
 CMD [ "/opt/{{ project_name }}/bin/{{ project_name }}" ]

@@ -1,0 +1,24 @@
+---
+- import_playbook: variables.yml
+- import_playbook: aws.yml
+- import_playbook: secrets-and-configs.yml
+- hosts: localhost
+  connection: local
+  vars:
+    weight_tracker_api_docker_image: "{{ weight_tracker_api_ecr_url }}:{{ git_commit }}"
+
+  tasks:
+    - name: Create output directory
+      file:
+        path: output
+        state: directory
+
+    - debug:
+        var: secrets
+
+    - name: Render K8s resource files
+      template:
+        src: "{{ item }}"
+        dest: "output/{{ item | basename }}"
+      with_fileglob:
+        - k8s/*.yaml

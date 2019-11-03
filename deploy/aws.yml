@@ -1,4 +1,5 @@
 ---
+- import_playbook: variables.yml
 - hosts: localhost
   connection: local
   vars:
@@ -13,19 +14,23 @@
 
     - name: Create shared AWS resources
       terraform:
-        project_path: terraform/shared
+        project_path: aws/shared
         force_init: yes
         backend_config:
           bucket: "{{ terraform_s3_backend }}"
-          key: weight-tracker.tfstate
+          key: weight-tracker-api.tfstate
           region: ap-southeast-2
       register: terraform_shared_output
 
     - name: Create branch specific AWS resources
       terraform:
-        project_path: terraform/branch
+        project_path: aws/branch
         force_init: yes
         backend_config:
           bucket: "{{ terraform_s3_backend }}"
-          key: "{{ git_branch }}/weight-tracker.tfstate"
+          key: "{{ git_branch }}/weight-tracker-api.tfstate"
           region: ap-southeast-2
+
+    - set_fact:
+        database_migration_ecr_url: "{{ terraform_shared_output.outputs.weight_tracker_database_migration_ecr_url.value }}"
+        weight_tracker_api_ecr_url: "{{ terraform_shared_output.outputs.weight_tracker_api_ecr_url.value }}"

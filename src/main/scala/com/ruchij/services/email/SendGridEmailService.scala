@@ -23,9 +23,9 @@ class SendGridEmailService[F[_]: ContextShift: Sync](sendGrid: SendGrid, ioBlock
             setEndpoint("mail/send")
             setBody {
               new Mail(
-                new SendGridEmail(email.to),
-                email.subject,
                 new SendGridEmail(email.from),
+                email.subject,
+                new SendGridEmail(email.to),
                 new Content(email.content.contentType, email.content.body)
               ).build()
             }

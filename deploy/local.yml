@@ -1,0 +1,40 @@
+---
+- import_playbook: secrets-and-configs.yml
+- hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Delete existing set-values.sh file
+      file:
+        path: ../set-values.sh
+        state: absent
+
+    - name: Create new set-values.sh file
+      copy:
+        dest: ../set-values.sh
+        content: |
+          #!/usr/bin/env bash
+
+          echo "Setting secrets and config values as environment variables"
+
+    - name: Write secrets
+      lineinfile:
+        dest: ../set-values.sh
+        line: |
+          # secret
+          export {{ item.key }}="{{ item.value }}"
+      with_items: "{{ secrets | dict2items }}"
+
+    - name: Write config values
+      lineinfile:
+        dest: ../set-values.sh
+        line: |
+          # config value
+          export {{ item.key }}="{{ item.value }}"
+      with_items: "{{ config_values | dict2items }}"
+
+    - name: Write success message
+      lineinfile:
+        dest: ../set-values.sh
+        line: |
+          echo "Successfully set secrets and config values"

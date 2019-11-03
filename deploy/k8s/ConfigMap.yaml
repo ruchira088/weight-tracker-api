@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: weight-tracker-api-{{ git_branch }}
+  name: weight-tracker-api-config-map
+data:
+{% for key, value in config_values.items() %}
+  {{ key }}: {{ value }}
+{% endfor %}

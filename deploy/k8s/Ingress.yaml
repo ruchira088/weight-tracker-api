@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  namespace: weight-tracker-api-{{ git_branch }}
+  name: weight-tracker-api-ingress
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    external-dns.alpha.kubernetes.io/target: k8s.ruchij.com
+spec:
+  tls:
+    - secretName: weight-tracker-api-tls
+      hosts:
+        - {{ git_branch }}.api.weight-tracker.ruchij.com
+  rules:
+    - host: {{ git_branch }}.api.weight-tracker.ruchij.com
+      http:
+        paths:
+          - backend:
+              serviceName: weight-tracker-api-service
+              servicePort: 8000

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: weight-tracker-api-{{ git_branch }}
+  name: weight-tracker-api-service
+spec:
+  selector:
+    app: weight-tracker-api
+    branch: {{ git_branch }}
+  ports:
+    - port: 8000

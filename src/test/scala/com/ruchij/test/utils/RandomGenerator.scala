@@ -46,17 +46,19 @@ object RandomGenerator {
   def databaseWeightEntry(userId: UUID): DatabaseWeightEntry =
     DatabaseWeightEntry(uuid(), 0, DateTime.now(), userId, userId, DateTime.now(), weight(), option(description()))
 
-  def weight(): Double = "%.2f".format(ScalaRandom.nextInt(5000).toDouble/100 + 50).toDouble
+  def weight(): Double = "%.2f".format(ScalaRandom.nextInt(5000).toDouble / 100 + 50).toDouble
 
   def boolean(): Boolean = ScalaRandom.nextBoolean()
 
   def description(): String =
     choose(
       faker.rickAndMorty().quote(),
+      faker.gameOfThrones().quote(),
       faker.chuckNorris().fact(),
+      faker.howIMetYourMother().quote(),
       faker.superhero().descriptor(),
       faker.shakespeare().romeoAndJulietQuote()
-    )
+    ).replaceAll("’", "'").replaceAll("…", ".")
 
   def choose[A](values: A*): A = values(ScalaRandom.nextInt(values.length))
 

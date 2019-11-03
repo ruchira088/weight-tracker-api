@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: weight-tracker-api-{{ git_branch }}
+  name: weight-tracker-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weight-tracker-api
+      branch: {{ git_branch }}
+  template:
+    metadata:
+      labels:
+        app: weight-tracker-api
+        branch: {{ git_branch }}
+    spec:
+      containers:
+        - name: weight-tracker-api
+          image: {{ weight_tracker_api_docker_image }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: weight-tracker-api-config-map
+            - secretRef:
+                name: weight-tracker-api-secrets
+

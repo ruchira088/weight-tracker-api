@@ -30,6 +30,7 @@ class ServiceConfigurationSpec extends FlatSpec with MustMatchers {
          |redis-configuration {
          |  host = "redis-server"
          |  port = 6379
+         |  password = "password"
          |}
          |
          |email-configuration {
@@ -47,7 +48,7 @@ class ServiceConfigurationSpec extends FlatSpec with MustMatchers {
           password = "my-password"
         ),
         AuthenticationConfiguration(FiniteDuration(60, TimeUnit.SECONDS)),
-        RedisConfiguration(host = "redis-server", port = 6379),
+        RedisConfiguration(host = "redis-server", port = 6379, password = Some("password")),
         EmailConfiguration("secret-sendgrid-key")
       )
 

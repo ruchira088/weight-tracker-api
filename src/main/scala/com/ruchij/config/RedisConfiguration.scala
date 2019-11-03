@@ -1,3 +1,3 @@
 package com.ruchij.config
 
-case class RedisConfiguration(host: String, port: Int)
+case class RedisConfiguration(host: String, port: Int, password: Option[String])

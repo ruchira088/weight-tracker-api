@@ -6,6 +6,7 @@
   connection: local
   vars:
     weight_tracker_api_docker_image: "{{ weight_tracker_api_ecr_url }}:{{ git_commit }}"
+    k8s_config: "{{ lookup('aws_ssm', '/weight-tracker/k8s/config') }}"
 
   tasks:
     - name: Create output directory
@@ -13,8 +14,10 @@
         path: output
         state: directory
 
-    - debug:
-        var: secrets
+    - name: Create K8s config file
+      copy:
+        dest: output/config
+        content: "{{ k8s_config }}"
 
     - name: Render K8s resource files
       template:

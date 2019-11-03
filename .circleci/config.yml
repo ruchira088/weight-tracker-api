@@ -1,24 +1,89 @@
-version: 2
+version: 2.1
+
+alias:
+  - &restore-dependency-cache
+    keys:
+      - sbt-cache-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/Dependencies.scala" }}
+      - sbt-cache
+
+  - &install-git
+    name: Install Git and CA-certificates
+    command: |
+      apt update && \
+      apt install git apt-transport-https bc ca-certificates software-properties-common -y
+
+  - &install-sbt
+    name: Install sbt
+    command: |
+      apt-get update && \
+      apt-get install apt-transport-https bc ca-certificates software-properties-common -y
+
+      echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list && \
+      apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823 && \
+      apt-get update && \
+      apt-get install sbt -y
+
+  - &install-ansible
+    name: Install Ansible
+    command: |
+      apt update && \
+      apt install software-properties-common python-pip -y
+
+      pip install ansible boto3 botocore
+
+  - &install-aws-cli
+    name: Install AWS CLI
+    command: |
+      apt update && \
+      apt install python-pip python-dev build-essential -y
+
+      pip install awscli --upgrade --user && \
+      ln -sf $HOME/.local/bin/aws /usr/local/bin
+
+  - &install-terraform
+    name: Install Terraform
+    command: |
+      apt update && \
+      apt install unzip curl -y
+
+      curl -L -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_"${TERRAFORM_VERSION}"_linux_amd64.zip && \
+      unzip -d /tmp /tmp/terraform.zip && \
+      chmod +x /tmp/terraform && \
+      mv /tmp/terraform /usr/local/bin
+    environment:
+      TERRAFORM_VERSION: 0.12.12
+
+  - &install-docker-client
+    name: Install Docker client
+    command: |
+      apt update && \
+      apt install curl -y
+
+      curl -L -o /tmp/docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-"${DOCKER_VERSION}".tgz && \
+      tar -xv -C /tmp -f /tmp/docker.tgz && \
+      mv /tmp/docker/* /usr/local/bin
+    environment:
+      DOCKER_VERSION: 18.09.3
+
+  - &install-kubectl
+    name: Install kubectl
+    command: |
+      apt update && \
+      apt install curl gnupg2 apt-transport-https -y
+
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+      echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
+      apt update && \
+      apt install -y kubectl
+
 jobs:
-  build:
+  build-and-test:
     docker:
       - image: openjdk:8-jdk
     steps:
-      - run:
-          name: Install sbt
-          command: |
-            apt-get update && \
-            apt-get install apt-transport-https bc ca-certificates software-properties-common -y
-
-            echo "deb https://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list && \
-            apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823 && \
-            apt-get update && \
-            apt-get install sbt -y
+      - run: *install-sbt
       - checkout
-      - restore_cache:
-          keys:
-            - sbt-cache-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/Dependencies.scala" }}
-            - sbt-cache
+      - restore_cache: *restore-dependency-cache
       - run:
           name: Fetch dependencies
           command: sbt update
@@ -26,10 +91,81 @@ jobs:
           name: Compile
           command: sbt compile
       - run:
+          name: Fetch test dependencies
+          command: sbt test:update
+      - run:
           name: Run unit tests
           command: sbt test
+      - run:
+          name: Compile database migration project
+          command: sbt databaseMigration/compile
       - save_cache:
           key: sbt-cache-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/Dependencies.scala" }}
           paths:
             - ~/.sbt
             - ~/.coursier
+
+  create-aws-resources:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - run: *install-git
+      - run: *install-terraform
+      - run: *install-ansible
+      - checkout
+      - run:
+          name: Create AWS resources
+          command: ansible-playbook deploy/aws.yml
+
+  build-and-publish-docker-images:
+    docker:
+      - image: openjdk:8-jdk
+    steps:
+      - setup_remote_docker:
+          version: 18.09.3
+      - run: *install-git
+      - run: *install-sbt
+      - run: *install-terraform
+      - run: *install-ansible
+      - run: *install-docker-client
+      - run: *install-aws-cli
+      - checkout
+      - restore_cache: *restore-dependency-cache
+      - run:
+          name: Build & publish Docker images to ECR
+          command: ansible-playbook deploy/docker.yml
+
+  deploy-to-k8s:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - run: *install-git
+      - run: *install-terraform
+      - run: *install-ansible
+      - run: *install-kubectl
+      - checkout
+      - run:
+          name: Deploy to K8s
+          command: ansible-playbook deploy/k8s.yml
+
+workflows:
+  version: 2
+
+  weight-tracker-api:
+    jobs:
+      - build-and-test
+
+      - create-aws-resources:
+          context: aws-credentials
+          requires:
+            - build-and-test
+
+      - build-and-publish-docker-images:
+          context: aws-credentials
+          requires:
+            - create-aws-resources
+
+      - deploy-to-k8s:
+          context: aws-credentials
+          requires:
+            - build-and-publish-docker-images

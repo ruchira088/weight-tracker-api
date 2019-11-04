@@ -8,10 +8,8 @@ ENV GIT_COMMIT $git_commit
 ENV GIT_BRANCH $git_branch
 ENV BUILD_TIMESTAMP $build_timestamp
 
-WORKDIR /opt
+WORKDIR /opt/{{ project_name }}
 
 ADD target/universal/{{ project_name }}-*.tgz .
-
-RUN mv {{ project_name }}-* {{ project_name }}
 
 CMD [ "/opt/{{ project_name }}/bin/{{ project_name }}" ]

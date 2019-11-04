@@ -16,7 +16,7 @@
 
     - name: Create K8s config file
       copy:
-        dest: output/config
+        dest: output/kubeconfig
         content: "{{ k8s_config }}"
 
     - name: Render K8s resource files

@@ -16,6 +16,7 @@ lazy val root =
       coverageExcludedPackages := "<empty>;com.ruchij.App",
       javaOptions in Test += s"-Dconfig.resource=application.test.conf",
       fork in Test := true,
+      topLevelDirectory := None,
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor)
     )
@@ -30,7 +31,8 @@ lazy val databaseMigration =
       organization := "com.ruchij",
       scalaVersion := SCALA_VERSION,
       maintainer := "me@ruchij.com",
-      libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2)
+      libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2),
+      topLevelDirectory := None
     )
 
 lazy val rootDependencies =

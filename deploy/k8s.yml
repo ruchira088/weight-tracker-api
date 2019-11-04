@@ -25,3 +25,15 @@
         dest: "output/{{ item | basename }}"
       with_fileglob:
         - k8s/*.yaml
+
+    - name: Create Namespace in K8s
+      command: kubectl apply -f output/Namespace.yaml --kubeconfig output/kubeconfig
+
+    - name: Create ConfigMap in K8s
+      command: kubectl apply -f output/ConfigMap.yaml --kubeconfig output/kubeconfig
+
+    - name: Create Secrets in K8s
+      command: kubectl apply -f output/Secret.yaml --kubeconfig output/kubeconfig
+
+    - name: Deploy application to K8s
+      command: kubectl apply -f output/ --kubeconfig output/kubeconfig

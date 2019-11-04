@@ -52,7 +52,7 @@ object App extends IOApp {
         ioBlockingExecutionContext
       )
 
-      healthCheckService = new HealthCheckServiceImpl[IO]
+      healthCheckService = new HealthCheckServiceImpl[IO](serviceConfiguration.buildInformation)
 
       authenticationService = new AuthenticationServiceImpl(
         passwordHashingService,

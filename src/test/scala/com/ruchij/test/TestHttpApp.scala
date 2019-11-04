@@ -1,14 +1,14 @@
 package com.ruchij.test
 
 import java.util.UUID
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, TimeUnit}
 
 import akka.actor.ActorSystem
 import cats.Applicative
 import cats.data.ValidatedNel
 import cats.implicits._
 import cats.effect.{Async, Clock, ContextShift}
-import com.ruchij.config.{AuthenticationConfiguration, RedisConfiguration}
+import com.ruchij.config.{AuthenticationConfiguration, BuildInformation, RedisConfiguration}
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
 import com.ruchij.daos.resetpassword.DoobieResetPasswordTokenDao
@@ -67,6 +67,8 @@ object TestHttpApp {
 
     redisServer.start()
 
+    val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
+
     implicit val actorSystem: ActorSystem = ActorSystem(s"redis-${RandomGenerator.uuid()}")
 
     val authenticationTokenDao =
@@ -90,7 +92,7 @@ object TestHttpApp {
 
     val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
-    val healthCheckService = new HealthCheckServiceImpl[F]
+    val healthCheckService = new HealthCheckServiceImpl[F](buildInformation)
     val authorizationService = new AuthorizationServiceImpl[F]
 
     val httpApp =

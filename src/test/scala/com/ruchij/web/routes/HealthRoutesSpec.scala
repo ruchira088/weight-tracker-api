@@ -36,7 +36,10 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
          "javaVersion": ${Properties.javaVersion},
          "sbtVersion": ${BuildInfo.sbtVersion},
          "scalaVersion": ${BuildInfo.scalaVersion},
-         "currentTimestamp": $currentDateTime
+         "currentTimestamp": $currentDateTime,
+         "gitBranch": "master",
+         "gitCommit": "abc1234",
+         "buildTimestamp": null
       }"""
 
     response must beJsonResponse[IO]

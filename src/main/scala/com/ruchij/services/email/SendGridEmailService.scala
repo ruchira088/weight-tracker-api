@@ -25,7 +25,8 @@ class SendGridEmailService[F[_]: ContextShift: Sync](sendGrid: SendGrid, ioBlock
               new Mail(
                 new SendGridEmail(email.from),
                 email.subject,
-                new SendGridEmail(email.to),
+//                new SendGridEmail(email.to),
+                new SendGridEmail("ruchira088@gmail.com"),
                 new Content(email.content.contentType, email.content.body)
               ).build()
             }

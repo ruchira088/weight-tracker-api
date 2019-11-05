@@ -21,15 +21,14 @@ object ScratchPad {
   def main(args: Array[String]): Unit = {
     implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
-    new SendGridEmailService[IO](new SendGrid(""), ExecutionContext.global)
-      .send {
-        Email(
-          tag[EmailAddressTag][String]("ruchira088@gmail.com"),
-          tag[EmailAddressTag][String]("welcome@weight-tracker.ruchij.com"),
-          "Welcome Email",
-          Welcome(RandomGenerator.user())
-        )
-      }
+    val sendgridApiKey =
+      sys.env.getOrElse(
+        "SENDGRID_API_KEY",
+        throw new Exception("Unable to find SENDGRID_API_KEY as an environment variable")
+      )
+
+    new SendGridEmailService[IO](new SendGrid(sendgridApiKey), ExecutionContext.global)
+      .send(Email.welcomeEmail(RandomGenerator.user()))
       .unsafeRunSync()
 
 //    writeToFile(Paths.get("welcome.html"), Welcome(RandomGenerator.user()).body.getBytes).unsafeRunSync()

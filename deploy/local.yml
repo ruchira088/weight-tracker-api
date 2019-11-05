@@ -36,5 +36,4 @@
     - name: Write success message
       lineinfile:
         dest: ../set-values.sh
-        line: |
-          echo "Successfully set secrets and config values"
+        line: echo "Successfully set secrets and config values"

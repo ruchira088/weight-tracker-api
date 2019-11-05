@@ -204,4 +204,8 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
 
     application.shutdown()
   }
+
+  "POST /session/reset-password" should "send a password reset email" in {
+
+  }
 }

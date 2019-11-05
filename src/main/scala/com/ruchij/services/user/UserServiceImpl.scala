@@ -11,6 +11,7 @@ import com.ruchij.exceptions.{AuthenticationException, InternalServiceException,
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.email.EmailService
+import com.ruchij.services.email.models.Email
 import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.types.Random
 import com.ruchij.types.Utils.predicate
@@ -41,6 +42,8 @@ class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
       user <- getById(id).adaptError {
         case _: ResourceNotFoundException => InternalServiceException("Unable to persist user")
       }
+
+      _ <- emailService.send(Email.welcomeEmail(user))
 
     } yield user
 

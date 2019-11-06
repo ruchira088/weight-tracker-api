@@ -516,4 +516,39 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     application.shutdown()
   }
+
+  it should "return an error response if the secret was already used to reset the password" in {
+    val databaseUser = RandomGenerator.databaseUser()
+    val secret = "awesome-secret"
+    val databaseResetPasswordToken = DatabaseResetPasswordToken(
+      databaseUser.id,
+      secret,
+      DateTime.now(),
+      DateTime.now().plus(Duration.standardDays(1)),
+      Some(DateTime.now().plus(Duration.standardHours(1)))
+    )
+
+    val application = TestHttpApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
+
+    val jsonRequestBody =
+      json"""{
+        "secret": $secret,
+        "password": ${RandomGenerator.password()}
+      }"""
+
+    val request = jsonRequest[IO](Method.PUT, s"${`/user`}/${databaseUser.id}/${`reset-password`}", jsonRequestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [ "Token has already been used" ]
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Unauthorized
+
+    application.shutdown()
+  }
 }

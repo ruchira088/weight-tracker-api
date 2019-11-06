@@ -258,4 +258,31 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     application.shutdown()
   }
+
+  it should "return a not found error (404) response when the email does not exist" in {
+
+    val email = RandomGenerator.email()
+
+    val requestBody: Json =
+      json"""{
+        "email": ${email.toString}
+      }"""
+
+    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+
+    val request = jsonRequest[IO](Method.POST, s"${`/session`}/${`reset-password`}", requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [ ${email.toString + " was not found"} ]
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.NotFound
+
+    application.shutdown()
+  }
 }

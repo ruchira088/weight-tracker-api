@@ -4,6 +4,7 @@ import java.util.UUID
 
 import cats.effect.IO
 import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
 import com.ruchij.test.TestHttpApp
@@ -13,11 +14,11 @@ import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
 import com.ruchij.types.Random
-import com.ruchij.web.routes.Paths.{`/user`, `weight-entry`}
+import com.ruchij.web.routes.Paths.{`/user`, `reset-password`, `/session`, `weight-entry`}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Status, Uri}
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, Duration}
 import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 
 class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
@@ -355,7 +356,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val secondPageRequest =
       authenticatedRequest(
         databaseAuthenticationToken.secret,
-        Request[IO](uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-number=1&page-size=2"))
+        Request[IO](
+          uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-number=1&page-size=2")
+        )
       )
 
     val secondPageResponse =
@@ -379,6 +382,75 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     secondPageResponse must beJsonResponse[IO]
     json(secondPageResponse) must matchWith(secondPageExpectedJsonBody)
     secondPageResponse.status mustBe Status.Ok
+
+    application.shutdown()
+  }
+
+  "PUT /user/:userId/reset-password" should "reset the user's password" in {
+    val databaseUser = RandomGenerator.databaseUser()
+
+    val secret = "this_is_a_secret"
+    val databaseResetPasswordToken = DatabaseResetPasswordToken(
+      databaseUser.id,
+      secret,
+      DateTime.now(),
+      DateTime.now().plus(Duration.standardMinutes(1)),
+      None
+    )
+
+    val newPassword = RandomGenerator.password()
+
+    val application: TestHttpApp[IO] =
+      TestHttpApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
+
+    val requestBody =
+      json"""{
+        "secret": $secret,
+        "password": $newPassword
+      }"""
+
+    val request: Request[IO] =
+      jsonRequest[IO](Method.PUT, s"${`/user`}/${databaseUser.id}/${`reset-password`}", requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse: Json =
+      json"""{
+        "id": ${databaseUser.id},
+        "email": ${databaseUser.email},
+        "firstName": ${databaseUser.firstName},
+        "lastName": ${databaseUser.lastName}
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Ok
+
+    val loginWithOldPasswordRequestBody: Json =
+      json"""{
+        "email": ${databaseUser.email},
+        "password": ${RandomGenerator.PASSWORD}
+      }"""
+
+    val loginWithOldPasswordRequest = jsonRequest[IO](Method.POST, `/session`, loginWithOldPasswordRequestBody)
+
+    val loginWithOldPasswordResponse = application.httpApp.run(loginWithOldPasswordRequest).unsafeRunSync()
+
+    loginWithOldPasswordResponse must beJsonResponse[IO]
+    loginWithOldPasswordResponse.status mustBe Status.Unauthorized
+
+    val loginWithNewPasswordRequestBody =
+      json"""{
+        "email": ${databaseUser.email},
+        "password": $newPassword
+      }"""
+
+    val loginWithNewPasswordRequest = jsonRequest[IO](Method.POST, `/session`, loginWithNewPasswordRequestBody)
+
+    val loginWithNewPasswordResponse = application.httpApp.run(loginWithNewPasswordRequest).unsafeRunSync()
+
+    loginWithNewPasswordResponse must beJsonResponse[IO]
+    loginWithNewPasswordResponse.status mustBe Status.Created
 
     application.shutdown()
   }

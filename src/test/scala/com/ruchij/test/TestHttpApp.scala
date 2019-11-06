@@ -1,17 +1,18 @@
 package com.ruchij.test
 
 import java.util.UUID
-import java.util.concurrent.{ConcurrentLinkedQueue, TimeUnit}
+import java.util.concurrent.ConcurrentLinkedQueue
 
 import akka.actor.ActorSystem
 import cats.Applicative
 import cats.data.ValidatedNel
-import cats.implicits._
 import cats.effect.{Async, Clock, ContextShift}
+import cats.implicits._
 import com.ruchij.config.{AuthenticationConfiguration, BuildInformation, RedisConfiguration}
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
-import com.ruchij.daos.resetpassword.DoobieResetPasswordTokenDao
+import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
+import com.ruchij.daos.resetpassword.{DoobieResetPasswordTokenDao, ResetPasswordTokenDao}
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.user.{DoobieUserDao, UserDao}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
@@ -43,6 +44,7 @@ case class TestHttpApp[F[_]](
   userDao: UserDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
   weightEntryDao: WeightEntryDao[F],
+  resetPasswordTokenDao: ResetPasswordTokenDao[F],
   externalEmailMailBox: ConcurrentLinkedQueue[Email],
   shutdownHook: () => Unit
 )
@@ -104,7 +106,15 @@ object TestHttpApp {
       redisServer.stop()
     }
 
-    TestHttpApp(httpApp, userDao, authenticationTokenDao, weightEntryDao, emailMailBox, shutdownHook)
+    TestHttpApp(
+      httpApp,
+      userDao,
+      authenticationTokenDao,
+      weightEntryDao,
+      resetPasswordTokenDao,
+      emailMailBox,
+      shutdownHook
+    )
   }
 
   implicit class TestHttpAppOps[F[_]: UnsafeCopoint: Applicative](val testHttpApp: TestHttpApp[F]) {
@@ -126,6 +136,13 @@ object TestHttpApp {
       self {
         UnsafeCopoint.unsafeExtract {
           databaseWeightEntries.toList.traverse(testHttpApp.weightEntryDao.insert)
+        }
+      }
+
+    def withResetPasswordToken(databaseResetPasswordToken: DatabaseResetPasswordToken): TestHttpApp[F] =
+      self {
+        UnsafeCopoint.unsafeExtract {
+          testHttpApp.resetPasswordTokenDao.insert(databaseResetPasswordToken)
         }
       }
 

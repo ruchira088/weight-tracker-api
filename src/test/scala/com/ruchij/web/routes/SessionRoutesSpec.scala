@@ -1,10 +1,10 @@
 package com.ruchij.web.routes
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import cats.effect.{Clock, IO}
 import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.services.authentication.models.ResetPasswordToken
 import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
@@ -20,14 +20,10 @@ import com.ruchij.web.routes.Paths.{`/session`, `reset-password`, user}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Response, Status, Uri}
-import org.joda.time.DateTime
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.joda.time.{DateTime, Duration}
+import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 
-import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-import scala.language.postfixOps
-
-class SessionRoutesSpec extends FlatSpec with MustMatchers {
+class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
   "/POST session" should "successfully create an authentication token for valid credentials" in {
     val databaseUser = RandomGenerator.databaseUser()
@@ -216,7 +212,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
     application.shutdown()
   }
 
-  "POST /session/reset-password" should "send a password reset email" in {
+  "POST /session/reset-password" should "create a password reset token and send a password reset email" in {
     val currentDateTime = DateTime.now()
     implicit val clock: Clock[IO] = Providers.stubClock[IO](currentDateTime)
 
@@ -230,7 +226,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
         "email": ${databaseUser.email}
       }"""
 
-    val expiresAt = currentDateTime.plus(Duration(30, TimeUnit.SECONDS).toMillis)
+    val expiresAt = currentDateTime.plus(Duration.standardSeconds(30))
 
     val application = TestHttpApp[IO]().withUser(databaseUser)
 
@@ -251,6 +247,14 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
     application.externalEmailMailBox.size mustBe 1
     application.externalEmailMailBox.peek mustBe
       Email.resetPassword(User.fromDatabaseUser(databaseUser), ResetPasswordToken(databaseUser.id, uuid.toString, expiresAt, used = false))
+
+    val expectedDatabasePasswordResetToken =
+      DatabaseResetPasswordToken(databaseUser.id, uuid.toString, currentDateTime, expiresAt, None)
+
+    val databaseResetPasswordToken: DatabaseResetPasswordToken =
+      application.resetPasswordTokenDao.find(databaseUser.id, uuid.toString).value.unsafeRunSync().value
+
+    databaseResetPasswordToken mustBe expectedDatabasePasswordResetToken
 
     application.shutdown()
   }

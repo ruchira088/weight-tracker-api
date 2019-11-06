@@ -1,8 +1,9 @@
 package com.ruchij.services.email.models
 
+import com.ruchij.services.authentication.models.ResetPasswordToken
 import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.services.user.models.User
-import html.Welcome
+import html.{ResetPassword, Welcome}
 import play.twirl.api.HtmlFormat
 import shapeless.tag.@@
 import shapeless.tag
@@ -21,5 +22,13 @@ object Email {
       emailAddress("Weight Tracker <welcome@weight-tracker.ruchij.com>"),
       "Welcome to Weight Tracker",
       Welcome(user)
+    )
+
+  def resetPassword(user: User, resetPasswordToken: ResetPasswordToken): Email =
+    Email(
+      user.email,
+      emailAddress("Weight Tracker <reset.password@weight-tracker.ruchij.com>"),
+      "Reset your password",
+      ResetPassword(user, resetPasswordToken)
     )
 }

@@ -43,7 +43,7 @@ case class TestHttpApp[F[_]](
   userDao: UserDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
   weightEntryDao: WeightEntryDao[F],
-  emailMailBox: ConcurrentLinkedQueue[Email],
+  externalEmailMailBox: ConcurrentLinkedQueue[Email],
   shutdownHook: () => Unit
 )
 
@@ -56,7 +56,8 @@ object TestHttpApp {
     MigrationApp.migrate(DaoUtils.H2_DATABASE_CONFIGURATION).unsafeRunSync()
 
     val userDao: DoobieUserDao[F] = new DoobieUserDao[F](DaoUtils.h2Transactor)
-    val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] = new DoobieResetPasswordTokenDao[F](DaoUtils.h2Transactor)
+    val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
+      new DoobieResetPasswordTokenDao[F](DaoUtils.h2Transactor)
     val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](DaoUtils.h2Transactor)
 
     //    val authenticationTokenDao: InMemoryAuthenticationTokenDao[F] =
@@ -72,7 +73,7 @@ object TestHttpApp {
     implicit val actorSystem: ActorSystem = ActorSystem(s"redis-${RandomGenerator.uuid()}")
 
     val authenticationTokenDao =
-      new RedisAuthenticationTokenDao[F] (
+      new RedisAuthenticationTokenDao[F](
         RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort, None))
       )
 

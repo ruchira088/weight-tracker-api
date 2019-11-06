@@ -4,6 +4,8 @@ import java.util.UUID
 
 import cats.effect.IO
 import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.services.email.models.Email
+import com.ruchij.services.user.models.User
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
@@ -16,9 +18,9 @@ import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Status, Uri}
 import org.joda.time.DateTime
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 
-class UserRoutesSpec extends FlatSpec with MustMatchers {
+class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
   "POST /user" should "successfully create a user" in {
     val uuid = UUID.randomUUID()
@@ -52,6 +54,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonResponse[IO]
     json(response) must matchWith(expectedJsonResponse)
     response.status mustBe Status.Created
+
+    application.externalEmailMailBox.size mustBe 1
+    application.externalEmailMailBox.peek mustBe Email.welcomeEmail(User(uuid, email, firstName, lastName))
 
     application.shutdown()
   }

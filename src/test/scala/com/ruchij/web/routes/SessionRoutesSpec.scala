@@ -1,20 +1,31 @@
 package com.ruchij.web.routes
 
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+
 import cats.effect.{Clock, IO}
 import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.services.authentication.models.ResetPasswordToken
+import com.ruchij.services.email.models.Email
+import com.ruchij.services.user.models.User
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers.{beJsonResponse, matchWith}
 import com.ruchij.test.stubs.FlexibleClock
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock}
-import com.ruchij.test.utils.RandomGenerator
+import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
-import com.ruchij.web.routes.Paths.{`/session`, user}
+import com.ruchij.types.Random
+import com.ruchij.web.routes.Paths.{`/session`, `reset-password`, user}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Response, Status, Uri}
 import org.joda.time.DateTime
 import org.scalatest.{FlatSpec, MustMatchers}
+
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class SessionRoutesSpec extends FlatSpec with MustMatchers {
 
@@ -206,6 +217,41 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers {
   }
 
   "POST /session/reset-password" should "send a password reset email" in {
+    val currentDateTime = DateTime.now()
+    implicit val clock: Clock[IO] = Providers.stubClock[IO](currentDateTime)
 
+    val uuid = RandomGenerator.uuid()
+    implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
+
+    val databaseUser = RandomGenerator.databaseUser()
+
+    val requestBody =
+      json"""{
+        "email": ${databaseUser.email}
+      }"""
+
+    val expiresAt = currentDateTime.plus(Duration(30, TimeUnit.SECONDS).toMillis)
+
+    val application = TestHttpApp[IO]().withUser(databaseUser)
+
+    val request = jsonRequest[IO](Method.POST, s"${`/session`}/${`reset-password`}", requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedResponseBody =
+      json"""{
+        "email": ${databaseUser.email},
+        "expiresAt": $expiresAt
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedResponseBody)
+    response.status mustBe Status.Created
+
+    application.externalEmailMailBox.size mustBe 1
+    application.externalEmailMailBox.peek mustBe
+      Email.resetPassword(User.fromDatabaseUser(databaseUser), ResetPasswordToken(databaseUser.id, uuid.toString, expiresAt, used = false))
+
+    application.shutdown()
   }
 }

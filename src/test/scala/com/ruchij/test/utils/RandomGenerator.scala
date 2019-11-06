@@ -64,7 +64,7 @@ object RandomGenerator {
 
   def option[A](value: => A): Option[A] = if (boolean()) Some(value) else None
 
-  def random[F[_]: Applicative, A](result: A): Random[F, A] =
+  def random[F[_]: Applicative, A](result: => A): Random[F, A] =
     new Random[F, A] {
       override def value[B >: A]: F[B] = Applicative[F].pure[B](result)
     }

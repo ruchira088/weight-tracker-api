@@ -14,6 +14,7 @@ import com.ruchij.daos.user.UserDao
 import com.ruchij.exceptions.{AuthenticationException, ResourceNotFoundException}
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
 import com.ruchij.services.email.EmailService
+import com.ruchij.services.email.models.Email
 import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.services.hashing.PasswordHashingService
 import com.ruchij.services.user.models.User
@@ -97,7 +98,10 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
 
       _ <- resetPasswordTokenDao.insert(databaseResetPasswordToken)
 
-    } yield ResetPasswordToken.fromDatabaseResetPasswordToken(databaseResetPasswordToken)
+      resetPasswordToken = ResetPasswordToken.fromDatabaseResetPasswordToken(databaseResetPasswordToken)
+      _ <- emailService.send(Email.resetPassword(User.fromDatabaseUser(databaseUser), resetPasswordToken))
+
+    } yield resetPasswordToken
 
   override def getResetPasswordToken(userId: UUID, secret: String): F[ResetPasswordToken] =
     resetPasswordTokenDao.find(userId, secret)

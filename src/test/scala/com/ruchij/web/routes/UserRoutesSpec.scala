@@ -2,7 +2,7 @@ package com.ruchij.web.routes
 
 import java.util.UUID
 
-import cats.effect.IO
+import cats.effect.{Clock, IO}
 import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.services.email.models.Email
@@ -11,13 +11,13 @@ import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{clock, contextShift}
-import com.ruchij.test.utils.RandomGenerator
+import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
 import com.ruchij.types.Random
-import com.ruchij.web.routes.Paths.{`/user`, `reset-password`, `/session`, `weight-entry`}
+import com.ruchij.web.routes.Paths.{`/session`, `/user`, `reset-password`, `weight-entry`}
 import io.circe.Json
 import io.circe.literal._
-import org.http4s.{Method, Request, Status, Uri}
+import org.http4s.{Method, Request, Response, Status, Uri}
 import org.joda.time.{DateTime, Duration}
 import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 
@@ -451,6 +451,68 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     loginWithNewPasswordResponse must beJsonResponse[IO]
     loginWithNewPasswordResponse.status mustBe Status.Created
+
+    application.shutdown()
+  }
+
+  it should "return a not found error response for an invalid secret" in {
+    val databaseUser = RandomGenerator.databaseUser()
+
+    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
+
+    val requestBody: Json =
+      json"""{
+        "secret": "non_existing_secret",
+        "password": ${RandomGenerator.password()}
+      }"""
+
+    val request: Request[IO] =
+      jsonRequest[IO](Method.PUT, s"${`/user`}/${databaseUser.id}/${`reset-password`}", requestBody)
+
+    val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [ "Reset password token not found" ]
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.NotFound
+
+    application.shutdown()
+  }
+
+  it should "return an authentication error response if the token is expired" in {
+    val databaseUser = RandomGenerator.databaseUser()
+
+    val secret = "this_is_awesome"
+    val databaseResetPasswordToken =
+      DatabaseResetPasswordToken(databaseUser.id, secret, DateTime.now(), DateTime.now(), None)
+
+    implicit val clock: Clock[IO] =
+      Providers.stubClock[IO](DateTime.now().plus(Duration.standardDays(10)))
+
+    val application = TestHttpApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
+
+    val requestJsonBody =
+      json"""{
+        "secret": $secret,
+        "password": ${RandomGenerator.password()}
+      }"""
+
+    val request = jsonRequest[IO](Method.PUT, s"${`/user`}/${databaseUser.id}/${`reset-password`}", requestJsonBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [ "Token is expired" ]
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.Unauthorized
 
     application.shutdown()
   }

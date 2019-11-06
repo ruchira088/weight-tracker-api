@@ -259,7 +259,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     application.shutdown()
   }
 
-  it should "return a not found error (404) response when the email does not exist" in {
+  it should "return a not found error response when the email does not exist" in {
 
     val email = RandomGenerator.email()
 

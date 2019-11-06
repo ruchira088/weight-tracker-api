@@ -3,7 +3,7 @@ import sbt._
 object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
-  val HTTP4S_VERSION = "0.20.11"
+  val HTTP4S_VERSION = "0.20.13"
   val CIRCE_VERSION = "0.12.3"
 
   lazy val http4sDsl = "org.http4s" %% "http4s-dsl" % HTTP4S_VERSION
@@ -36,7 +36,7 @@ object Dependencies
 
   lazy val postgresql = "org.postgresql" % "postgresql" % "42.2.8"
 
-  lazy val h2 = "com.h2database" % "h2" % "1.4.200"
+  lazy val h2 = "com.h2database" % "h2" % "1.4.199"
 
   lazy val redisScala = "com.github.etaty" %% "rediscala" % "1.9.0"
 

@@ -13,13 +13,13 @@ lazy val root =
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
       scalacOptions ++= Seq("-Ypartial-unification", "-Xlint"),
-      coverageExcludedPackages := "<empty>;com.ruchij.App",
       javaOptions in Test += s"-Dconfig.resource=application.test.conf",
       fork in Test := true,
       topLevelDirectory := None,
       addCompilerPlugin(kindProjector),
-      addCompilerPlugin(betterMonadicFor)
-    )
+      addCompilerPlugin(betterMonadicFor),
+      coverageExcludedPackages := "<empty>;com.ruchij.App;html.*;",
+)
     .dependsOn(databaseMigration)
 
 lazy val databaseMigration =

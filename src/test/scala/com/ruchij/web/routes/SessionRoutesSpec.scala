@@ -10,7 +10,6 @@ import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers.{beJsonResponse, matchWith}
-import com.ruchij.test.stubs.FlexibleClock
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
@@ -124,11 +123,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val databaseUser = RandomGenerator.databaseUser()
     val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
-    implicit val flexibleClock: FlexibleClock[IO] = new FlexibleClock[IO](DateTime.now())
+    implicit val clock: Clock[IO] = Providers.stubClock[IO](DateTime.now().plus(Duration.standardDays(1)))
 
     val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
-
-    flexibleClock.setDateTime(DateTime.now().plusDays(1))
 
     val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(s"${`/session`}/$user"))
 
@@ -136,7 +133,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val expectedJsonBody =
       json"""{
-        "errorMessages": [ "Expired authentication token" ]
+        "errorMessages": [ "Expired credentials" ]
       }"""
 
     response must beJsonResponse[IO]

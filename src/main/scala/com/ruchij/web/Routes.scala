@@ -2,6 +2,7 @@ package com.ruchij.web
 
 import cats.data.{Kleisli, OptionT, ValidatedNel}
 import cats.effect.Sync
+import com.ruchij.exceptions.ResourceNotFoundException
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.authorization.AuthorizationService
 import com.ruchij.services.data.WeightEntryService
@@ -50,7 +51,9 @@ object Routes {
     CORS {
       ExceptionHandler {
         Kleisli { request: Request[F] =>
-          router.run(request).getOrElse(Response.notFound)
+          router.run(request).getOrElseF {
+            Sync[F].raiseError(ResourceNotFoundException(s"Endpoint not found: ${request.method} ${request.uri}"))
+          }
         }
       }
     }

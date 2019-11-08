@@ -70,4 +70,23 @@ class RoutesSpec extends FlatSpec with MustMatchers {
 
     application.shutdown()
   }
+
+  "Making a request to a valid URL but invalid HTTP method" should "return" in {
+    val application = TestHttpApp[IO]()
+
+    val request = Request[IO](method = Method.GET, uri = Uri(path = "/random-path"))
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "errorMessages": [ "Endpoint not found: GET /random-path" ]
+      }"""
+
+    response must beJsonResponse[IO]
+    json(response) must matchWith(expectedJsonResponse)
+    response.status mustBe Status.NotFound
+
+    application.shutdown()
+  }
 }

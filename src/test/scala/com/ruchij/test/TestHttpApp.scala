@@ -26,7 +26,7 @@ import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.test.stubs.StubbedEmailService
-import com.ruchij.test.utils.{DaoUtils, RandomGenerator}
+import com.ruchij.test.utils.DaoUtils
 import com.ruchij.types.Transformation.~>
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
@@ -72,7 +72,7 @@ object TestHttpApp {
 
     val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
 
-    implicit val actorSystem: ActorSystem = ActorSystem(s"redis-${RandomGenerator.uuid()}")
+    implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
     val authenticationTokenDao =
       new RedisAuthenticationTokenDao[F](

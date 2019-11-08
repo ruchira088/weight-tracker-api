@@ -1,14 +1,14 @@
 locals {
   s3_bucket = "weight-tracker.ruchij.com"
 
-  logos = [ "main-logo.svg", "small-logo.svg" ]
+  images = [ "main-logo.png" ]
 }
 
-resource "aws_s3_bucket_object" "logos" {
-  count = length(local.logos)
+resource "aws_s3_bucket_object" "images" {
+  count = length(local.images)
   bucket = local.s3_bucket
-  key = "logos/${local.logos[count.index]}"
-  source = "../../../assets/logos/${local.logos[count.index]}"
-  content_type = "image/svg+xml"
+  key = "email/${local.images[count.index]}"
+  source = "../../../email-assets/${local.images[count.index]}"
+  content_type = "image/png"
   acl = "public-read"
 }

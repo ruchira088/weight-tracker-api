@@ -5,7 +5,7 @@ import cats.effect.Sync
 import com.ruchij.exceptions._
 import com.ruchij.web.responses.ErrorResponse
 import org.http4s.dsl.impl.EntityResponseGenerator
-import org.http4s.{HttpApp, MessageFailure, Request, Response, Status}
+import org.http4s.{HttpApp, Request, Response, Status}
 
 import scala.language.higherKinds
 
@@ -34,8 +34,6 @@ object ExceptionHandler {
       case _: AuthenticationException => Status.Unauthorized
 
       case _: AuthorizationException => Status.Forbidden
-
-      case _: MessageFailure => Status.BadRequest
 
       case _ => Status.InternalServerError
     }

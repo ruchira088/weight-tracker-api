@@ -26,7 +26,7 @@ object SessionRoutes {
       HttpRoutes.of {
         case request @ POST -> Root =>
           for {
-            loginRequest <- request.as[LoginRequest]
+            loginRequest <- request.to[LoginRequest]
             authenticationToken <- authenticationService.login(loginRequest.email, loginRequest.password)
             response <- Created(authenticationToken)
           } yield response

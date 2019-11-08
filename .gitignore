@@ -1,7 +1,11 @@
-.idea
-target
 .DS_Store
-Dockerfile-prod
+
+.idea
 .terraform
+
+Dockerfile-prod
 deploy/output
 set-values.sh
+target
+
+/welcome.html

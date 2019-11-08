@@ -4,39 +4,38 @@ import java.nio.ByteBuffer
 import java.nio.channels.{AsynchronousFileChannel, CompletionHandler}
 import java.nio.file.{Path, Paths, StandardOpenOption}
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.{ExitCode, IO, IOApp}
 import com.ruchij.services.email.SendGridEmailService
 import com.ruchij.services.email.models.Email
-import com.ruchij.services.email.models.Email.EmailAddressTag
 import com.ruchij.test.utils.RandomGenerator
 import com.sendgrid.SendGrid
-import shapeless.tag
-import html.Welcome
-import play.twirl.api.Html
 
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
-object ScratchPad {
-  def main(args: Array[String]): Unit = {
-    implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+object ScratchPad extends IOApp {
 
-    val sendgridApiKey =
-      sys.env.getOrElse(
-        "SENDGRID_API_KEY",
-        throw new Exception("Unable to find SENDGRID_API_KEY as an environment variable")
-      )
+  override def run(args: List[String]): IO[ExitCode] =
+    for {
+      email <- IO.delay(Email.welcomeEmail(RandomGenerator.user()))
 
-    new SendGridEmailService[IO](new SendGrid(sendgridApiKey), ExecutionContext.global)
-      .send(Email.welcomeEmail(RandomGenerator.user()))
-      .unsafeRunSync()
+      sendgridApiKey <- environmentValue("SENDGRID_API_KEY")
+      sendgridEmailService = new SendGridEmailService[IO](new SendGrid(sendgridApiKey), ExecutionContext.global)
+      _ <- sendgridEmailService.send(email)
 
-//    writeToFile(Paths.get("welcome.html"), Welcome(RandomGenerator.user()).body.getBytes).unsafeRunSync()
-  }
+      _ <- writeToFile(Paths.get("welcome.html"), email.content.body.getBytes)
+    }
+    yield ExitCode.Success
+
+  def environmentValue(name: String): IO[String] =
+    IO.suspend {
+      sys.env.get(name)
+        .fold[IO[String]](IO.raiseError(new NoSuchElementException(s"Unable to find $name as an environment variable")))(IO.pure)
+    }
 
   def writeToFile(path: Path, content: Array[Byte]): IO[Int] =
     IO.async[Int] { cb =>
-      val fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+      val fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
 
       fileChannel.write(ByteBuffer.wrap(content), 0, (): Unit, new CompletionHandler[Integer, Unit] {
         override def completed(result: Integer, attachment: Unit): Unit =

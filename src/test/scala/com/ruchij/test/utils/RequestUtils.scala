@@ -17,7 +17,7 @@ object RequestUtils {
       method,
       uri = Uri(path = url),
       headers = Headers.of(`Content-Type`(MediaType.application.json)),
-      body = Stream.fromIterator[F](body.toString.map(_.toByte).toIterator)
+      body = Stream.fromIterator[F](body.toString.getBytes.toIterator)
     )
 
   def getRequest[F[_]](path: String, headers: Headers = Headers.empty): Request[F] =

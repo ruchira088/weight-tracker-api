@@ -2,8 +2,26 @@
 
 @(user: User)
 
-EmailTemplate("Welcome to Weight-Tracker") {
+@EmailTemplate("Welcome to Weight-Tracker") {
     <div class="welcome">
+        <style>
+            header {
+                text-align: center;
+                margin-bottom: 2em;
+            }
 
+            .main-logo {
+                width: 80%;
+            }
+        </style>
+        <header>
+            <img class="main-logo" src="https://s3-ap-southeast-2.amazonaws.com/weight-tracker.ruchij.com/main-logo.svg" alt="Weight-Tracker main logo"/>
+        </header>
+        <section>
+            <div class="greeting">Hello @{user.firstName},</div>
+            <div class="content">
+                Your journey begins to achieve your target weight.
+            </div>
+        </section>
     </div>
 }

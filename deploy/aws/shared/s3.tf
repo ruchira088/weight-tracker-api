@@ -7,7 +7,7 @@ locals {
 resource "aws_s3_bucket_object" "logos" {
   count = length(local.logos)
   bucket = local.s3_bucket
-  key = local.logos[count.index]
+  key = "logos/${local.logos[count.index]}"
   source = "../../../assets/logos/${local.logos[count.index]}"
   content_type = "image/svg+xml"
   acl = "public-read"

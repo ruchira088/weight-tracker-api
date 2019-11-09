@@ -14,28 +14,26 @@ object ExceptionHandler {
   def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
     Kleisli[F, Request[F], Response[F]] { request =>
       Sync[F].handleErrorWith(httpApp.run(request)) { throwable =>
-        val entityResponseGenerator =
-          new EntityResponseGenerator[F, F] {
-            override def status: Status = throwableStatusMapper(throwable)
-          }
-
-        entityResponseGenerator(throwableErrorResponseMapper(throwable))
+        entityResponseGenerator(throwable)(throwableErrorResponseMapper(throwable))
       }
     }
 
-  private def throwableStatusMapper(throwable: Throwable): Status =
-    throwable match {
-      case ValidationException(_) => Status.BadRequest
+  private def entityResponseGenerator[F[_]](throwable: Throwable): EntityResponseGenerator[F, F] =
+    new EntityResponseGenerator[F, F] {
+      override def status: Status =
+        throwable match {
+          case ValidationException(_) => Status.BadRequest
 
-      case _: ResourceConflictException => Status.Conflict
+          case _: ResourceConflictException => Status.Conflict
 
-      case _: ResourceNotFoundException => Status.NotFound
+          case _: ResourceNotFoundException => Status.NotFound
 
-      case _: AuthenticationException => Status.Unauthorized
+          case _: AuthenticationException => Status.Unauthorized
 
-      case _: AuthorizationException => Status.Forbidden
+          case _: AuthorizationException => Status.Forbidden
 
-      case _ => Status.InternalServerError
+          case _ => Status.InternalServerError
+        }
     }
 
   private def throwableErrorResponseMapper(throwable: Throwable): ErrorResponse =

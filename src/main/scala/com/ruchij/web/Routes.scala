@@ -1,6 +1,6 @@
 package com.ruchij.web
 
-import cats.data.{Kleisli, OptionT, ValidatedNel}
+import cats.data.{Kleisli, ValidatedNel}
 import cats.effect.Sync
 import com.ruchij.exceptions.ResourceNotFoundException
 import com.ruchij.services.authentication.AuthenticationService
@@ -17,7 +17,7 @@ import com.ruchij.web.routes.{HealthRoutes, SessionRoutes, UserRoutes}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.middleware.CORS
 import org.http4s.server.{AuthMiddleware, Router}
-import org.http4s.{HttpApp, Request, Response}
+import org.http4s.{HttpApp, HttpRoutes, Request}
 
 import scala.language.higherKinds
 
@@ -41,7 +41,7 @@ object Routes {
         authenticationTokenExtractor
       )
 
-    val router: Kleisli[OptionT[F, *], Request[F], Response[F]] =
+    val router: HttpRoutes[F] =
       Router(
         `/user` -> UserRoutes(userService, weightEntryService, authorizationService),
         `/session` -> SessionRoutes(authenticationService, authenticationTokenExtractor),

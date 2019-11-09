@@ -13,8 +13,7 @@ import scala.language.higherKinds
 object JsonUtils {
 
   def json[F[_]: Sync: Lambda[X[_] => Either[Throwable, *] ~> X]](response: Response[F]): F[Json] =
-    response.body.compile.toVector
-      .map(_.map(_.toChar).mkString)
+    response.bodyAsText.compile.string
       .flatMap(_.parseAsJson)
 
   implicit class JsonParser(val string: String) extends AnyVal {

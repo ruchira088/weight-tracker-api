@@ -32,7 +32,7 @@ object App extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      serviceConfiguration <- IO.fromEither(ServiceConfiguration.load(ConfigSource.default))
+      serviceConfiguration <- IO.suspend(IO.fromEither(ServiceConfiguration.load(ConfigSource.default)))
 
       cpuBlockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
       ioBlockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())

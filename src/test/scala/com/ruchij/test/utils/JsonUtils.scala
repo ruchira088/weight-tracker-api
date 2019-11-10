@@ -2,8 +2,7 @@ package com.ruchij.test.utils
 
 import cats.effect.Sync
 import cats.implicits._
-import com.ruchij.types.Transformation
-import com.ruchij.types.Transformation.~>
+import cats.~>
 import io.circe.Json
 import io.circe.parser.parse
 import org.http4s.Response
@@ -17,7 +16,7 @@ object JsonUtils {
       .flatMap(_.parseAsJson)
 
   implicit class JsonParser(val string: String) extends AnyVal {
-    def parseAsJson[F[_]: Lambda[X[_] => Either[Throwable, *] ~> X]]: F[Json] =
-      Transformation[Either[Throwable, *], F].apply(parse(string))
+    def parseAsJson[F[_]](implicit functionK: Either[Throwable, *] ~> F): F[Json] =
+      functionK(parse(string))
   }
 }

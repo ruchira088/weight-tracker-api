@@ -4,7 +4,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 import akka.actor.ActorSystem
-import cats.Applicative
+import cats.{Applicative, ~>}
 import cats.data.ValidatedNel
 import cats.effect.{Async, Clock, ContextShift}
 import cats.implicits._
@@ -27,7 +27,6 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.test.stubs.StubbedEmailService
 import com.ruchij.test.utils.DaoUtils
-import com.ruchij.types.Transformation.~>
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
 import org.http4s.HttpApp

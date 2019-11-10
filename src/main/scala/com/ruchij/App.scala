@@ -19,6 +19,7 @@ import com.ruchij.services.email.SendGridEmailService
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
+import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.Routes
 import com.sendgrid.SendGrid
 import org.http4s.server.blaze.BlazeServerBuilder

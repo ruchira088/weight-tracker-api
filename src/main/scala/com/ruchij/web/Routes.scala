@@ -2,6 +2,7 @@ package com.ruchij.web
 
 import cats.data.{Kleisli, ValidatedNel}
 import cats.effect.Sync
+import cats.~>
 import com.ruchij.exceptions.ResourceNotFoundException
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.authorization.AuthorizationService
@@ -9,7 +10,6 @@ import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
 import com.ruchij.services.user.models.User
-import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
 import com.ruchij.web.middleware.exception.ExceptionHandler
 import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/user`}

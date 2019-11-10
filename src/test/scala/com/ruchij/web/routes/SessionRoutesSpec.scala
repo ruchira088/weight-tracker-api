@@ -15,6 +15,7 @@ import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
 import com.ruchij.types.Random
+import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.routes.Paths.{`/session`, `reset-password`, user}
 import io.circe.Json
 import io.circe.literal._

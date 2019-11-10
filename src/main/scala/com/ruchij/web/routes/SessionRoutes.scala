@@ -3,10 +3,10 @@ package com.ruchij.web.routes
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
+import cats.~>
 import com.ruchij.exceptions.ResourceNotFoundException
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.user.models.User
-import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authentication.AuthenticationTokenExtractor
 import com.ruchij.web.requests.bodies.{LoginRequest, ResetPasswordRequest}
 import com.ruchij.web.responses.ResetPasswordResponse

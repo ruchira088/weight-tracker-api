@@ -5,12 +5,12 @@ import java.util.UUID
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
+import cats.~>
 import com.ruchij.services.authorization.{AuthorizationService, Permission}
 import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.data.models.WeightEntry.weightEntryEncoder
 import com.ruchij.services.user.UserService
 import com.ruchij.services.user.models.User
-import com.ruchij.types.Transformation.~>
 import com.ruchij.web.middleware.authorization.Authorizer
 import com.ruchij.web.requests.RequestParser._
 import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest, UpdatePasswordRequest}

@@ -8,6 +8,7 @@ import com.ruchij.test.matchers._
 import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
+import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.routes.Paths.`/health`
 import io.circe.literal._
 import org.http4s.{Response, Status}

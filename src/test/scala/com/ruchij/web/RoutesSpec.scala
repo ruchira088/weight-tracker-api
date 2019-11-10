@@ -6,7 +6,6 @@ import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers._
 import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.test.utils.RequestUtils.jsonRequest
-import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.routes.Paths.`/session`
 import io.circe.Json
@@ -35,9 +34,9 @@ class RoutesSpec extends FlatSpec with MustMatchers {
         "errorMessages": [ ${"Invalid message body: Could not decode JSON: " + jsonRequestBody} ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.BadRequest
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.BadRequest)
 
     application.shutdown()
   }
@@ -65,9 +64,9 @@ class RoutesSpec extends FlatSpec with MustMatchers {
         "errorMessages": [ "Malformed message body: Invalid JSON" ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.BadRequest
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.BadRequest)
 
     application.shutdown()
   }
@@ -84,9 +83,9 @@ class RoutesSpec extends FlatSpec with MustMatchers {
         "errorMessages": [ "Endpoint not found: GET /random-path" ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.NotFound
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.NotFound)
 
     application.shutdown()
   }

@@ -9,8 +9,7 @@ import com.ruchij.services.authentication.models.ResetPasswordToken
 import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
 import com.ruchij.test.TestHttpApp
-import com.ruchij.test.matchers.{beJsonResponse, matchWith}
-import com.ruchij.test.utils.JsonUtils.json
+import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
@@ -38,8 +37,8 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val response = application.httpApp.run(jsonRequest(Method.POST, `/session`, requestBody)).unsafeRunSync()
 
-    response must beJsonResponse[IO]
-    response.status mustBe Status.Created
+    response must beJsonContentType
+    response must haveStatus(Status.Created)
 
     application.shutdown()
   }
@@ -63,9 +62,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "errorMessages": [ "Invalid credentials" ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.Unauthorized
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.Unauthorized)
 
     application.shutdown()
   }
@@ -87,9 +86,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "errorMessages": [ ${s"Email not found: $email"} ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.NotFound
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.NotFound)
 
     application.shutdown()
   }
@@ -113,9 +112,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "lastName": ${databaseUser.lastName}
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.Ok
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.Ok)
 
     application.shutdown()
   }
@@ -137,9 +136,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "errorMessages": [ "Expired credentials" ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonBody)
-    response.status mustBe Status.Unauthorized
+    response must beJsonContentType
+    response must haveJson(expectedJsonBody)
+    response must haveStatus(Status.Unauthorized)
 
     application.shutdown()
   }
@@ -157,9 +156,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "errorMessages": [ "Missing Authorization header" ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.Unauthorized
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.Unauthorized)
 
     application.shutdown()
   }
@@ -192,9 +191,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "secret": ${authenticationToken.secret}
       }"""
 
-    logoutResponse must beJsonResponse[IO]
-    json(logoutResponse) must matchWith(expectedLogoutJsonBody)
-    logoutResponse.status mustBe Status.Ok
+    logoutResponse must beJsonContentType
+    logoutResponse must haveJson(expectedLogoutJsonBody)
+    logoutResponse must haveStatus(Status.Ok)
 
     val retrieveUserAgainResponse = application.httpApp.run(retrieveUserRequest).unsafeRunSync()
 
@@ -203,9 +202,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "errorMessages": [ "Invalid credentials" ]
       }"""
 
-    retrieveUserAgainResponse must beJsonResponse[IO]
-    json(retrieveUserAgainResponse) must matchWith(expectedFailureJsonBody)
-    retrieveUserAgainResponse.status mustBe Status.Unauthorized
+    retrieveUserAgainResponse must beJsonContentType
+    retrieveUserAgainResponse must haveJson(expectedFailureJsonBody)
+    retrieveUserAgainResponse must haveStatus(Status.Unauthorized)
 
     application.shutdown()
   }
@@ -238,9 +237,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "expiresAt": $expiresAt
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedResponseBody)
-    response.status mustBe Status.Created
+    response must beJsonContentType
+    response must haveJson(expectedResponseBody)
+    response must haveStatus(Status.Created)
 
     application.externalEmailMailBox.size mustBe 1
     application.externalEmailMailBox.peek mustBe
@@ -277,9 +276,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "errorMessages": [ ${email.toString + " was not found"} ]
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.NotFound
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.NotFound)
 
     application.shutdown()
   }

@@ -5,7 +5,6 @@ import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.circe.Encoders.jodaTimeEncoder
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._
-import com.ruchij.test.utils.JsonUtils.json
 import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
 import com.ruchij.types.FunctionKTypes._
@@ -43,9 +42,9 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
          "buildTimestamp": null
       }"""
 
-    response must beJsonResponse[IO]
-    json(response) must matchWith(expectedJsonResponse)
-    response.status mustBe Status.Ok
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.Ok)
 
     application.shutdown()
   }

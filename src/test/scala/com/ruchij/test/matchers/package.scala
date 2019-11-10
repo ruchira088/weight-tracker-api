@@ -1,10 +1,18 @@
 package com.ruchij.test
 
+import cats.effect.IO
+import com.ruchij.types.FunctionKTypes.eitherThrowableToIO
+import io.circe.Json
+import org.http4s.{MediaType, Status}
+
 import scala.language.higherKinds
 
 package object matchers {
 
-  def matchWith[A](expected: A): IoResultMatcher[A] = new IoResultMatcher(expected)
+  val beJsonContentType: ResponseContentTypeMatcher[IO] =
+    new ResponseContentTypeMatcher[IO](MediaType.application.json)
 
-  def beJsonResponse[F[_]]: JsonContentTypeHeaderMatcher[F] = new JsonContentTypeHeaderMatcher[F]
+  def haveJson(json: Json): JsonResponseMatcher[IO] = new JsonResponseMatcher[IO](json)
+
+  def haveStatus(status: Status): ResponseStatusMatcher[IO] = new ResponseStatusMatcher[IO](status)
 }

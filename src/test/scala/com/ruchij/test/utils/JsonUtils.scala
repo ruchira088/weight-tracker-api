@@ -11,12 +11,7 @@ import scala.language.higherKinds
 
 object JsonUtils {
 
-  def json[F[_]: Sync: Lambda[X[_] => Either[Throwable, *] ~> X]](response: Response[F]): F[Json] =
-    response.bodyAsText.compile.string
-      .flatMap(_.parseAsJson)
-
-  implicit class JsonParser(val string: String) extends AnyVal {
-    def parseAsJson[F[_]](implicit functionK: Either[Throwable, *] ~> F): F[Json] =
-      functionK(parse(string))
-  }
+  def json[F[_]: Sync](response: Response[F])(implicit functionK: Either[Throwable, *] ~> F): F[Json] =
+    response.bodyAsText.compile[F, F, String].string
+      .flatMap { jsonString => functionK(parse(jsonString)) }
 }

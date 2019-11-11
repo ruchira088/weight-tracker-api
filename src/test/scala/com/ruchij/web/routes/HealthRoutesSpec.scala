@@ -1,7 +1,6 @@
 package com.ruchij.web.routes
 
 import cats.effect.{Clock, IO}
-import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.circe.Encoders.jodaTimeEncoder
 import com.ruchij.test.TestHttpApp
 import com.ruchij.test.matchers._

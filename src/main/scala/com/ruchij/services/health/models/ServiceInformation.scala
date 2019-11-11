@@ -15,6 +15,7 @@ import scala.util.Properties
 case class ServiceInformation(
   serviceName: String,
   serviceVersion: String,
+  organization: String,
   javaVersion: String,
   sbtVersion: String,
   scalaVersion: String,
@@ -29,6 +30,7 @@ object ServiceInformation {
     ServiceInformation(
       BuildInfo.name,
       BuildInfo.version,
+      BuildInfo.organization,
       Properties.javaVersion,
       BuildInfo.sbtVersion,
       BuildInfo.scalaVersion,

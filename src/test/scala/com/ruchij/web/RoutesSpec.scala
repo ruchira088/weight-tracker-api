@@ -1,7 +1,7 @@
 package com.ruchij.web
 
 import cats.effect.IO
-import com.ruchij.test.TestHttpApp
+import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers._
 import com.ruchij.test.utils.RandomGenerator
@@ -18,7 +18,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 class RoutesSpec extends FlatSpec with MustMatchers {
 
   "Making a request with missing fields in the request body" should "return a bad request error response" in {
-    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+    val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val jsonRequestBody: Json =
       json"""{
@@ -42,7 +42,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
   }
 
   "Making a malformed JSON request" should "return a bad request error response" in {
-    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+    val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val requestBody =
       """{
@@ -72,7 +72,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
   }
 
   "Making a request to a valid URL but invalid HTTP method" should "return" in {
-    val application = TestHttpApp[IO]()
+    val application = HttpTestApp[IO]()
 
     val request = Request[IO](method = Method.GET, uri = Uri(path = "/random-path"))
 

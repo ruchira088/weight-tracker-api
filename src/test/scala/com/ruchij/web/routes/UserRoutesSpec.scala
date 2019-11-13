@@ -7,7 +7,7 @@ import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
-import com.ruchij.test.TestHttpApp
+import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers.{clock, contextShift}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
@@ -27,7 +27,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val uuid = UUID.randomUUID()
     implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
 
-    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+    val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val email = RandomGenerator.email()
     val password = RandomGenerator.password()
@@ -66,7 +66,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val uuid = RandomGenerator.uuid()
     implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random[IO, UUID](uuid)
 
-    val application = TestHttpApp[IO]()
+    val application = HttpTestApp[IO]()
 
     val email = RandomGenerator.email()
     val password = RandomGenerator.password()
@@ -100,7 +100,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   it should "return a conflict error response if the email address already exists" in {
     val databaseUser = RandomGenerator.databaseUser()
 
-    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
+    val application: HttpTestApp[IO] = HttpTestApp[IO]().withUser(databaseUser)
 
     val password = RandomGenerator.password()
     val firstName = RandomGenerator.firstName()
@@ -127,7 +127,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   }
 
   it should "return a validation error response for invalid an invalid email" in {
-    val application = TestHttpApp[IO]()
+    val application = HttpTestApp[IO]()
 
     val requestBody =
       json"""{
@@ -151,7 +151,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   }
 
   it should "return a validation error response for an invalid password" in {
-    val application = TestHttpApp[IO]()
+    val application = HttpTestApp[IO]()
 
     val requestBody =
       json"""{
@@ -178,7 +178,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   }
 
   it should "return an validation response for multiple invalid parameters" in {
-    val application = TestHttpApp[IO]()
+    val application = HttpTestApp[IO]()
 
     val requestBody =
       json"""{
@@ -212,7 +212,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val databaseUser = RandomGenerator.databaseUser()
     val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
 
     val request =
       authenticatedRequest(databaseAuthenticationToken.secret, getRequest[IO](s"${`/user`}/${databaseUser.id}"))
@@ -241,7 +241,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val resourceUser = RandomGenerator.databaseUser()
 
     val application =
-      TestHttpApp[IO]()
+      HttpTestApp[IO]()
         .withUser(authenticatedDatabaseUser)
         .withUser(resourceUser)
         .withAuthenticationToken(databaseAuthenticationToken)
@@ -270,7 +270,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val uuid = RandomGenerator.uuid()
     implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
 
     val now = DateTime.now()
     val weight = RandomGenerator.weight()
@@ -315,7 +315,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val weightEntryThree = RandomGenerator.databaseWeightEntry(databaseUser.id)
 
     val application =
-      TestHttpApp[IO]()
+      HttpTestApp[IO]()
         .withUser(databaseUser)
         .withAuthenticationToken(databaseAuthenticationToken)
         .withWeightEntries(weightEntryOne, weightEntryTwo, weightEntryThree)
@@ -400,8 +400,8 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val newPassword = RandomGenerator.password()
 
-    val application: TestHttpApp[IO] =
-      TestHttpApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
+    val application: HttpTestApp[IO] =
+      HttpTestApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
 
     val requestBody =
       json"""{
@@ -458,7 +458,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   it should "return a not found error response for an invalid secret" in {
     val databaseUser = RandomGenerator.databaseUser()
 
-    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
+    val application: HttpTestApp[IO] = HttpTestApp[IO]().withUser(databaseUser)
 
     val requestBody: Json =
       json"""{
@@ -493,7 +493,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     implicit val clock: Clock[IO] =
       Providers.stubClock[IO](DateTime.now().plus(Duration.standardDays(10)))
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
 
     val requestJsonBody =
       json"""{
@@ -528,7 +528,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
       Some(DateTime.now().plus(Duration.standardHours(1)))
     )
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withResetPasswordToken(databaseResetPasswordToken)
 
     val jsonRequestBody =
       json"""{

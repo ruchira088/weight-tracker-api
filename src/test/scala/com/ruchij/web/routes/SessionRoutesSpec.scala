@@ -8,7 +8,7 @@ import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.services.authentication.models.ResetPasswordToken
 import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
-import com.ruchij.test.TestHttpApp
+import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
@@ -27,7 +27,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   "/POST session" should "successfully create an authentication token for valid credentials" in {
     val databaseUser = RandomGenerator.databaseUser()
 
-    val application = TestHttpApp[IO]().withUser(databaseUser)
+    val application = HttpTestApp[IO]().withUser(databaseUser)
 
     val requestBody: Json =
       json"""{
@@ -46,7 +46,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   it should "return an authorized error response for an incorrect password" in {
     val databaseUser = RandomGenerator.databaseUser()
 
-    val application: TestHttpApp[IO] = TestHttpApp[IO]().withUser(databaseUser)
+    val application: HttpTestApp[IO] = HttpTestApp[IO]().withUser(databaseUser)
 
     val requestBody: Json =
       json"""{
@@ -70,7 +70,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   }
 
   it should "return not found response (404) when the email doesn't exist" in {
-    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+    val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val email = RandomGenerator.email()
     val requestBody: Json =
@@ -97,8 +97,8 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val databaseUser = RandomGenerator.databaseUser()
     val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
-    val application: TestHttpApp[IO] =
-      TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
+    val application: HttpTestApp[IO] =
+      HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
 
     val request = authenticatedRequest(databaseAuthenticationToken.secret, getRequest[IO](s"${`/session`}/$user"))
 
@@ -125,7 +125,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     implicit val clock: Clock[IO] = Providers.stubClock[IO](DateTime.now().plus(Duration.standardDays(1)))
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
     val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(s"${`/session`}/$user"))
 
@@ -147,7 +147,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val databaseUser = RandomGenerator.databaseUser()
     val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
     val response: Response[IO] = application.httpApp.run(getRequest[IO](s"${`/session`}/$user")).unsafeRunSync()
 
@@ -170,7 +170,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val timestamp = DateTime.now()
     implicit val clock: Clock[IO] = stubClock(timestamp)
 
-    val application = TestHttpApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
+    val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
     val retrieveUserRequest =
       authenticatedRequest[IO](authenticationToken.secret, getRequest(s"${`/session`}/$user"))
@@ -225,7 +225,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val expiresAt = currentDateTime.plus(Duration.standardSeconds(30))
 
-    val application = TestHttpApp[IO]().withUser(databaseUser)
+    val application = HttpTestApp[IO]().withUser(databaseUser)
 
     val request = jsonRequest[IO](Method.POST, s"${`/session`}/${`reset-password`}", requestBody)
 
@@ -265,7 +265,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "email": ${email.toString}
       }"""
 
-    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+    val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val request = jsonRequest[IO](Method.POST, s"${`/session`}/${`reset-password`}", requestBody)
 

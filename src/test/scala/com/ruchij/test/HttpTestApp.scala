@@ -38,7 +38,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.{higherKinds, postfixOps}
 
-case class TestHttpApp[F[_]](
+case class HttpTestApp[F[_]](
   httpApp: HttpApp[F],
   userDao: UserDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
@@ -48,11 +48,11 @@ case class TestHttpApp[F[_]](
   shutdownHook: () => Unit
 )
 
-object TestHttpApp {
+object HttpTestApp {
 
   def apply[F[_]: Async: ContextShift: Clock: Lambda[X[_] => Random[X, UUID]]: Lambda[
     X[_] => ValidatedNel[Throwable, *] ~> X
-  ]: Lambda[X[_] => Future ~> X]](): TestHttpApp[F] = {
+  ]: Lambda[X[_] => Future ~> X]](): HttpTestApp[F] = {
 
     MigrationApp.migrate(DaoUtils.H2_DATABASE_CONFIGURATION).unsafeRunSync()
 
@@ -105,7 +105,7 @@ object TestHttpApp {
       redisServer.stop()
     }
 
-    TestHttpApp(
+    HttpTestApp(
       httpApp,
       userDao,
       authenticationTokenDao,
@@ -116,37 +116,37 @@ object TestHttpApp {
     )
   }
 
-  implicit class TestHttpAppOps[F[_]: UnsafeCopoint: Applicative](val testHttpApp: TestHttpApp[F]) {
-    def withUser(databaseUser: DatabaseUser): TestHttpApp[F] =
+  implicit class HttpTestAppOps[F[_]: UnsafeCopoint: Applicative](val httpTestApp: HttpTestApp[F]) {
+    def withUser(databaseUser: DatabaseUser): HttpTestApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
-          testHttpApp.userDao.insert(databaseUser)
+          httpTestApp.userDao.insert(databaseUser)
         }
       }
 
-    def withAuthenticationToken(databaseAuthenticationToken: DatabaseAuthenticationToken): TestHttpApp[F] =
+    def withAuthenticationToken(databaseAuthenticationToken: DatabaseAuthenticationToken): HttpTestApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
-          testHttpApp.authenticationTokenDao.createToken(databaseAuthenticationToken)
+          httpTestApp.authenticationTokenDao.createToken(databaseAuthenticationToken)
         }
       }
 
-    def withWeightEntries(databaseWeightEntries: DatabaseWeightEntry*): TestHttpApp[F] =
+    def withWeightEntries(databaseWeightEntries: DatabaseWeightEntry*): HttpTestApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
-          databaseWeightEntries.toList.traverse(testHttpApp.weightEntryDao.insert)
+          databaseWeightEntries.toList.traverse(httpTestApp.weightEntryDao.insert)
         }
       }
 
-    def withResetPasswordToken(databaseResetPasswordToken: DatabaseResetPasswordToken): TestHttpApp[F] =
+    def withResetPasswordToken(databaseResetPasswordToken: DatabaseResetPasswordToken): HttpTestApp[F] =
       self {
         UnsafeCopoint.unsafeExtract {
-          testHttpApp.resetPasswordTokenDao.insert(databaseResetPasswordToken)
+          httpTestApp.resetPasswordTokenDao.insert(databaseResetPasswordToken)
         }
       }
 
-    def self(block: Unit): TestHttpApp[F] = testHttpApp
+    def self(block: Unit): HttpTestApp[F] = httpTestApp
 
-    def shutdown(): Unit = testHttpApp.shutdownHook()
+    def shutdown(): Unit = httpTestApp.shutdownHook()
   }
 }

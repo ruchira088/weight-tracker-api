@@ -2,7 +2,7 @@ package com.ruchij.web.routes
 
 import cats.effect.{Clock, IO}
 import com.ruchij.circe.Encoders.jodaTimeEncoder
-import com.ruchij.test.TestHttpApp
+import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock}
@@ -21,12 +21,11 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
     val currentDateTime = DateTime.now()
     implicit val clock: Clock[IO] = stubClock[IO](currentDateTime)
 
-    val application: TestHttpApp[IO] = TestHttpApp[IO]()
+    val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val request = getRequest[IO](`/health`)
 
-    val response: Response[IO] =
-      application.httpApp.run(request).unsafeRunSync()
+    val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{

@@ -53,7 +53,7 @@ object App extends IOApp {
         ioBlockingExecutionContext
       )
 
-      healthCheckService = new HealthCheckServiceImpl[IO](serviceConfiguration.buildInformation)
+      healthCheckService = new HealthCheckServiceImpl[IO](doobieTransactor, redisClient, serviceConfiguration.buildInformation)
 
       authenticationService = new AuthenticationServiceImpl(
         passwordHashingService,

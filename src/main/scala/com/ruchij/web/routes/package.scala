@@ -13,5 +13,7 @@ package object routes {
     val user = "user"
 
     val `reset-password` = "reset-password"
+
+    val services = "services"
   }
 }

@@ -5,8 +5,6 @@ import com.ruchij.types.FunctionKTypes.eitherThrowableToIO
 import io.circe.Json
 import org.http4s.{MediaType, Status}
 
-import scala.language.higherKinds
-
 package object matchers {
 
   val beJsonContentType: ResponseContentTypeMatcher[IO] =

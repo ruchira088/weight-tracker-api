@@ -73,10 +73,9 @@ object HttpTestApp {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
-    val authenticationTokenDao =
-      new RedisAuthenticationTokenDao[F](
-        RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort, None))
-      )
+    val redisClient = RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort, None))
+
+    val authenticationTokenDao = new RedisAuthenticationTokenDao[F](redisClient)
 
     val emailMailBox = new ConcurrentLinkedQueue[Email]()
     val stubbedEmailService = new StubbedEmailService[F](emailMailBox)
@@ -94,7 +93,7 @@ object HttpTestApp {
 
     val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
-    val healthCheckService = new HealthCheckServiceImpl[F](buildInformation)
+    val healthCheckService = new HealthCheckServiceImpl[F](DaoUtils.h2Transactor, redisClient, buildInformation)
     val authorizationService = new AuthorizationServiceImpl[F]
 
     val httpApp =

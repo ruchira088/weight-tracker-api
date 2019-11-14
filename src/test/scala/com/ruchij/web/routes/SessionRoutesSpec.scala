@@ -24,7 +24,7 @@ import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 
 class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
-  "/POST session" should "successfully create an authentication token for valid credentials" in {
+  "POST /session" should "successfully create an authentication token for valid credentials" in {
     val databaseUser = RandomGenerator.databaseUser()
 
     val application = HttpTestApp[IO]().withUser(databaseUser)

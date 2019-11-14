@@ -5,7 +5,7 @@ import com.ruchij.circe.Encoders.jodaTimeEncoder
 import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.RequestUtils.getRequest
-import com.ruchij.test.utils.Providers.{contextShift, stubClock}
+import com.ruchij.test.utils.Providers.{contextShift, stubClock, clock}
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.routes.Paths.`/health`
 import io.circe.literal._
@@ -39,6 +39,26 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
          "gitBranch": "master",
          "gitCommit": "abc1234",
          "buildTimestamp": null
+      }"""
+
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.Ok)
+
+    application.shutdown()
+  }
+
+  "GET /health/services" should "return a success response when all services are healthy" in {
+    val application = HttpTestApp[IO]()
+
+    val request = getRequest[IO]("/health/services")
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "database": "Healthy",
+        "redis": "Healthy"
       }"""
 
     response must beJsonContentType

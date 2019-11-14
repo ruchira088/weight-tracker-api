@@ -1,6 +1,7 @@
 package com.ruchij.web.responses
 
 import cats.Applicative
+import com.ruchij.circe.Encoders.enumEncoder
 import com.ruchij.services.health.models.HealthStatus
 import io.circe.generic.auto._
 import org.http4s.circe.jsonEncoderOf

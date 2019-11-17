@@ -25,4 +25,18 @@ spec:
                 name: weight-tracker-api-config-map
             - secretRef:
                 name: weight-tracker-api-secrets
+          livenessProbe:
+            httpGet:
+              port: 8000
+              path: /health
+              httpHeaders:
+                - name: X-Correlation-ID
+                  value: k8s-health-check
+          readinessProbe:
+            httpGet:
+              port: 8000
+              path: /health
+              httpHeaders:
+                - name: X-Correlation-ID
+                  value: k8s-readiness-check
 

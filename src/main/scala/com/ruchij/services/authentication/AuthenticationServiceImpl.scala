@@ -78,7 +78,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
       _ <- authenticationTokenDao.extendExpiry(authenticationToken.secret, authenticationConfiguration.sessionTimeout)
     } yield User.fromDatabaseUser(databaseUser)
 
-  override def resetPassword(email: EmailAddress): F[ResetPasswordToken] =
+  override def resetPassword(email: EmailAddress, frontEndUrl: String): F[ResetPasswordToken] =
     for {
       databaseUser <- userDao
         .findByEmail(email)

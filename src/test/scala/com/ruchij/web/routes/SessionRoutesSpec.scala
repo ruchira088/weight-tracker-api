@@ -217,10 +217,12 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
 
     val databaseUser = RandomGenerator.databaseUser()
+    val frontEndUrl = RandomGenerator.url()
 
     val requestBody =
       json"""{
-        "email": ${databaseUser.email}
+        "email": ${databaseUser.email},
+        "frontEndUrl": $frontEndUrl
       }"""
 
     val expiresAt = currentDateTime.plus(Duration.standardSeconds(30))
@@ -234,7 +236,8 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val expectedResponseBody =
       json"""{
         "email": ${databaseUser.email},
-        "expiresAt": $expiresAt
+        "expiresAt": $expiresAt,
+        "frontEndUrl": $frontEndUrl
       }"""
 
     response must beJsonContentType
@@ -259,10 +262,12 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
   it should "return a not found error response when the email does not exist" in {
 
     val email = RandomGenerator.email()
+    val frontEndUrl = RandomGenerator.url()
 
     val requestBody: Json =
       json"""{
-        "email": ${email.toString}
+        "email": ${email.toString},
+        "frontEndUrl": $frontEndUrl
       }"""
 
     val application: HttpTestApp[IO] = HttpTestApp[IO]()

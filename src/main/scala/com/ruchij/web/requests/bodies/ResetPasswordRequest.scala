@@ -14,7 +14,7 @@ import org.http4s.circe.jsonOf
 
 import scala.language.higherKinds
 
-case class ResetPasswordRequest(email: EmailAddress)
+case class ResetPasswordRequest(email: EmailAddress, frontEndUrl: String)
 
 object ResetPasswordRequest {
   implicit def resetPasswordRequestEntityDecoder[F[_]: Sync]: EntityDecoder[F, ResetPasswordRequest] =

@@ -17,7 +17,7 @@ trait AuthenticationService[F[_]] {
 
   def authenticate(secret: String): F[User]
 
-  def resetPassword(email: EmailAddress): F[ResetPasswordToken]
+  def resetPassword(email: EmailAddress, frontEndUrl: String): F[ResetPasswordToken]
 
   def getResetPasswordToken(userId: UUID, secret: String): F[ResetPasswordToken]
 

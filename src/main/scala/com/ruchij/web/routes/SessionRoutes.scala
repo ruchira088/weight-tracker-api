@@ -33,9 +33,9 @@ object SessionRoutes {
 
         case request @ POST -> Root / `reset-password` =>
           for {
-            ResetPasswordRequest(email) <- request.to[ResetPasswordRequest]
-            resetPasswordToken <- authenticationService.resetPassword(email)
-            response <- Created(ResetPasswordResponse(email, resetPasswordToken.expiresAt))
+            ResetPasswordRequest(email, frontEndUrl) <- request.to[ResetPasswordRequest]
+            resetPasswordToken <- authenticationService.resetPassword(email, frontEndUrl)
+            response <- Created(ResetPasswordResponse(email, resetPasswordToken.expiresAt, frontEndUrl))
           }
           yield response
       }

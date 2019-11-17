@@ -34,6 +34,8 @@ object RandomGenerator {
 
   def uuid(): UUID = UUID.randomUUID()
 
+  def url(): String = internet().url()
+
   def user(): User =
     User(uuid(), email(), firstName(), option(lastName()))
 

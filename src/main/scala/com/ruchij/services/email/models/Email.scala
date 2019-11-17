@@ -24,11 +24,11 @@ object Email {
       Welcome(user)
     )
 
-  def resetPassword(user: User, resetPasswordToken: ResetPasswordToken): Email =
+  def resetPassword(user: User, resetPasswordToken: ResetPasswordToken, frontEndUrl: String): Email =
     Email(
       user.email,
       emailAddress("Weight Tracker <reset.password@weight-tracker.ruchij.com>"),
       "Reset your password",
-      ResetPassword(user, resetPasswordToken)
+      ResetPassword(user, resetPasswordToken, frontEndUrl)
     )
 }

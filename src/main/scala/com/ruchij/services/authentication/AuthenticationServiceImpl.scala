@@ -99,7 +99,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock](
       _ <- resetPasswordTokenDao.insert(databaseResetPasswordToken)
 
       resetPasswordToken = ResetPasswordToken.fromDatabaseResetPasswordToken(databaseResetPasswordToken)
-      _ <- emailService.send(Email.resetPassword(User.fromDatabaseUser(databaseUser), resetPasswordToken))
+      _ <- emailService.send(Email.resetPassword(User.fromDatabaseUser(databaseUser), resetPasswordToken, frontEndUrl))
 
     } yield resetPasswordToken
 

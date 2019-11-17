@@ -246,7 +246,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     application.externalEmailMailBox.size mustBe 1
     application.externalEmailMailBox.peek mustBe
-      Email.resetPassword(User.fromDatabaseUser(databaseUser), ResetPasswordToken(databaseUser.id, uuid.toString, expiresAt, used = false))
+      Email.resetPassword(User.fromDatabaseUser(databaseUser), ResetPasswordToken(databaseUser.id, uuid.toString, expiresAt, used = false), frontEndUrl)
 
     val expectedDatabasePasswordResetToken =
       DatabaseResetPasswordToken(databaseUser.id, uuid.toString, currentDateTime, expiresAt, None)

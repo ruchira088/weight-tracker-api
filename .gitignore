@@ -6,6 +6,7 @@
 Dockerfile-prod
 deploy/output
 set-values.sh
+secrets.env
 target
 
-/welcome.html
+/*.html

@@ -18,14 +18,15 @@ services:
       - "/opt/weight-tracker-api/target"
       - "/opt/weight-tracker-api/project/target"
       - "/root/.sbt/1.0/plugins"
+    env_file:
+      - secrets.env
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: gErL7mV9BZADzkd
       DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
       DB_USER: weight-tracker
-      DB_PASSWORD: pa55w0rd
-      SENDGRID_API_KEY: ""
+      DB_PASSWORD: Fzy46pxRRd92sE2JRyR2
 
   database-migration:
     build: .
@@ -42,7 +43,7 @@ services:
     environment:
       DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
       DB_USER: weight-tracker
-      DB_PASSWORD: pa55w0rd
+      DB_PASSWORD: Fzy46pxRRd92sE2JRyR2
 
   postgres:
     image: postgres
@@ -51,7 +52,7 @@ services:
     environment:
       POSTGRES_DB: weight-tracker
       POSTGRES_USER: weight-tracker
-      POSTGRES_PASSWORD: pa55w0rd
+      POSTGRES_PASSWORD: Fzy46pxRRd92sE2JRyR2
 
   redis:
     image: bitnami/redis

@@ -1,0 +1,16 @@
+---
+- import_playbook: secrets-and-configs.yml
+- hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Delete existing secrets.env
+      file:
+        path: ../secrets.env
+        state: absent
+
+    - name: Create secrets.env
+      copy:
+        dest: ../secrets.env
+        content: |
+          SENDGRID_API_KEY={{ secrets.SENDGRID_API_KEY }}

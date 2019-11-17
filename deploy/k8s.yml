@@ -37,3 +37,6 @@
 
     - name: Deploy application to K8s
       command: kubectl apply -f output/ --kubeconfig output/kubeconfig
+
+    - name: Waiting for successful deployment
+      command: "kubectl rollout status deployment weight-tracker-api-deployment --kubeconfig output/kubeconfig -n weight-tracker-api-{{ git_branch }}"

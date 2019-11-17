@@ -50,9 +50,8 @@ case class HttpTestApp[F[_]](
 
 object HttpTestApp {
 
-  def apply[F[_]: Async: ContextShift: Clock: Lambda[X[_] => Random[X, UUID]]: Lambda[
-    X[_] => ValidatedNel[Throwable, *] ~> X
-  ]: Lambda[X[_] => Future ~> X]](): HttpTestApp[F] = {
+  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]:
+    ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]](): HttpTestApp[F] = {
 
     MigrationApp.migrate(DaoUtils.H2_DATABASE_CONFIGURATION).unsafeRunSync()
 

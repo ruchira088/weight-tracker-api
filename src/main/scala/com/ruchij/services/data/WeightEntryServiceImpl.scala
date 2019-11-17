@@ -15,7 +15,7 @@ import org.joda.time.DateTime
 
 import scala.language.higherKinds
 
-class WeightEntryServiceImpl[F[_]: Clock: Sync: Lambda[X[_] => Random[X, UUID]]](weightEntryDao: WeightEntryDao[F])
+class WeightEntryServiceImpl[F[_]: Clock: Sync: Random[*[_], UUID]](weightEntryDao: WeightEntryDao[F])
     extends WeightEntryService[F] {
 
   override def create(timestamp: DateTime, weight: Double, description: Option[String], userId: UUID, createdBy: UUID): F[WeightEntry] =

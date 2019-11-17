@@ -30,7 +30,7 @@ object Dependencies
 
   lazy val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
 
-  lazy val doobiePostgres =  "org.tpolecat" %% "doobie-postgres" % "0.8.4"
+  lazy val doobiePostgres =  "org.tpolecat" %% "doobie-postgres" % "0.8.6"
 
   lazy val flywayCore = "org.flywaydb" % "flyway-core" % "6.0.6"
 

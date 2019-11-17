@@ -19,7 +19,7 @@ import org.http4s.{AuthedRoutes, HttpRoutes}
 import scala.language.higherKinds
 
 object SessionRoutes {
-  def apply[F[_]: Sync: Lambda[X[_] => ValidatedNel[Throwable, *] ~> X]](authenticationService: AuthenticationService[F], authenticationTokenExtractor: AuthenticationTokenExtractor[F])(implicit dsl: Http4sDsl[F], authMiddleware: AuthMiddleware[F, User]): HttpRoutes[F] = {
+  def apply[F[_]: Sync: ValidatedNel[Throwable, *] ~> *[_]](authenticationService: AuthenticationService[F], authenticationTokenExtractor: AuthenticationTokenExtractor[F])(implicit dsl: Http4sDsl[F], authMiddleware: AuthMiddleware[F, User]): HttpRoutes[F] = {
     import dsl._
 
     val publicRoutes: HttpRoutes[F] =

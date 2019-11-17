@@ -23,7 +23,7 @@ import scala.language.higherKinds
 
 object Routes {
 
-  def apply[F[_]: Sync: Lambda[X[_] => ValidatedNel[Throwable, *] ~> X]](
+  def apply[F[_]: Sync: ValidatedNel[Throwable, *] ~> *[_]](
     userService: UserService[F],
     weightEntryService: WeightEntryService[F],
     healthCheckService: HealthCheckService[F],

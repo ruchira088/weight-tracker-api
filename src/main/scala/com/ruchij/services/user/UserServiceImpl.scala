@@ -20,7 +20,7 @@ import org.joda.time.DateTime
 import scala.concurrent.duration.MILLISECONDS
 import scala.language.higherKinds
 
-class UserServiceImpl[F[_]: Sync: Clock: Lambda[X[_] => Random[X, UUID]]](
+class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   databaseUserDao: UserDao[F],
   authenticationService: AuthenticationService[F],
   emailService: EmailService[F]

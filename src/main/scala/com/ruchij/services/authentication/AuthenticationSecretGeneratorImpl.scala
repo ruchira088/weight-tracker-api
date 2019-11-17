@@ -9,6 +9,6 @@ import com.ruchij.types.Random
 
 import scala.language.higherKinds
 
-class AuthenticationSecretGeneratorImpl[F[_]: Lambda[X[_] => Random[X, UUID]]: Applicative] extends AuthenticationSecretGenerator[F] {
+class AuthenticationSecretGeneratorImpl[F[_]: Random[*[_], UUID]: Applicative] extends AuthenticationSecretGenerator[F] {
   override def generate(user: User): F[String] = Random[F, UUID].value.map(_.toString)
 }

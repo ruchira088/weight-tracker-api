@@ -10,7 +10,7 @@ import org.scalatest.matchers.{MatchResult, Matcher}
 
 import scala.language.higherKinds
 
-class JsonResponseMatcher[F[_]: Sync: UnsafeCopoint: Lambda[X[_] => Either[Throwable, *] ~> X]](json: Json)
+class JsonResponseMatcher[F[_]: Sync: UnsafeCopoint: Either[Throwable, *] ~> *[_]](json: Json)
     extends Matcher[Response[F]] {
 
   override def apply(response: Response[F]): MatchResult = {

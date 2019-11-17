@@ -23,6 +23,24 @@
 			"response": []
 		},
 		{
+			"name": "Service health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/health/services",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"health",
+						"services"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Create user",
 			"event": [
 				{
@@ -223,7 +241,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"{{email}}\"\n}",
+					"raw": "{\n\t\"email\": \"{{email}}\",\n\t\"frontEndUrl\": \"http://localhost:4200\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"

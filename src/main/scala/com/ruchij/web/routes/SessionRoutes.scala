@@ -8,6 +8,7 @@ import com.ruchij.exceptions.ResourceNotFoundException
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authentication.AuthenticationTokenExtractor
+import com.ruchij.web.middleware.correlation.CorrelationId.`with`
 import com.ruchij.web.requests.bodies.{LoginRequest, ResetPasswordRequest}
 import com.ruchij.web.responses.ResetPasswordResponse
 import com.ruchij.web.requests.RequestParser.Parser
@@ -24,14 +25,14 @@ object SessionRoutes {
 
     val publicRoutes: HttpRoutes[F] =
       HttpRoutes.of {
-        case request @ POST -> Root =>
+        case request @ POST -> Root `with` correlationId =>
           for {
             loginRequest <- request.to[LoginRequest]
             authenticationToken <- authenticationService.login(loginRequest.email, loginRequest.password)
             response <- Created(authenticationToken)
           } yield response
 
-        case request @ POST -> Root / `reset-password` =>
+        case request @ POST -> Root / `reset-password` `with` correlationId =>
           for {
             ResetPasswordRequest(email, frontEndUrl) <- request.to[ResetPasswordRequest]
             resetPasswordToken <- authenticationService.resetPassword(email, frontEndUrl)
@@ -43,7 +44,7 @@ object SessionRoutes {
     val authenticatedRoutes: HttpRoutes[F] =
       authMiddleware {
         AuthedRoutes.of {
-          case GET -> Root / `user` as authenticatedUser => Ok(authenticatedUser)
+          case GET -> Root / `user` `with` correlationId as authenticatedUser => Ok(authenticatedUser)
 
           case authenticatedRequest @ DELETE -> Root as _ =>
             for {

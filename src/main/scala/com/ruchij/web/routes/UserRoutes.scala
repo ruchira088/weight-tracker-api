@@ -12,6 +12,7 @@ import com.ruchij.services.data.models.WeightEntry.weightEntryEncoder
 import com.ruchij.services.user.UserService
 import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authorization.Authorizer
+import com.ruchij.web.middleware.correlation.CorrelationId.`with`
 import com.ruchij.web.requests.RequestParser._
 import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest, UpdatePasswordRequest}
 import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{PageNumberQueryParameterMatcher, PageSizeQueryParameterMatcher}
@@ -40,7 +41,7 @@ object UserRoutes {
       Authorizer.authorize(authorizationService)
 
     val publicRoutes: HttpRoutes[F] = HttpRoutes.of {
-      case request @ POST -> Root =>
+      case request @ POST -> Root `with` correlationId =>
         for {
           CreateUserRequest(email, password, firstName, lastName) <- request.to[CreateUserRequest]
 
@@ -48,7 +49,7 @@ object UserRoutes {
           response <- Created(user)
         } yield response
 
-      case request @ PUT -> Root / UUIDVar(userId) / `reset-password` =>
+      case request @ PUT -> Root / UUIDVar(userId) / `reset-password` `with` correlationId =>
         for {
           UpdatePasswordRequest(secret, password) <- request.to[UpdatePasswordRequest]
           updatedUser <- userService.updatePassword(userId, secret, password)
@@ -60,9 +61,9 @@ object UserRoutes {
     val authenticatedRoutes: HttpRoutes[F] =
       authMiddleware {
         AuthedRoutes.of {
-          case GET -> Root as authenticatedUser => Ok(authenticatedUser)
+          case GET -> Root `with` correlationId as authenticatedUser => Ok(authenticatedUser)
 
-          case GET -> Root / UUIDVar(userId) as authenticatedUser =>
+          case GET -> Root / UUIDVar(userId) `with` correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
                 user <- userService.getById(userId)
@@ -70,7 +71,7 @@ object UserRoutes {
               } yield response
             }
 
-          case authenticatedRequest @ POST -> Root / UUIDVar(userId) / `weight-entry` as authenticatedUser =>
+          case authenticatedRequest @ POST -> Root / UUIDVar(userId) / `weight-entry` `with` correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.WRITE) {
               for {
                 CreateWeightEntryRequest(timestamp, weight, description) <- authenticatedRequest.req
@@ -82,7 +83,7 @@ object UserRoutes {
 
           case GET -> Root / UUIDVar(userId) / `weight-entry` :? PageSizeQueryParameterMatcher(size) +& PageNumberQueryParameterMatcher(
                 number
-              ) as authenticatedUser =>
+              ) `with` correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
                 pageSize <- transformation(size)

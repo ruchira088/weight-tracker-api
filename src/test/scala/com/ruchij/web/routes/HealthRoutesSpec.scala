@@ -44,6 +44,7 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Ok)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -64,6 +65,7 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Ok)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }

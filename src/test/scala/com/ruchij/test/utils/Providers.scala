@@ -2,7 +2,9 @@ package com.ruchij.test.utils
 
 import java.util.concurrent.TimeUnit
 
+import cats.Applicative
 import cats.effect.{Clock, ContextShift, IO, Sync}
+import com.ruchij.types.Random
 import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext
@@ -19,5 +21,10 @@ object Providers {
         Sync[F].delay(unit.convert(dateTime.getMillis, TimeUnit.MILLISECONDS))
 
       override def monotonic(unit: TimeUnit): F[Long] = realTime(unit)
+    }
+
+  def random[F[_]: Applicative, A](result: => A): Random[F, A] =
+    new Random[F, A] {
+      override def value[B >: A]: F[B] = Applicative[F].pure[B](result)
     }
 }

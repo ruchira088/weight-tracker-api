@@ -1,13 +1,17 @@
 package com.ruchij.web
 
+import java.util.UUID
+
 import cats.effect.IO
 import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers._
 import com.ruchij.test.utils.RandomGenerator
-import com.ruchij.test.utils.RequestUtils.jsonRequest
+import com.ruchij.test.utils.RequestUtils.{getRequest, jsonRequest}
 import com.ruchij.types.FunctionKTypes._
+import com.ruchij.types.Random
 import com.ruchij.web.routes.Paths.`/session`
+import com.ruchij.web.headers.`X-Correlation-ID`
 import io.circe.Json
 import io.circe.literal._
 import fs2.Stream
@@ -37,6 +41,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.BadRequest)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -53,7 +58,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
       Request(
         method = Method.POST,
         uri = Uri(path = `/session`),
-        headers = Headers.of(`Content-Type`(MediaType.application.json)),
+        headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`(RandomGenerator.uuid().toString)),
         body = Stream.fromIterator[IO](requestBody.getBytes.toIterator)
       )
 
@@ -67,14 +72,15 @@ class RoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.BadRequest)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
 
-  "Making a request to a valid URL but invalid HTTP method" should "return" in {
+  "Making a request to a valid URL but invalid HTTP method" should "return a 404 error response" in {
     val application = HttpTestApp[IO]()
 
-    val request = Request[IO](method = Method.GET, uri = Uri(path = "/random-path"))
+    val request = getRequest[IO]("/random-path")
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -86,6 +92,39 @@ class RoutesSpec extends FlatSpec with MustMatchers {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.NotFound)
+    response must haveCorrelationIdOf(request)
+
+    application.shutdown()
+  }
+
+  "Making a request without X-Correlation-ID" should "insert a X-Correlation-ID header when it results in a success response" in {
+    val uuid = RandomGenerator.uuid()
+    implicit val randomUuid: Random[IO, UUID] = random[IO, UUID](uuid)
+
+    val application = HttpTestApp[IO]()
+
+    val request = Request[IO](uri = Uri(path = "/health"))
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    response must haveStatus(Status.Ok)
+    response.headers.get(`X-Correlation-ID`) mustBe Some(`X-Correlation-ID`(uuid.toString))
+
+    application.shutdown()
+  }
+
+  it should "insert a X-Correlation-ID header when it results in a 404 (not-found) response" in {
+    val uuid = RandomGenerator.uuid()
+    implicit val randomUuid: Random[IO, UUID] = random[IO, UUID](uuid)
+
+    val application = HttpTestApp[IO]()
+
+    val request = Request[IO](uri = Uri(path = "/not-existing-path"))
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    response must haveStatus(Status.NotFound)
+    response.headers.get(`X-Correlation-ID`) mustBe Some(`X-Correlation-ID`(uuid.toString))
 
     application.shutdown()
   }

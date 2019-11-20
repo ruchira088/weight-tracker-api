@@ -1,5 +1,7 @@
 package com.ruchij.web
 
+import java.util.UUID
+
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.~>
@@ -9,6 +11,7 @@ import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.services.user.UserService
 import com.ruchij.services.user.models.User
+import com.ruchij.types.Random
 import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, RequestAuthenticator}
 import com.ruchij.web.middleware.correlation.CorrelationId
 import com.ruchij.web.middleware.exception.ExceptionHandler
@@ -24,7 +27,7 @@ import scala.language.higherKinds
 
 object Routes {
 
-  def apply[F[_]: Sync: ValidatedNel[Throwable, *] ~> *[_]](
+  def apply[F[_]: Sync: ValidatedNel[Throwable, *] ~> *[_]: Random[*[_], UUID]](
     userService: UserService[F],
     weightEntryService: WeightEntryService[F],
     healthCheckService: HealthCheckService[F],

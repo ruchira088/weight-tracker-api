@@ -16,7 +16,4 @@ object HealthStatus extends Enum[HealthStatus] {
   case object Unhealthy extends HealthStatus
 
   override def values: immutable.IndexedSeq[HealthStatus] = findValues
-
-  implicit def healthStatusEncoder[F[_]: Applicative]: EntityEncoder[F, HealthStatus] =
-    jsonEncoderOf[F, HealthStatus]
 }

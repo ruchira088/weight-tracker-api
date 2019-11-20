@@ -10,11 +10,12 @@ import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
 import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
-import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock}
+import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock, random}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
 import com.ruchij.types.Random
 import com.ruchij.types.FunctionKTypes._
+import com.ruchij.web.headers.`X-Correlation-ID`
 import com.ruchij.web.routes.Paths.{`/session`, `reset-password`, user}
 import io.circe.Json
 import io.circe.literal._
@@ -25,6 +26,12 @@ import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
   "POST /session" should "successfully create an authentication token for valid credentials" in {
+    val timestamp = DateTime.now()
+    val uuid = RandomGenerator.uuid()
+
+    implicit val clock: Clock[IO] = stubClock[IO](timestamp)
+    implicit val randomUuid: Random[IO, UUID] = random[IO, UUID](uuid)
+
     val databaseUser = RandomGenerator.databaseUser()
 
     val application = HttpTestApp[IO]().withUser(databaseUser)
@@ -35,10 +42,21 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.PASSWORD}
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/session`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/session`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse: Json =
+      json"""{
+        "userId": ${databaseUser.id},
+        "expiresAt": ${timestamp.plus(HttpTestApp.SESSION_TIMEOUT.toMillis)},
+        "secret": $uuid
+      }"""
 
     response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Created)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -54,8 +72,10 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
+    val request = jsonRequest[IO](Method.POST, `/session`, requestBody)
+
     val response: Response[IO] =
-      application.httpApp.run(jsonRequest(Method.POST, `/session`, requestBody)).unsafeRunSync()
+      application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse: Json =
       json"""{
@@ -65,6 +85,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Unauthorized)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -73,13 +94,16 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
     val email = RandomGenerator.email()
+
     val requestBody: Json =
       json"""{
         "email": $email,
         "password": ${RandomGenerator.password()}
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/session`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/session`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -89,6 +113,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.NotFound)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -115,6 +140,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Ok)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -139,6 +165,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonBody)
     response must haveStatus(Status.Unauthorized)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -149,7 +176,9 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
-    val response: Response[IO] = application.httpApp.run(getRequest[IO](s"${`/session`}/$user")).unsafeRunSync()
+    val request = getRequest[IO](s"${`/session`}/$user")
+
+    val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -159,6 +188,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Unauthorized)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -177,23 +207,29 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val retrieveUserResponse = application.httpApp.run(retrieveUserRequest).unsafeRunSync()
 
-    retrieveUserResponse.status mustBe Status.Ok
+    retrieveUserResponse must beJsonContentType
+    retrieveUserResponse must haveStatus(Status.Ok)
+    retrieveUserResponse must haveCorrelationIdOf(retrieveUserRequest)
 
     val logoutRequest =
-      authenticatedRequest[IO](authenticationToken.secret, Request(Method.DELETE, Uri(path = `/session`)))
+      authenticatedRequest[IO](
+        authenticationToken.secret,
+        Request(Method.DELETE, Uri(path = `/session`)).putHeaders(`X-Correlation-ID`(RandomGenerator.uuid().toString))
+      )
 
     val logoutResponse = application.httpApp.run(logoutRequest).unsafeRunSync()
 
     val expectedLogoutJsonBody =
       json"""{
         "userId": ${authenticationToken.userId},
-        "expiresAt": ${timestamp.plusSeconds(30)},
+        "expiresAt": ${timestamp.plus(HttpTestApp.SESSION_TIMEOUT.toMillis)},
         "secret": ${authenticationToken.secret}
       }"""
 
     logoutResponse must beJsonContentType
     logoutResponse must haveJson(expectedLogoutJsonBody)
     logoutResponse must haveStatus(Status.Ok)
+    logoutResponse must haveCorrelationIdOf(logoutRequest)
 
     val retrieveUserAgainResponse = application.httpApp.run(retrieveUserRequest).unsafeRunSync()
 
@@ -205,6 +241,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     retrieveUserAgainResponse must beJsonContentType
     retrieveUserAgainResponse must haveJson(expectedFailureJsonBody)
     retrieveUserAgainResponse must haveStatus(Status.Unauthorized)
+    retrieveUserAgainResponse must haveCorrelationIdOf(retrieveUserRequest)
 
     application.shutdown()
   }
@@ -214,7 +251,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     implicit val clock: Clock[IO] = Providers.stubClock[IO](currentDateTime)
 
     val uuid = RandomGenerator.uuid()
-    implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
+    implicit val randomUuid: Random[IO, UUID] = random(uuid)
 
     val databaseUser = RandomGenerator.databaseUser()
     val frontEndUrl = RandomGenerator.url()
@@ -225,7 +262,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "frontEndUrl": $frontEndUrl
       }"""
 
-    val expiresAt = currentDateTime.plus(Duration.standardSeconds(30))
+    val expiresAt = currentDateTime.plus(HttpTestApp.SESSION_TIMEOUT.toMillis)
 
     val application = HttpTestApp[IO]().withUser(databaseUser)
 
@@ -243,6 +280,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedResponseBody)
     response must haveStatus(Status.Created)
+    response must haveCorrelationIdOf(request)
 
     application.externalEmailMailBox.size mustBe 1
     application.externalEmailMailBox.peek mustBe
@@ -284,6 +322,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.NotFound)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }

@@ -49,6 +49,7 @@ case class HttpTestApp[F[_]](
 )
 
 object HttpTestApp {
+  val SESSION_TIMEOUT: FiniteDuration = 30 seconds
 
   def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]:
     ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]](): HttpTestApp[F] = {
@@ -87,7 +88,7 @@ object HttpTestApp {
         resetPasswordTokenDao,
         authenticationTokenDao,
         new AuthenticationSecretGeneratorImpl[F],
-        AuthenticationConfiguration(30 seconds)
+        AuthenticationConfiguration(SESSION_TIMEOUT)
       )
 
     val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)

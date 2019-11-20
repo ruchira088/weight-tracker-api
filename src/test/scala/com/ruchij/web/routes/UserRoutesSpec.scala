@@ -9,11 +9,12 @@ import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
 import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
-import com.ruchij.test.utils.Providers.{clock, contextShift}
+import com.ruchij.test.utils.Providers.{clock, contextShift, random}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
 import com.ruchij.types.Random
 import com.ruchij.types.FunctionKTypes._
+import com.ruchij.web.headers.`X-Correlation-ID`
 import com.ruchij.web.routes.Paths.{`/session`, `/user`, `reset-password`, `weight-entry`}
 import io.circe.Json
 import io.circe.literal._
@@ -25,7 +26,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
   "POST /user" should "successfully create a user" in {
     val uuid = UUID.randomUUID()
-    implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
+    implicit val randomUuid: Random[IO, UUID] = random(uuid)
 
     val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
@@ -42,7 +43,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "lastName": $lastName
       }"""
 
-    val response = application.httpApp.run(jsonRequest[IO](Method.POST, `/user`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/user`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -55,6 +58,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Created)
+    response must haveCorrelationIdOf(request)
 
     application.externalEmailMailBox.size mustBe 1
     application.externalEmailMailBox.peek mustBe Email.welcomeEmail(User(uuid, email, firstName, lastName))
@@ -64,7 +68,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
   it should "ignore the lastName field if it is empty, and successfully create a user" in {
     val uuid = RandomGenerator.uuid()
-    implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random[IO, UUID](uuid)
+    implicit val randomUuid: Random[IO, UUID] = random[IO, UUID](uuid)
 
     val application = HttpTestApp[IO]()
 
@@ -80,7 +84,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "lastName": " "
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/user`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -93,6 +99,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Created)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -112,7 +119,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "firstName": $firstName
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/user`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -122,6 +131,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Conflict)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -136,7 +146,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "firstName": ${RandomGenerator.firstName()}
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/user`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -146,6 +158,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.BadRequest)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -160,7 +173,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "firstName": ${RandomGenerator.firstName()}
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/user`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -173,6 +188,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.BadRequest)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -187,7 +203,9 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "firstName": ""
       }"""
 
-    val response = application.httpApp.run(jsonRequest(Method.POST, `/user`, requestBody)).unsafeRunSync()
+    val request = jsonRequest[IO](Method.POST, `/user`, requestBody)
+
+    val response = application.httpApp.run(request).unsafeRunSync()
 
     val expectedJsonResponse =
       json"""{
@@ -204,6 +222,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.BadRequest)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -230,6 +249,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonBody)
     response must haveStatus(Status.Ok)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -259,6 +279,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonBody)
     response must haveStatus(Status.Forbidden)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -268,7 +289,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
     val uuid = RandomGenerator.uuid()
-    implicit val randomUuid: Random[IO, UUID] = RandomGenerator.random(uuid)
+    implicit val randomUuid: Random[IO, UUID] = random(uuid)
 
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
 
@@ -302,6 +323,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonBody)
     response must haveStatus(Status.Created)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -323,6 +345,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val firstPageRequest = authenticatedRequest[IO](
       databaseAuthenticationToken.secret,
       Request[IO](uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-size=2"))
+        .putHeaders(`X-Correlation-ID`(RandomGenerator.uuid().toString))
     )
 
     val firstPageResponse = application.httpApp.run(firstPageRequest).unsafeRunSync()
@@ -352,6 +375,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     firstPageResponse must beJsonContentType
     firstPageResponse must haveJson(firstPageExpectedJsonBody)
     firstPageResponse must haveStatus(Status.Ok)
+    firstPageResponse must haveCorrelationIdOf(firstPageRequest)
 
     val secondPageRequest =
       authenticatedRequest(
@@ -359,6 +383,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         Request[IO](
           uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-number=1&page-size=2")
         )
+          .putHeaders(`X-Correlation-ID`(RandomGenerator.uuid().toString))
       )
 
     val secondPageResponse =
@@ -382,6 +407,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     secondPageResponse must beJsonContentType
     secondPageResponse must haveJson(secondPageExpectedJsonBody)
     secondPageResponse must haveStatus(Status.Ok)
+    secondPageResponse must haveCorrelationIdOf(secondPageRequest)
 
     application.shutdown()
   }
@@ -425,6 +451,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Ok)
+    response must haveCorrelationIdOf(request)
 
     val loginWithOldPasswordRequestBody: Json =
       json"""{
@@ -438,6 +465,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     loginWithOldPasswordResponse must beJsonContentType
     loginWithOldPasswordResponse must haveStatus(Status.Unauthorized)
+    loginWithOldPasswordResponse must haveCorrelationIdOf(loginWithOldPasswordRequest)
 
     val loginWithNewPasswordRequestBody =
       json"""{
@@ -451,6 +479,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     loginWithNewPasswordResponse must beJsonContentType
     loginWithNewPasswordResponse must haveStatus(Status.Created)
+    loginWithNewPasswordResponse must haveCorrelationIdOf(loginWithNewPasswordRequest)
 
     application.shutdown()
   }
@@ -479,6 +508,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.NotFound)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -513,6 +543,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Unauthorized)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }
@@ -548,6 +579,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     response must beJsonContentType
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Unauthorized)
+    response must haveCorrelationIdOf(request)
 
     application.shutdown()
   }

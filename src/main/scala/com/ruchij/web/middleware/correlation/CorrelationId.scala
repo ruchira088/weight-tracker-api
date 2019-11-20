@@ -13,7 +13,7 @@ import org.http4s.{HttpApp, Request, Response}
 import scala.language.higherKinds
 
 object CorrelationId {
-  object `with` {
+  object withId {
     def unapply[F[_]](request: Request[F]): Option[(Request[F], String)] =
       request.headers.get(`X-Correlation-ID`)
         .map {

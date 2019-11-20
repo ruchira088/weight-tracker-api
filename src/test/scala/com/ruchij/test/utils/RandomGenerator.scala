@@ -2,7 +2,6 @@ package com.ruchij.test.utils
 
 import java.util.UUID
 
-import cats.Applicative
 import com.github.javafaker.Faker
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.user.models.DatabaseUser
@@ -10,11 +9,9 @@ import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.services.email.models.Email.{EmailAddress, EmailAddressTag}
 import com.ruchij.services.user.models.User
 import com.ruchij.test.HttpTestApp
-import com.ruchij.types.Random
 import org.joda.time.DateTime
 import shapeless.tag
 
-import scala.language.higherKinds
 import scala.util.{Random => ScalaRandom}
 
 object RandomGenerator {

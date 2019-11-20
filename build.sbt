@@ -51,7 +51,6 @@ lazy val rootDependencies =
     enumeratum,
     shapeless,
     logbackClassic,
-    scalaLogging,
     commonsValidator,
     sendgrid
   )

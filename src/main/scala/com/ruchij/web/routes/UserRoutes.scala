@@ -6,6 +6,7 @@ import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
 import cats.~>
+import com.ruchij.logging.Logger.LoggerOps
 import com.ruchij.services.authorization.{AuthorizationService, Permission}
 import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.data.models.WeightEntry.weightEntryEncoder
@@ -21,10 +22,12 @@ import com.ruchij.web.routes.Paths.{`reset-password`, `weight-entry`}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes, Response}
+import org.log4s.getLogger
 
 import scala.language.higherKinds
 
 object UserRoutes {
+  private val logger = getLogger
 
   def apply[F[_]: Sync](
     userService: UserService[F],
@@ -33,7 +36,7 @@ object UserRoutes {
   )(
     implicit dsl: Http4sDsl[F],
     authMiddleware: AuthMiddleware[F, User],
-    transformation: ValidatedNel[Throwable, *] ~> F
+    functionK: ValidatedNel[Throwable, *] ~> F
   ): HttpRoutes[F] = {
     import dsl._
 
@@ -43,19 +46,27 @@ object UserRoutes {
     val publicRoutes: HttpRoutes[F] = HttpRoutes.of {
       case request @ POST -> Root withId correlationId =>
         for {
-          CreateUserRequest(email, password, firstName, lastName) <- request.to[CreateUserRequest]
+          _ <- logger.infoF[F]("Creating user...")(correlationId)
 
+          CreateUserRequest(email, password, firstName, lastName) <- request.to[CreateUserRequest]
           user <- userService.create(email, password, firstName, lastName)
+
+          _ <- logger.infoF[F]("Created user")(correlationId)
+
           response <- Created(user)
         } yield response
 
       case request @ PUT -> Root / UUIDVar(userId) / `reset-password` withId correlationId =>
         for {
+          _ <- logger.infoF[F](s"Resetting password for $userId...")(correlationId)
+
           UpdatePasswordRequest(secret, password) <- request.to[UpdatePasswordRequest]
           updatedUser <- userService.updatePassword(userId, secret, password)
+
+          _ <- logger.infoF[F](s"Resetted password for $userId")(correlationId)
+
           response <- Ok(updatedUser)
-        }
-        yield response
+        } yield response
     }
 
     val authenticatedRoutes: HttpRoutes[F] =
@@ -86,8 +97,8 @@ object UserRoutes {
               ) withId correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
-                pageSize <- transformation(size)
-                pageNumber <- transformation(number)
+                pageSize <- functionK(size)
+                pageNumber <- functionK(number)
                 weightEntryList <- weightEntryService.findByUser(userId, pageNumber, pageSize)
                 response <- Ok(PaginatedResultsResponse(weightEntryList, pageNumber, pageSize))
               } yield response

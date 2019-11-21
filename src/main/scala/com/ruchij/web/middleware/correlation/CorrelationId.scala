@@ -8,16 +8,17 @@ import cats.effect.Sync
 import cats.implicits._
 import com.ruchij.types.Random
 import com.ruchij.web.headers.`X-Correlation-ID`
+import com.ruchij.web.headers.`X-Correlation-ID`.CorrelationId
 import org.http4s.{HttpApp, Request, Response}
 
 import scala.language.higherKinds
 
 object CorrelationId {
   object withId {
-    def unapply[F[_]](request: Request[F]): Option[(Request[F], String)] =
+    def unapply[F[_]](request: Request[F]): Option[(Request[F], CorrelationId)] =
       request.headers.get(`X-Correlation-ID`)
         .map {
-          header => (request, header.value)
+          header => (request, header.correlationId)
         }
   }
 
@@ -28,8 +29,8 @@ object CorrelationId {
         .fold(Random[F, UUID].value.map(_.toString))(correlationId => Applicative[F].pure(correlationId))
         .flatMap {
           correlationId =>
-            httpApp.run(request.putHeaders(`X-Correlation-ID`(correlationId)))
-              .map(_.putHeaders(`X-Correlation-ID`(correlationId)))
+            httpApp.run(request.putHeaders(`X-Correlation-ID`.from(correlationId)))
+              .map(_.putHeaders(`X-Correlation-ID`.from(correlationId)))
         }
     }
 }

@@ -51,6 +51,8 @@ lazy val rootDependencies =
     enumeratum,
     shapeless,
     logbackClassic,
+    log4s,
+    akkaSlf4j,
     commonsValidator,
     sendgrid
   )

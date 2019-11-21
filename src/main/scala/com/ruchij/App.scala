@@ -75,6 +75,7 @@ object App extends IOApp {
           Routes(userService, weightEntryService, healthCheckService, authenticationService, authorizationService)
         }
         .bindHttp(serviceConfiguration.httpConfiguration.port, "0.0.0.0")
+        .withoutBanner
         .serve
         .compile
         .drain

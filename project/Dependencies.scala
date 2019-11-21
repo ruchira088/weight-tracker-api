@@ -48,6 +48,10 @@ object Dependencies
 
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
+  lazy val log4s = "org.log4s" %% "log4s" % "1.8.2"
+
+  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.6.0"
+
   lazy val commonsValidator = "commons-validator" % "commons-validator" % "1.6"
 
   lazy val sendgrid = "com.sendgrid" % "sendgrid-java" % "4.4.1"

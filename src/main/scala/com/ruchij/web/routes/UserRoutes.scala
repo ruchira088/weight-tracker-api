@@ -46,21 +46,23 @@ object UserRoutes {
     val publicRoutes: HttpRoutes[F] = HttpRoutes.of {
       case request @ POST -> Root withId correlationId =>
         for {
-          _ <- logger.infoF[F]("Creating user...")(correlationId)
-
           CreateUserRequest(email, password, firstName, lastName) <- request.to[CreateUserRequest]
+
+          _ <- logger.infoF[F](s"Creating user with email=$email")(correlationId)
+
           user <- userService.create(email, password, firstName, lastName)
 
-          _ <- logger.infoF[F]("Created user")(correlationId)
+          _ <- logger.infoF[F](s"Created user with email=$email")(correlationId)
 
           response <- Created(user)
         } yield response
 
       case request @ PUT -> Root / UUIDVar(userId) / `reset-password` withId correlationId =>
         for {
+          UpdatePasswordRequest(secret, password) <- request.to[UpdatePasswordRequest]
+
           _ <- logger.infoF[F](s"Resetting password for $userId...")(correlationId)
 
-          UpdatePasswordRequest(secret, password) <- request.to[UpdatePasswordRequest]
           updatedUser <- userService.updatePassword(userId, secret, password)
 
           _ <- logger.infoF[F](s"Resetted password for $userId")(correlationId)
@@ -72,12 +74,16 @@ object UserRoutes {
     val authenticatedRoutes: HttpRoutes[F] =
       authMiddleware {
         AuthedRoutes.of {
-          case GET -> Root withId correlationId as authenticatedUser => Ok(authenticatedUser)
 
           case GET -> Root / UUIDVar(userId) withId correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
+                _ <- logger.infoF[F](s"Fetching user with id=$userId for user with email=${authenticatedUser.email}")(correlationId)
+
                 user <- userService.getById(userId)
+
+                _ <- logger.infoF[F](s"Successfully fetched user with id=$userId for user with email=${authenticatedUser.email}")(correlationId)
+
                 response <- Ok(user)
               } yield response
             }
@@ -87,7 +93,13 @@ object UserRoutes {
               for {
                 CreateWeightEntryRequest(timestamp, weight, description) <- authenticatedRequest.req
                   .as[CreateWeightEntryRequest]
+
+                _ <- logger.infoF[F](s"Inserting weight entry for email=${authenticatedUser.email}")(correlationId)
+
                 weightEntry <- weightEntryService.create(timestamp, weight, description, userId, authenticatedUser.id)
+
+                _ <- logger.infoF[F](s"Successfully inserted weight entry for email=${authenticatedUser.email}")(correlationId)
+
                 response <- Created(weightEntry)
               } yield response
             }
@@ -99,7 +111,13 @@ object UserRoutes {
               for {
                 pageSize <- functionK(size)
                 pageNumber <- functionK(number)
+
+                _ <- logger.infoF[F](s"Fetching weight entries for email=${authenticatedUser.email} pageSize=$pageSize pageNumber=$pageNumber")(correlationId)
+
                 weightEntryList <- weightEntryService.findByUser(userId, pageNumber, pageSize)
+
+                _ <- logger.infoF[F](s"Fetched ${weightEntryList.size} weight entries for email=${authenticatedUser.email} pageSize=$pageSize pageNumber=$pageNumber")(correlationId)
+
                 response <- Ok(PaginatedResultsResponse(weightEntryList, pageNumber, pageSize))
               } yield response
             }

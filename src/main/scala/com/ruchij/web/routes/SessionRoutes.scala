@@ -5,6 +5,7 @@ import cats.effect.Sync
 import cats.implicits._
 import cats.~>
 import com.ruchij.exceptions.ResourceNotFoundException
+import com.ruchij.logging.Logger.LoggerOps
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authentication.AuthenticationTokenExtractor
@@ -16,10 +17,13 @@ import com.ruchij.web.routes.Paths.{`reset-password`, user}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes}
+import org.log4s.getLogger
 
 import scala.language.higherKinds
 
 object SessionRoutes {
+  private val logger = getLogger
+
   def apply[F[_]: Sync: ValidatedNel[Throwable, *] ~> *[_]](authenticationService: AuthenticationService[F], authenticationTokenExtractor: AuthenticationTokenExtractor[F])(implicit dsl: Http4sDsl[F], authMiddleware: AuthMiddleware[F, User]): HttpRoutes[F] = {
     import dsl._
 
@@ -27,15 +31,27 @@ object SessionRoutes {
       HttpRoutes.of {
         case request @ POST -> Root withId correlationId =>
           for {
-            loginRequest <- request.to[LoginRequest]
-            authenticationToken <- authenticationService.login(loginRequest.email, loginRequest.password)
+            LoginRequest(email, password, _) <- request.to[LoginRequest]
+
+            _ <- logger.infoF[F](s"Attempting to login as email=$email")(correlationId)
+
+            authenticationToken <- authenticationService.login(email, password)
+
+            _ <- logger.infoF[F](s"Successfully logged in as email=$email")(correlationId)
+
             response <- Created(authenticationToken)
           } yield response
 
         case request @ POST -> Root / `reset-password` withId correlationId =>
           for {
             ResetPasswordRequest(email, frontEndUrl) <- request.to[ResetPasswordRequest]
+
+            _ <- logger.infoF[F](s"Password reset requested for email=$email")(correlationId)
+
             resetPasswordToken <- authenticationService.resetPassword(email, frontEndUrl)
+
+            _ <- logger.infoF[F](s"Password reset request successfully sent for email=$email")(correlationId)
+
             response <- Created(ResetPasswordResponse(email, resetPasswordToken.expiresAt, frontEndUrl))
           }
           yield response
@@ -44,15 +60,25 @@ object SessionRoutes {
     val authenticatedRoutes: HttpRoutes[F] =
       authMiddleware {
         AuthedRoutes.of {
-          case GET -> Root / `user` withId correlationId as authenticatedUser => Ok(authenticatedUser)
-
-          case authenticatedRequest @ DELETE -> Root as _ =>
+          case GET -> Root / `user` withId correlationId as authenticatedUser =>
             for {
+              _ <- logger.infoF[F](s"Returning the authenticated user with email=${authenticatedUser.email}")(correlationId)
+              response <- Ok(authenticatedUser)
+            }
+            yield response
+
+
+          case authenticatedRequest @ DELETE -> Root withId correlationId as authenticatedUser =>
+            for {
+              _ <- logger.infoF[F](s"Logging out user with email=${authenticatedUser.email}")(correlationId)
+
               secret <-
                 authenticationTokenExtractor.extract(authenticatedRequest.req)
                   .getOrElseF(Sync[F].raiseError(ResourceNotFoundException("Unable to find authentication token")))
 
               authenticationToken <- authenticationService.logout(secret)
+
+              _ <- logger.infoF[F](s"Successfully logged out user with email=${authenticatedUser.email}")(correlationId)
 
               response <- Ok(authenticationToken)
             }

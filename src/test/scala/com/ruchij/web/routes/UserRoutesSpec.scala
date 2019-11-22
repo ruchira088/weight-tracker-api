@@ -345,7 +345,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val firstPageRequest = authenticatedRequest[IO](
       databaseAuthenticationToken.secret,
       Request[IO](uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-size=2"))
-        .putHeaders(`X-Correlation-ID`(RandomGenerator.uuid().toString))
+        .putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
     )
 
     val firstPageResponse = application.httpApp.run(firstPageRequest).unsafeRunSync()
@@ -383,7 +383,7 @@ class UserRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         Request[IO](
           uri = Uri.unsafeFromString(s"${`/user`}/${databaseUser.id}/${`weight-entry`}?page-number=1&page-size=2")
         )
-          .putHeaders(`X-Correlation-ID`(RandomGenerator.uuid().toString))
+          .putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
       )
 
     val secondPageResponse =

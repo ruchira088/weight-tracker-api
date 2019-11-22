@@ -58,7 +58,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
       Request(
         method = Method.POST,
         uri = Uri(path = `/session`),
-        headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`(RandomGenerator.uuid().toString)),
+        headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`.from(RandomGenerator.uuid().toString)),
         body = Stream.fromIterator[IO](requestBody.getBytes.toIterator)
       )
 
@@ -108,7 +108,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
     val response = application.httpApp.run(request).unsafeRunSync()
 
     response must haveStatus(Status.Ok)
-    response.headers.get(`X-Correlation-ID`) mustBe Some(`X-Correlation-ID`(uuid.toString))
+    response.headers.get(`X-Correlation-ID`) mustBe Some(`X-Correlation-ID`.from(uuid.toString))
 
     application.shutdown()
   }
@@ -124,7 +124,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
     val response = application.httpApp.run(request).unsafeRunSync()
 
     response must haveStatus(Status.NotFound)
-    response.headers.get(`X-Correlation-ID`) mustBe Some(`X-Correlation-ID`(uuid.toString))
+    response.headers.get(`X-Correlation-ID`) mustBe Some(`X-Correlation-ID`.from(uuid.toString))
 
     application.shutdown()
   }

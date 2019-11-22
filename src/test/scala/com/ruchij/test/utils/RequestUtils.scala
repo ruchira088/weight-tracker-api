@@ -18,11 +18,11 @@ object RequestUtils {
     Request(
       method,
       uri = Uri(path = url),
-      headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`(uuid().toString)),
+      headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`.from(uuid().toString)),
       body = Stream.fromIterator[F](body.toString.getBytes.toIterator)
     )
 
-  def getRequest[F[_]](path: String, headers: Headers = Headers.of(`X-Correlation-ID`(uuid().toString))): Request[F] =
+  def getRequest[F[_]](path: String, headers: Headers = Headers.of(`X-Correlation-ID`.from(uuid().toString))): Request[F] =
     Request[F](uri = Uri(path = path), headers = headers)
 
   def authenticatedRequest[F[_]](secret: String, request: Request[F]): Request[F] =

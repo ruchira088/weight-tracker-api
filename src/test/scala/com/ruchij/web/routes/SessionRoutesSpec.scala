@@ -214,7 +214,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val logoutRequest =
       authenticatedRequest[IO](
         authenticationToken.secret,
-        Request(Method.DELETE, Uri(path = `/session`)).putHeaders(`X-Correlation-ID`(RandomGenerator.uuid().toString))
+        Request(Method.DELETE, Uri(path = `/session`)).putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
       )
 
     val logoutResponse = application.httpApp.run(logoutRequest).unsafeRunSync()

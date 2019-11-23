@@ -10,7 +10,7 @@ import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.test.utils.RequestUtils.{getRequest, jsonRequest}
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.types.Random
-import com.ruchij.web.routes.Paths.`/session`
+import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/v1`}
 import com.ruchij.web.headers.`X-Correlation-ID`
 import io.circe.Json
 import io.circe.literal._
@@ -29,7 +29,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
         "email": ${RandomGenerator.email().toString}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/session`, jsonRequestBody)
+    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, jsonRequestBody)
 
     val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
 
@@ -57,7 +57,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
     val request =
       Request(
         method = Method.POST,
-        uri = Uri(path = `/session`),
+        uri = Uri(path = `/v1` + `/session`),
         headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`.from(RandomGenerator.uuid().toString)),
         body = Stream.fromIterator[IO](requestBody.getBytes.toIterator)
       )
@@ -103,7 +103,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
 
     val application = HttpTestApp[IO]()
 
-    val request = Request[IO](uri = Uri(path = "/health"))
+    val request = Request[IO](uri = Uri(path = `/health`))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 

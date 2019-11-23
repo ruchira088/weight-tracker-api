@@ -7,7 +7,7 @@ import com.ruchij.test.matchers._
 import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock, clock}
 import com.ruchij.types.FunctionKTypes._
-import com.ruchij.web.routes.Paths.`/health`
+import com.ruchij.web.routes.Paths.{`/health`, services}
 import io.circe.literal._
 import org.http4s.{Response, Status}
 import org.joda.time.DateTime
@@ -17,7 +17,7 @@ import scala.util.Properties
 
 class HealthRoutesSpec extends FlatSpec with MustMatchers {
 
-  "GET /health" should "return a successful response containing service information" in {
+  s"GET ${`/health`}" should "return a successful response containing service information" in {
     val currentDateTime = DateTime.now()
     implicit val clock: Clock[IO] = stubClock[IO](currentDateTime)
 
@@ -49,10 +49,10 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
     application.shutdown()
   }
 
-  "GET /health/services" should "return a success response when all services are healthy" in {
+  s"GET ${`/health`}/$services" should "return a success response when all services are healthy" in {
     val application = HttpTestApp[IO]()
 
-    val request = getRequest[IO]("/health/services")
+    val request = getRequest[IO](s"${`/health`}/$services")
 
     val response = application.httpApp.run(request).unsafeRunSync()
 

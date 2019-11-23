@@ -104,11 +104,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/user",
+					"raw": "{{weightTrackerApiHost}}/v1/user",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"user"
 					]
 				}
@@ -159,11 +160,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/user",
+					"raw": "{{weightTrackerApiHost}}/v1/user",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"user"
 					]
 				}
@@ -204,11 +206,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/session",
+					"raw": "{{weightTrackerApiHost}}/v1/session",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"session"
 					]
 				}
@@ -249,11 +252,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/session/reset-password",
+					"raw": "{{weightTrackerApiHost}}/v1/session/reset-password",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"session",
 						"reset-password"
 					]
@@ -295,11 +299,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/user/{{userId}}/reset-password",
+					"raw": "{{weightTrackerApiHost}}/v1/user/{{userId}}/reset-password",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"user",
 						"{{userId}}",
 						"reset-password"
@@ -324,11 +329,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/session/user",
+					"raw": "{{weightTrackerApiHost}}/v1/session/user",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"session",
 						"user"
 					]
@@ -352,11 +358,12 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/user/{{userId}}",
+					"raw": "{{weightTrackerApiHost}}/v1/user/{{userId}}",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"user",
 						"{{userId}}"
 					]
@@ -470,11 +477,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/user/{{userId}}/weight-entry",
+					"raw": "{{weightTrackerApiHost}}/v1/user/{{userId}}/weight-entry",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"user",
 						"{{userId}}",
 						"weight-entry"
@@ -592,11 +600,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/user/{{userId}}/weight-entry?page-size=10&page-number=0",
+					"raw": "{{weightTrackerApiHost}}/v1/user/{{userId}}/weight-entry?page-size=10&page-number=0",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"user",
 						"{{userId}}",
 						"weight-entry"
@@ -631,11 +640,12 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{weightTrackerApiHost}}/session",
+					"raw": "{{weightTrackerApiHost}}/v1/session",
 					"host": [
 						"{{weightTrackerApiHost}}"
 					],
 					"path": [
+						"v1",
 						"session"
 					]
 				}

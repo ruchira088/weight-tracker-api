@@ -16,7 +16,7 @@ import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jso
 import com.ruchij.types.Random
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.headers.`X-Correlation-ID`
-import com.ruchij.web.routes.Paths.{`/session`, `reset-password`, user}
+import com.ruchij.web.routes.Paths.{`/`, `reset-password`, `/session`, user, `/v1`}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Response, Status, Uri}
@@ -25,7 +25,7 @@ import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
 
 class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
-  "POST /session" should "successfully create an authentication token for valid credentials" in {
+  s"POST ${`/v1` + `/session`}" should "successfully create an authentication token for valid credentials" in {
     val timestamp = DateTime.now()
     val uuid = RandomGenerator.uuid()
 
@@ -42,7 +42,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.PASSWORD}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/session`, requestBody)
+    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -72,7 +72,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/session`, requestBody)
+    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, requestBody)
 
     val response: Response[IO] =
       application.httpApp.run(request).unsafeRunSync()
@@ -101,7 +101,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/session`, requestBody)
+    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -118,14 +118,14 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     application.shutdown()
   }
 
-  "GET /session/user" should "return the authenticated user" in {
+  s"GET ${`/v1` + `/session` + `/` + user}" should "return the authenticated user" in {
     val databaseUser = RandomGenerator.databaseUser()
     val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
     val application: HttpTestApp[IO] =
       HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
 
-    val request = authenticatedRequest(databaseAuthenticationToken.secret, getRequest[IO](s"${`/session`}/$user"))
+    val request = authenticatedRequest(databaseAuthenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + user))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -153,7 +153,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
-    val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(s"${`/session`}/$user"))
+    val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(`/v1` + `/session` + `/` + user))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -176,7 +176,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
-    val request = getRequest[IO](s"${`/session`}/$user")
+    val request = getRequest[IO](`/v1` + `/session` + `/` + user)
 
     val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
 
@@ -193,7 +193,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     application.shutdown()
   }
 
-  "DELETE /session" should "successfully remove the authentication token" in {
+  s"DELETE ${`/v1` + `/session`}" should "successfully remove the authentication token" in {
     val databaseUser = RandomGenerator.databaseUser()
     val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
@@ -203,7 +203,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
     val retrieveUserRequest =
-      authenticatedRequest[IO](authenticationToken.secret, getRequest(s"${`/session`}/$user"))
+      authenticatedRequest[IO](authenticationToken.secret, getRequest(`/v1` + `/session` + `/` + user))
 
     val retrieveUserResponse = application.httpApp.run(retrieveUserRequest).unsafeRunSync()
 
@@ -214,7 +214,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     val logoutRequest =
       authenticatedRequest[IO](
         authenticationToken.secret,
-        Request(Method.DELETE, Uri(path = `/session`)).putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
+        Request(Method.DELETE, Uri(path = `/v1` + `/session`)).putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
       )
 
     val logoutResponse = application.httpApp.run(logoutRequest).unsafeRunSync()
@@ -246,7 +246,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
     application.shutdown()
   }
 
-  "POST /session/reset-password" should "create a password reset token and send a password reset email" in {
+  s"POST ${`/v1` + `/session` + `/` + `reset-password`}" should "create a password reset token and send a password reset email" in {
     val currentDateTime = DateTime.now()
     implicit val clock: Clock[IO] = Providers.stubClock[IO](currentDateTime)
 
@@ -266,7 +266,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser)
 
-    val request = jsonRequest[IO](Method.POST, s"${`/session`}/${`reset-password`}", requestBody)
+    val request = jsonRequest[IO](Method.POST,  `/v1` + `/session` + `/` + `reset-password`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -310,7 +310,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
-    val request = jsonRequest[IO](Method.POST, s"${`/session`}/${`reset-password`}", requestBody)
+    val request = jsonRequest[IO](Method.POST, `/v1` + `/session` + `/` + `reset-password`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 

@@ -2,6 +2,10 @@ package com.ruchij.web
 
 package object routes {
   object Paths {
+    val `/v1` = "/v1"
+
+    val `/` = "/"
+
     val `/user` = "/user"
 
     val `/session` = "/session"

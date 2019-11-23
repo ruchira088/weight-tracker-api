@@ -16,7 +16,7 @@ import com.ruchij.web.middleware.authentication.{AuthenticationTokenExtractor, R
 import com.ruchij.web.middleware.correlation.CorrelationId
 import com.ruchij.web.middleware.exception.ExceptionHandler
 import com.ruchij.web.middleware.notfound.NotFoundHandler
-import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/user`}
+import com.ruchij.web.routes.Paths.{`/health`, `/session`, `/user`, `/v1`}
 import com.ruchij.web.routes.{HealthRoutes, SessionRoutes, UserRoutes}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.middleware.CORS
@@ -47,8 +47,11 @@ object Routes {
 
     val router: HttpRoutes[F] =
       Router(
-        `/user` -> UserRoutes(userService, weightEntryService, authorizationService),
-        `/session` -> SessionRoutes(authenticationService, authenticationTokenExtractor),
+        `/v1` ->
+          Router(
+            `/user` -> UserRoutes(userService, weightEntryService, authorizationService),
+            `/session` -> SessionRoutes(authenticationService, authenticationTokenExtractor),
+          ),
         `/health` -> HealthRoutes(healthCheckService)
       )
 

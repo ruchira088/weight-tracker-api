@@ -48,7 +48,7 @@ object Dependencies
 
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  lazy val log4s = "org.log4s" %% "log4s" % "1.8.2"
+  lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
   lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.6.0"
 

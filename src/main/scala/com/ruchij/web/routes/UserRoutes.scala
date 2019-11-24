@@ -6,7 +6,7 @@ import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
 import cats.~>
-import com.ruchij.logging.Logger.LoggerOps
+import com.ruchij.logging.Logger
 import com.ruchij.services.authorization.{AuthorizationService, Permission}
 import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.data.models.WeightEntry.weightEntryEncoder
@@ -22,12 +22,11 @@ import com.ruchij.web.routes.Paths.{`reset-password`, `weight-entry`}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes, Response}
-import org.log4s.getLogger
 
 import scala.language.higherKinds
 
 object UserRoutes {
-  private val logger = getLogger
+  private val logger = Logger[UserRoutes.type]
 
   def apply[F[_]: Sync](
     userService: UserService[F],

@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.implicits._
 import cats.~>
 import com.ruchij.exceptions.ResourceNotFoundException
-import com.ruchij.logging.Logger.LoggerOps
+import com.ruchij.logging.Logger
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authentication.AuthenticationTokenExtractor
@@ -17,12 +17,11 @@ import com.ruchij.web.routes.Paths.{`reset-password`, user}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes}
-import org.log4s.getLogger
 
 import scala.language.higherKinds
 
 object SessionRoutes {
-  private val logger = getLogger
+  private val logger = Logger[SessionRoutes.type]
 
   def apply[F[_]: Sync: ValidatedNel[Throwable, *] ~> *[_]](authenticationService: AuthenticationService[F], authenticationTokenExtractor: AuthenticationTokenExtractor[F])(implicit dsl: Http4sDsl[F], authMiddleware: AuthMiddleware[F, User]): HttpRoutes[F] = {
     import dsl._

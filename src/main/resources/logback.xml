@@ -2,8 +2,8 @@
     <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
 
     <appender name="STD_OUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%date{ISO8601} [%thread] %-5level %logger{36} %msg%n</pattern>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="com.ruchij.logging.JsonLayout"/>
         </encoder>
     </appender>
 

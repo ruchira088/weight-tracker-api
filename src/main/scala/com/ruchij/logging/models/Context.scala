@@ -1,6 +1,8 @@
-package com.ruchij.logging
+package com.ruchij.logging.models
 
 import com.ruchij.web.headers.`X-Correlation-ID`.CorrelationId
+
+import scala.language.implicitConversions
 
 case class Context(correlationId: CorrelationId)
 

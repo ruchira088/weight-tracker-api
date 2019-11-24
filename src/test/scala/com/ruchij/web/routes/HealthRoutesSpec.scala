@@ -33,7 +33,7 @@ class HealthRoutesSpec extends FlatSpec with MustMatchers {
          "serviceVersion": "0.0.1",
          "organization": "com.ruchij",
          "javaVersion": ${Properties.javaVersion},
-         "sbtVersion": "1.3.3",
+         "sbtVersion": "1.3.4",
          "scalaVersion": "2.12.10",
          "currentTimestamp": $currentDateTime,
          "gitBranch": "master",

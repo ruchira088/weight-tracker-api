@@ -3,7 +3,7 @@ import sbt._
 object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
-  val HTTP4S_VERSION = "0.20.13"
+  val HTTP4S_VERSION = "0.20.15"
   val CIRCE_VERSION = "0.12.3"
 
   lazy val http4sDsl = "org.http4s" %% "http4s-dsl" % HTTP4S_VERSION
@@ -56,7 +56,7 @@ object Dependencies
 
   lazy val sendgrid = "com.sendgrid" % "sendgrid-java" % "4.4.1"
 
-  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8"
+  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.1.0"
 
   lazy val embeddedRedis = "com.github.kstyrc" % "embedded-redis" % "0.6"
 

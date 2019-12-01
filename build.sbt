@@ -12,7 +12,7 @@ lazy val root =
       libraryDependencies ++= rootDependencies ++ rootTestDependencies.map(_ % Test),
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
-      scalacOptions ++= Seq("-Ypartial-unification", "-Xlint"),
+      scalacOptions ++= Seq("-Ypartial-unification", "-Xlint", "-feature"),
       javaOptions in Test += s"-Dconfig.resource=application.test.conf",
       fork in Test := true,
       topLevelDirectory := None,

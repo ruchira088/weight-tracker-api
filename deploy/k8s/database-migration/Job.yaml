@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: weight-tracker-api-{{ git_branch }}
+  name: database-migration-job-{{ git_commit }}
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: database-migration
+          image: {{ database_migration_docker_image }}
+          envFrom:
+            - configMapRef:
+                name: database-migration-config-map
+            - secretRef:
+                name: database-migration-secrets

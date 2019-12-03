@@ -4,6 +4,6 @@ metadata:
   namespace: weight-tracker-api-{{ git_branch }}
   name: weight-tracker-api-config-map
 data:
-{% for key, value in config_values.items() %}
+{% for key, value in config_values.weight_tracker_api.items() %}
   {{ key }}: "{{ value }}"
 {% endfor %}

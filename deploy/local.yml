@@ -23,7 +23,7 @@
         line: |
           # secret
           export {{ item.key }}="{{ item.value }}"
-      with_items: "{{ secrets | dict2items }}"
+      with_items: "{{ secrets.weight_tracker_api | dict2items }}"
 
     - name: Write config values
       lineinfile:
@@ -31,7 +31,7 @@
         line: |
           # config value
           export {{ item.key }}="{{ item.value }}"
-      with_items: "{{ config_values | dict2items }}"
+      with_items: "{{ config_values.weight_tracker_api | dict2items }}"
 
     - name: Write success message
       lineinfile:

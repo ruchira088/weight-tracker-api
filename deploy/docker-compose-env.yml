@@ -13,4 +13,4 @@
       copy:
         dest: ../secrets.env
         content: |
-          SENDGRID_API_KEY={{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_API_KEY={{ secrets.weight_tracker_api.SENDGRID_API_KEY }}

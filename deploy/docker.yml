@@ -1,6 +1,7 @@
 ---
 - import_playbook: variables.yml
 - import_playbook: aws.yml
+
 - hosts: localhost
   connection: local
 
@@ -24,7 +25,8 @@
               --build-arg git_commit={{ git_commit }} \
               --build-arg git_branch={{ git_branch }} \
               --build-arg build_timestamp={{ ansible_date_time.iso8601 }} \
-              -f ../database-migration/Dockerfile-prod ../database-migration
+              -f ../database-migration/Dockerfile-prod \
+              ../database-migration
 
         - name: Remove Dockerfile
           file:
@@ -50,7 +52,8 @@
               --build-arg git_commit={{ git_commit }} \
               --build-arg git_branch={{ git_branch }} \
               --build-arg build_timestamp={{ ansible_date_time.iso8601 }} \
-              -f ../Dockerfile-prod ../
+              -f ../Dockerfile-prod \
+              ../
 
         - name: Remove Dockerfile
           file:

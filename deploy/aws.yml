@@ -1,7 +1,9 @@
 ---
 - import_playbook: variables.yml
+
 - hosts: localhost
   connection: local
+
   vars:
     terraform_s3_backend: weight-tracker.ruchij.com
 

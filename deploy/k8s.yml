@@ -2,8 +2,10 @@
 - import_playbook: variables.yml
 - import_playbook: aws.yml
 - import_playbook: secrets-and-configs.yml
+
 - hosts: localhost
   connection: local
+
   vars:
     weight_tracker_api_docker_image: "{{ weight_tracker_api_ecr_url }}:{{ git_commit }}"
     database_migration_docker_image: "{{ database_migration_ecr_url }}:{{ git_commit }}"

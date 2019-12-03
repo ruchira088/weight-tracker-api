@@ -10,20 +10,23 @@ import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
 import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
-import com.ruchij.test.utils.Providers.{clock, contextShift, stubClock, random}
+import com.ruchij.test.utils.Providers.{clock, contextShift, random, stubClock}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
 import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
 import com.ruchij.types.Random
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.headers.`X-Correlation-ID`
-import com.ruchij.web.routes.Paths.{`/`, `reset-password`, `/session`, user, `/v1`}
+import com.ruchij.web.routes.Paths.{`/`, `/session`, `/v1`, `reset-password`, user}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Response, Status, Uri}
+import org.http4s.circe.jsonEncoder
 import org.joda.time.{DateTime, Duration}
-import org.scalatest.{FlatSpec, MustMatchers, OptionValues}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.OptionValues
 
-class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
+class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
 
   s"POST ${`/v1` + `/session`}" should "successfully create an authentication token for valid credentials" in {
     val timestamp = DateTime.now()
@@ -42,7 +45,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.PASSWORD}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, requestBody)
+    val request = jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -72,7 +75,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, requestBody)
+    val request = jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, requestBody)
 
     val response: Response[IO] =
       application.httpApp.run(request).unsafeRunSync()
@@ -101,7 +104,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, requestBody)
+    val request = jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -266,7 +269,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser)
 
-    val request = jsonRequest[IO](Method.POST,  `/v1` + `/session` + `/` + `reset-password`, requestBody)
+    val request = jsonRequest[IO, Json](Method.POST,  `/v1` + `/session` + `/` + `reset-password`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -310,7 +313,7 @@ class SessionRoutesSpec extends FlatSpec with MustMatchers with OptionValues {
 
     val application: HttpTestApp[IO] = HttpTestApp[IO]()
 
-    val request = jsonRequest[IO](Method.POST, `/v1` + `/session` + `/` + `reset-password`, requestBody)
+    val request = jsonRequest[IO, Json](Method.POST, `/v1` + `/session` + `/` + `reset-password`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 

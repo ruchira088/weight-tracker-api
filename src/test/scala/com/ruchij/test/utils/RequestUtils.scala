@@ -3,23 +3,21 @@ package com.ruchij.test.utils
 import cats.effect.Sync
 import com.ruchij.web.headers.`X-Correlation-ID`
 import com.ruchij.test.utils.RandomGenerator.uuid
-import fs2.Stream
-import io.circe.Json
 import org.http4s.Credentials.Token
 import org.http4s.headers.{Authorization, `Content-Type`}
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{Headers, MediaType, Method, Request, Uri}
+import org.http4s.{EntityEncoder, Headers, MediaType, Method, Request, Uri}
 
 import scala.language.higherKinds
 
 object RequestUtils {
 
-  def jsonRequest[F[_]: Sync](method: Method, url: String, body: Json): Request[F] =
+  def jsonRequest[F[_]: Sync, A: EntityEncoder[F, *]](method: Method, url: String, body: A): Request[F] =
     Request(
       method,
       uri = Uri(path = url),
       headers = Headers.of(`Content-Type`(MediaType.application.json), `X-Correlation-ID`.from(uuid().toString)),
-      body = Stream.fromIterator[F](body.toString.getBytes.toIterator)
+      body = EntityEncoder[F, A].toEntity(body).body
     )
 
   def getRequest[F[_]](path: String, headers: Headers = Headers.of(`X-Correlation-ID`.from(uuid().toString))): Request[F] =

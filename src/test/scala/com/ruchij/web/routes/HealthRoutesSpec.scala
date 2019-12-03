@@ -11,11 +11,12 @@ import com.ruchij.web.routes.Paths.{`/health`, services}
 import io.circe.literal._
 import org.http4s.{Response, Status}
 import org.joda.time.DateTime
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 import scala.util.Properties
 
-class HealthRoutesSpec extends FlatSpec with MustMatchers {
+class HealthRoutesSpec extends AnyFlatSpec with Matchers {
 
   s"GET ${`/health`}" should "return a successful response containing service information" in {
     val currentDateTime = DateTime.now()

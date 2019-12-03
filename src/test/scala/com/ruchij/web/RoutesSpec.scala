@@ -16,10 +16,12 @@ import io.circe.Json
 import io.circe.literal._
 import fs2.Stream
 import org.http4s.{Headers, MediaType, Method, Request, Response, Status, Uri}
+import org.http4s.circe.jsonEncoder
 import org.http4s.headers.`Content-Type`
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class RoutesSpec extends FlatSpec with MustMatchers {
+class RoutesSpec extends AnyFlatSpec with Matchers {
 
   "Making a request with missing fields in the request body" should "return a bad request error response" in {
     val application: HttpTestApp[IO] = HttpTestApp[IO]()
@@ -29,7 +31,7 @@ class RoutesSpec extends FlatSpec with MustMatchers {
         "email": ${RandomGenerator.email().toString}
       }"""
 
-    val request = jsonRequest[IO](Method.POST, `/v1` + `/session`, jsonRequestBody)
+    val request = jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, jsonRequestBody)
 
     val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
 

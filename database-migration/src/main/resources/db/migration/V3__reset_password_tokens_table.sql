@@ -1,4 +1,4 @@
-create table reset_password_token(
+create table reset_password_tokens(
     index bigserial,
     secret varchar(255),
     user_id uuid,
@@ -8,5 +8,5 @@ create table reset_password_token(
     primary key (user_id, secret),
 
     constraint fk_reset_password_user_id
-        foreign key (user_id) references `user`(id)
+        foreign key (user_id) references users(id)
 );

@@ -18,13 +18,13 @@ class DoobieAuthenticationFailureDao[F[_]: Bracket[*[_], Throwable]](transactor:
   override def insert(databaseAuthenticationFailure: DatabaseAuthenticationFailure): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into authentication_failure (user_id, failed_at)
+        insert into authentication_failures (user_id, failed_at)
           values (${databaseAuthenticationFailure.userId}, ${databaseAuthenticationFailure.failedAt})
       """.update.run.transact(transactor)
     }
 
   override def findByUser(userId: UUID): F[List[DatabaseAuthenticationFailure]] =
-    sql"select user_id, failed_at from authentication_failure where user_id = $userId"
+    sql"select user_id, failed_at from authentication_failures where user_id = $userId"
       .query[DatabaseAuthenticationFailure]
       .to[List]
       .transact(transactor)

@@ -1,4 +1,4 @@
-create table `user`(
+create table users(
     id uuid,
     index bigserial,
     created_at timestamp not null,

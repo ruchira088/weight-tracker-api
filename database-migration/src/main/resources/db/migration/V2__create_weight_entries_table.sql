@@ -1,4 +1,4 @@
-create table weight_entry(
+create table weight_entries(
     id uuid,
     index bigserial,
     created_at timestamp not null,
@@ -10,8 +10,8 @@ create table weight_entry(
     primary key (id),
 
     constraint fk_weight_entry_user_id
-        foreign key (user_id) references `user`(id),
+        foreign key (user_id) references users(id),
 
     constraint fk_weight_entry_created_by
-        foreign key (created_by) references `user`(id)
+        foreign key (created_by) references users(id)
 );

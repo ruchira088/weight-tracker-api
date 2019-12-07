@@ -18,13 +18,13 @@ class DoobieLockedUserDao[F[_]: Bracket[*[_], Throwable]](transactor: Transactor
   override def insert(databaseLockedUser: DatabaseLockedUser): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into locked_user (user_id, locked_at, unlock_code)
+        insert into locked_users (user_id, locked_at, unlock_code)
           values (${databaseLockedUser.userId}, ${databaseLockedUser.lockedAt}, ${databaseLockedUser.unlockCode})
       """.update.run.transact(transactor)
     }
 
   override def findLockedUserById(userId: UUID): F[Option[DatabaseLockedUser]] =
-    sql"select user_id, locked_at, unlock_code, unlocked_at from locked_user where user_id = $userId"
+    sql"select user_id, locked_at, unlock_code, unlocked_at from locked_users where user_id = $userId"
       .query[DatabaseLockedUser]
       .option
       .transact(transactor)

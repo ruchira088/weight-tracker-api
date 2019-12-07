@@ -1,4 +1,4 @@
-create table locked_user(
+create table locked_users(
     user_id uuid,
     locked_at timestamp not null,
     unlock_code varchar(64) not null,
@@ -6,5 +6,5 @@ create table locked_user(
     primary key (user_id),
 
     constraint fk_locked_user_user_id
-        foreign key (user_id) references `user`(id)
+        foreign key (user_id) references users(id)
 );

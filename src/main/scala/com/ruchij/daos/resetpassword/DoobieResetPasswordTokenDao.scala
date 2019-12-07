@@ -19,7 +19,7 @@ class DoobieResetPasswordTokenDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit
   override def insert(databaseResetPasswordToken: DatabaseResetPasswordToken): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into reset_password_token (secret, user_id, created_at, expires_at, password_set_at)
+        insert into reset_password_tokens (secret, user_id, created_at, expires_at, password_set_at)
         values (
           ${databaseResetPasswordToken.secret},
           ${databaseResetPasswordToken.userId},
@@ -34,7 +34,7 @@ class DoobieResetPasswordTokenDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit
   override def find(userId: UUID, secret: String): OptionT[F, DatabaseResetPasswordToken] =
     OptionT {
       sql"""
-        select user_id, secret, created_at, expires_at, password_set_at from reset_password_token
+        select user_id, secret, created_at, expires_at, password_set_at from reset_password_tokens
           where user_id = $userId and secret = $secret
       """
         .query[DatabaseResetPasswordToken]
@@ -45,7 +45,7 @@ class DoobieResetPasswordTokenDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit
   override def resetCompleted(userId: UUID, secret: String, timestamp: DateTime): F[Boolean] =
     singleUpdate {
       sql"""
-        update reset_password_token set password_set_at = $timestamp
+        update reset_password_tokens set password_set_at = $timestamp
           where user_id = $userId and secret = $secret
         """.update.run.transact(transactor)
     }

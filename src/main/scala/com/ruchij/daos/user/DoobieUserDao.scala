@@ -19,7 +19,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
   override def insert(databaseUser: DatabaseUser): F[Boolean] =
     singleUpdate {
       sql"""
-      insert into users (id, created_at, email, password, first_name, last_name)
+      insert into user (id, created_at, email, password, first_name, last_name)
         values (
           ${databaseUser.id},
           ${databaseUser.createdAt},
@@ -34,7 +34,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select id, created_at, email, password, first_name, last_name from users where id = $id"
+      sql"select id, created_at, email, password, first_name, last_name from user where id = $id"
         .query[DatabaseUser]
         .option
         .transact(transactor)
@@ -42,7 +42,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def findByEmail(email: EmailAddress): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select id, created_at, email, password, first_name, last_name from users where email = $email"
+      sql"select id, created_at, email, password, first_name, last_name from user where email = $email"
         .query[DatabaseUser]
         .option
         .transact(transactor)
@@ -50,7 +50,7 @@ class DoobieUserDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) extends Use
 
   override def updatePassword(id: UUID, password: String): F[Boolean] =
     singleUpdate {
-      sql"update users set password = $password where id = $id".update.run
+      sql"update user set password = $password where id = $id".update.run
         .transact(transactor)
     }
 }

@@ -2,7 +2,6 @@ create table locked_user(
     user_id uuid,
     locked_at timestamp not null,
     unlock_code varchar(64) not null,
-    email_sent_at timestamp not null,
     unlocked_at timestamp,
     primary key (user_id),
 

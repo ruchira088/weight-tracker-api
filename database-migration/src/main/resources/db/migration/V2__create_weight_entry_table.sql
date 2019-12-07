@@ -10,8 +10,8 @@ create table weight_entry(
     primary key (id),
 
     constraint fk_weight_entry_user_id
-        foreign key (user_id) references user(id),
+        foreign key (user_id) references `user`(id),
 
     constraint fk_weight_entry_created_by
-        foreign key (created_by) references user(id)
+        foreign key (created_by) references `user`(id)
 );

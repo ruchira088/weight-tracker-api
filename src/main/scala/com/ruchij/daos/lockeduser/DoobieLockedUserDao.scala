@@ -1,0 +1,31 @@
+package com.ruchij.daos.lockeduser
+
+import java.util.UUID
+
+import cats.effect.Bracket
+import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
+import com.ruchij.daos.doobie.singleUpdate
+import com.ruchij.daos.doobie.DoobieCustomMappings.{dateTimeGet, dateTimePut}
+import doobie.implicits._
+import doobie.postgres.implicits._
+import doobie.util.transactor.Transactor
+
+import scala.language.higherKinds
+
+class DoobieLockedUserDao[F[_]: Bracket[*[_], Throwable]](transactor: Transactor.Aux[F, Unit])
+    extends LockedUserDao[F] {
+
+  override def insert(databaseLockedUser: DatabaseLockedUser): F[Boolean] =
+    singleUpdate {
+      sql"""
+        insert into locked_user (user_id, locked_at, unlock_code)
+          values (${databaseLockedUser.userId}, ${databaseLockedUser.lockedAt}, ${databaseLockedUser.unlockCode})
+      """.update.run.transact(transactor)
+    }
+
+  override def findLockedUserById(userId: UUID): F[Option[DatabaseLockedUser]] =
+    sql"select user_id, locked_at, unlock_code, unlocked_at from locked_user where user_id = $userId"
+      .query[DatabaseLockedUser]
+      .option
+      .transact(transactor)
+}

@@ -12,7 +12,8 @@ import doobie.util.transactor.Transactor
 
 import scala.language.higherKinds
 
-class DoobieAuthenticationFailureDao[F[_]: Bracket[*[_], Throwable]](transactor: Transactor.Aux[F, Unit]) extends AuthenticationFailureDao[F] {
+class DoobieAuthenticationFailureDao[F[_]: Bracket[*[_], Throwable]](transactor: Transactor.Aux[F, Unit])
+    extends AuthenticationFailureDao[F] {
 
   override def insert(databaseAuthenticationFailure: DatabaseAuthenticationFailure): F[Boolean] =
     singleUpdate {

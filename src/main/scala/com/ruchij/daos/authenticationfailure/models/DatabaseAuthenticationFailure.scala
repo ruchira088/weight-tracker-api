@@ -4,4 +4,4 @@ import java.util.UUID
 
 import org.joda.time.DateTime
 
-case class DatabaseAuthenticationFailure(userId: UUID, failedAt: DateTime)
+case class DatabaseAuthenticationFailure(id: UUID, userId: UUID, failedAt: DateTime, deleted: Boolean)

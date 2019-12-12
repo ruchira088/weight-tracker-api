@@ -8,7 +8,7 @@ import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import doobie.util.transactor.Transactor
 import com.ruchij.daos.doobie.DoobieCustomMappings._
 import com.ruchij.daos.doobie.singleUpdate
-import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
+import com.ruchij.types.Tags.{PageNumber, PageSize}
 import doobie.postgres.implicits._
 import doobie.implicits._
 

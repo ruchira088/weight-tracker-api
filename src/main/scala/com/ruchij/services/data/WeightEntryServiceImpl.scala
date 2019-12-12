@@ -6,11 +6,11 @@ import java.util.concurrent.TimeUnit
 import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.ruchij.daos.weightentry.WeightEntryDao
-import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.exceptions.{InternalServiceException, ResourceNotFoundException}
 import com.ruchij.services.data.models.WeightEntry
 import com.ruchij.types.Random
+import com.ruchij.types.Tags.{PageNumber, PageSize}
 import org.joda.time.DateTime
 
 import scala.language.higherKinds

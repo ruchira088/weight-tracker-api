@@ -2,6 +2,7 @@ package com.ruchij.daos.lockeduser
 
 import java.util.UUID
 
+import cats.data.OptionT
 import cats.effect.Bracket
 import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.daos.doobie.singleUpdate
@@ -23,9 +24,11 @@ class DoobieLockedUserDao[F[_]: Bracket[*[_], Throwable]](transactor: Transactor
       """.update.run.transact(transactor)
     }
 
-  override def findLockedUserById(userId: UUID): F[Option[DatabaseLockedUser]] =
-    sql"select user_id, locked_at, unlock_code, unlocked_at from locked_users where user_id = $userId"
-      .query[DatabaseLockedUser]
-      .option
-      .transact(transactor)
+  override def findLockedUserById(userId: UUID): OptionT[F, DatabaseLockedUser] =
+    OptionT {
+      sql"select user_id, locked_at, unlock_code, unlocked_at from locked_users where user_id = $userId and unlocked_at is null"
+        .query[DatabaseLockedUser]
+        .option
+        .transact(transactor)
+    }
 }

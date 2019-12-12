@@ -2,7 +2,7 @@ package com.ruchij.web.requests.queryparameters
 
 import cats.data.Validated.Valid
 import cats.data.ValidatedNel
-import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
+import com.ruchij.types.Tags.{PageNumber, PageSize}
 import org.http4s.ParseFailure
 import org.http4s.dsl.impl.ValidatingQueryParamDecoderMatcher
 

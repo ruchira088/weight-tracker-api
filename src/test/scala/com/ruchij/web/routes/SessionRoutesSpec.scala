@@ -82,7 +82,9 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
 
     val expectedJsonResponse: Json =
       json"""{
-        "errorMessages": [ "Invalid credentials" ]
+        "errorMessages": [
+          "Invalid credentials. 4 authentication attempts remain before the user account is locked"
+        ]
       }"""
 
     response must beJsonContentType

@@ -2,8 +2,8 @@ package com.ruchij.services.data
 
 import java.util.UUID
 
-import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
 import com.ruchij.services.data.models.WeightEntry
+import com.ruchij.types.Tags.{PageNumber, PageSize}
 import org.joda.time.DateTime
 
 import scala.language.higherKinds

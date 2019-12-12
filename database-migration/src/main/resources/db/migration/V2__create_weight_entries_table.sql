@@ -9,9 +9,9 @@ create table weight_entries(
     description text,
     primary key (id),
 
-    constraint fk_weight_entry_user_id
+    constraint fk_weight_entries_user_id
         foreign key (user_id) references users(id),
 
-    constraint fk_weight_entry_created_by
+    constraint fk_weight_entries_created_by
         foreign key (created_by) references users(id)
 );

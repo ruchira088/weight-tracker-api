@@ -7,6 +7,6 @@ create table reset_password_tokens(
     password_set_at timestamp,
     primary key (user_id, secret),
 
-    constraint fk_reset_password_user_id
+    constraint fk_reset_password_tokens_user_id
         foreign key (user_id) references users(id)
 );

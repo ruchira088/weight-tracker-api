@@ -8,9 +8,12 @@ import cats.{Applicative, ~>}
 import cats.data.ValidatedNel
 import cats.effect.{Async, Clock, ContextShift}
 import cats.implicits._
+import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
 import com.ruchij.config.{AuthenticationConfiguration, BuildInformation, RedisConfiguration}
+import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
+import com.ruchij.daos.lockeduser.DoobieLockedUserDao
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.daos.resetpassword.{DoobieResetPasswordTokenDao, ResetPasswordTokenDao}
 import com.ruchij.daos.user.models.DatabaseUser
@@ -60,6 +63,8 @@ object HttpTestApp {
     val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
       new DoobieResetPasswordTokenDao[F](DaoUtils.h2Transactor)
     val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](DaoUtils.h2Transactor)
+    val lockedUserDao = new DoobieLockedUserDao[F](DaoUtils.h2Transactor)
+    val authenticationFailureDao = new DoobieAuthenticationFailureDao[F](DaoUtils.h2Transactor)
 
     //    val authenticationTokenDao: InMemoryAuthenticationTokenDao[F] =
 //      new InMemoryAuthenticationTokenDao[F](new ConcurrentHashMap[String, AuthenticationToken]())
@@ -85,10 +90,12 @@ object HttpTestApp {
         new BCryptService[F](ExecutionContext.global),
         stubbedEmailService,
         userDao,
+        lockedUserDao,
+        authenticationFailureDao,
         resetPasswordTokenDao,
         authenticationTokenDao,
         new AuthenticationSecretGeneratorImpl[F],
-        AuthenticationConfiguration(SESSION_TIMEOUT)
+        AuthenticationConfiguration(SESSION_TIMEOUT, BruteForceProtectionConfiguration(5, 30 seconds))
       )
 
     val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)

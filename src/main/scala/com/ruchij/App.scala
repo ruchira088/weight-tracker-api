@@ -7,8 +7,10 @@ import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
+import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
 import com.ruchij.daos.doobie.DoobieTransactor
+import com.ruchij.daos.lockeduser.DoobieLockedUserDao
 import com.ruchij.daos.resetpassword.DoobieResetPasswordTokenDao
 import com.ruchij.daos.user.DoobieUserDao
 import com.ruchij.daos.weightentry.DoobieWeightEntryDao
@@ -44,6 +46,8 @@ object App extends IOApp {
       databaseUserDao = new DoobieUserDao(doobieTransactor)
       resetPasswordTokenDao = new DoobieResetPasswordTokenDao(doobieTransactor)
       weightEntryDao = new DoobieWeightEntryDao(doobieTransactor)
+      lockedUserDao = new DoobieLockedUserDao(doobieTransactor)
+      authenticationFailuresDao = new DoobieAuthenticationFailureDao(doobieTransactor)
 
       passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
       authenticationTokenDao = new RedisAuthenticationTokenDao[IO](redisClient)
@@ -59,6 +63,8 @@ object App extends IOApp {
         passwordHashingService,
         emailService,
         databaseUserDao,
+        lockedUserDao,
+        authenticationFailuresDao,
         resetPasswordTokenDao,
         authenticationTokenDao,
         authenticationSecretGenerator,

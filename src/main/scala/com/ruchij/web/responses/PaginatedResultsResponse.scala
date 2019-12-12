@@ -1,7 +1,7 @@
 package com.ruchij.web.responses
 
 import cats.Applicative
-import com.ruchij.daos.weightentry.WeightEntryDao.{PageNumber, PageSize}
+import com.ruchij.types.Tags.{PageNumber, PageSize}
 import io.circe.Encoder
 import io.circe.generic.auto._
 import org.http4s.EntityEncoder

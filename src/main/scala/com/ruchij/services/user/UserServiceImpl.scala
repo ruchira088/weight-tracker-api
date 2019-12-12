@@ -5,6 +5,7 @@ import java.util.UUID
 import cats.implicits._
 import cats.data.OptionT
 import cats.effect.{Clock, Sync}
+import com.ruchij.daos.lockeduser.LockedUserDao
 import com.ruchij.daos.user.UserDao
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.{AuthenticationException, InternalServiceException, ResourceConflictException, ResourceNotFoundException}
@@ -22,6 +23,7 @@ import scala.language.higherKinds
 
 class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   databaseUserDao: UserDao[F],
+  lockedUserDao: LockedUserDao[F],
   authenticationService: AuthenticationService[F],
   emailService: EmailService[F]
 ) extends UserService[F] {
@@ -72,4 +74,14 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       updatedUser <- getById(userId)
     }
     yield updatedUser
+
+  override def unlockUser(userId: UUID, unlockCode: String): F[User] =
+    for {
+      databaseUser <- databaseUserDao.findById(userId).getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"User not found for id = $userId")))
+
+      success <- lockedUserDao.unlockUser(userId, unlockCode)
+
+      _ <- predicate(!success, ResourceNotFoundException(s"Locked user not found with id = $userId"))
+    }
+    yield User.fromDatabaseUser(databaseUser)
 }

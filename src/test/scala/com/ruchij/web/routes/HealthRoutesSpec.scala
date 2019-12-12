@@ -7,7 +7,7 @@ import com.ruchij.test.matchers._
 import com.ruchij.test.utils.RequestUtils.getRequest
 import com.ruchij.test.utils.Providers.{contextShift, stubClock, clock}
 import com.ruchij.types.FunctionKTypes._
-import com.ruchij.web.routes.Paths.{`/health`, services}
+import com.ruchij.web.routes.Paths.{`/health`, `services`}
 import io.circe.literal._
 import org.http4s.{Response, Status}
 import org.joda.time.DateTime
@@ -50,10 +50,10 @@ class HealthRoutesSpec extends AnyFlatSpec with Matchers {
     application.shutdown()
   }
 
-  s"GET ${`/health`}/$services" should "return a success response when all services are healthy" in {
+  s"GET ${`/health`}/${`services`}" should "return a success response when all services are healthy" in {
     val application = HttpTestApp[IO]()
 
-    val request = getRequest[IO](s"${`/health`}/$services")
+    val request = getRequest[IO](s"${`/health`}/${`services`}")
 
     val response = application.httpApp.run(request).unsafeRunSync()
 

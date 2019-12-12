@@ -13,7 +13,7 @@ import com.ruchij.web.middleware.correlation.CorrelationId.withId
 import com.ruchij.web.requests.bodies.{LoginRequest, ResetPasswordRequest}
 import com.ruchij.web.responses.ResetPasswordResponse
 import com.ruchij.web.requests.RequestParser.Parser
-import com.ruchij.web.routes.Paths.{`reset-password`, user}
+import com.ruchij.web.routes.Paths.{`reset-password`, `user`}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes}

@@ -7,7 +7,7 @@ import com.ruchij.logging.Logger
 import com.ruchij.services.health.HealthCheckService
 import com.ruchij.web.responses.HealthCheckResponse
 import com.ruchij.web.middleware.correlation.CorrelationId.withId
-import com.ruchij.web.routes.Paths.services
+import com.ruchij.web.routes.Paths.`services`
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 

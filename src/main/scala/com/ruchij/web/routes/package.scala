@@ -14,10 +14,12 @@ package object routes {
 
     val `weight-entry` = "weight-entry"
 
-    val user = "user"
+    val `user` = "user"
 
     val `reset-password` = "reset-password"
 
-    val services = "services"
+    val `unlock` = "unlock"
+
+    val `services` = "services"
   }
 }

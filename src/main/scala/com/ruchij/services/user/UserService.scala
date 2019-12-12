@@ -16,4 +16,6 @@ trait UserService[F[_]] {
   def findByEmail(email: EmailAddress): OptionT[F, User]
 
   def updatePassword(userId: UUID, secret: String, password: String): F[User]
+
+  def unlockUser(userId: UUID, unlockCode: String): F[User]
 }

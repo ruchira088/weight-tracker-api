@@ -73,7 +73,7 @@ object App extends IOApp {
 
       authorizationService = new AuthorizationServiceImpl[IO]
 
-      userService = new UserServiceImpl(databaseUserDao, authenticationService, emailService)
+      userService = new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, emailService)
       weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
 
       exitCode <- BlazeServerBuilder[IO]

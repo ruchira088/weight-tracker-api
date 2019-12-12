@@ -15,10 +15,10 @@ import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authorization.Authorizer
 import com.ruchij.web.middleware.correlation.CorrelationId.withId
 import com.ruchij.web.requests.RequestParser._
-import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest, UpdatePasswordRequest}
+import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest, UnlockUserRequest, UpdatePasswordRequest}
 import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{PageNumberQueryParameterMatcher, PageSizeQueryParameterMatcher}
 import com.ruchij.web.responses.PaginatedResultsResponse
-import com.ruchij.web.routes.Paths.{`reset-password`, `weight-entry`}
+import com.ruchij.web.routes.Paths.{`unlock`, `reset-password`, `weight-entry`}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes, Response}
@@ -55,6 +55,20 @@ object UserRoutes {
 
           response <- Created(user)
         } yield response
+
+      case request @ PUT -> Root / UUIDVar(userId) / `unlock` withId correlationId =>
+        for {
+          UnlockUserRequest(unlockCode) <- request.to[UnlockUserRequest]
+
+          _ <- logger.infoF[F](s"Unlocking user with id=$userId")(correlationId)
+
+          user <- userService.unlockUser(userId, unlockCode)
+
+          _ <- logger.infoF[F](s"Unlocked user with id=$userId")(correlationId)
+
+          response <- Ok(user)
+        }
+        yield response
 
       case request @ PUT -> Root / UUIDVar(userId) / `reset-password` withId correlationId =>
         for {

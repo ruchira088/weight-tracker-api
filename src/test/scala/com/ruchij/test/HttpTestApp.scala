@@ -102,7 +102,7 @@ object HttpTestApp {
         AuthenticationConfiguration(SESSION_TIMEOUT, BruteForceProtectionConfiguration(3, 30 seconds))
       )
 
-    val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)
+    val userService = new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, stubbedEmailService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
     val healthCheckService = new HealthCheckServiceImpl[F](DaoUtils.h2Transactor, redisClient, buildInformation)
     val authorizationService = new AuthorizationServiceImpl[F]

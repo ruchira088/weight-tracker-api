@@ -11,4 +11,6 @@ trait LockedUserDao[F[_]] {
   def insert(databaseLockedUser: DatabaseLockedUser): F[Boolean]
 
   def findLockedUserById(userId: UUID): OptionT[F, DatabaseLockedUser]
+
+  def unlockUser(userId: UUID, unlockCode: String): F[Boolean]
 }

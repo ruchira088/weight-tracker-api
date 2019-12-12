@@ -18,7 +18,7 @@ import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jso
 import com.ruchij.types.Random
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.headers.`X-Correlation-ID`
-import com.ruchij.web.routes.Paths.{`/`, `/session`, `/v1`, `reset-password`, user}
+import com.ruchij.web.routes.Paths.{`/`, `/session`, `/v1`, `reset-password`, `user`}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Response, Status, Uri}
@@ -269,7 +269,7 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     application.shutdown()
   }
 
-  s"GET ${`/v1` + `/session` + `/` + user}" should "return the authenticated user" in {
+  s"GET ${`/v1` + `/session` + `/` + `user`}" should "return the authenticated user" in {
     val databaseUser = RandomGenerator.databaseUser()
     val databaseAuthenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
 
@@ -277,7 +277,7 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
       HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(databaseAuthenticationToken)
 
     val request =
-      authenticatedRequest(databaseAuthenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + user))
+      authenticatedRequest(databaseAuthenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + `user`))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -305,7 +305,7 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
-    val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(`/v1` + `/session` + `/` + user))
+    val request = authenticatedRequest[IO](authenticationToken.secret, getRequest(`/v1` + `/session` + `/` + `user`))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -327,7 +327,7 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
 
     val application = HttpTestApp[IO]().withUser(databaseUser)
 
-    val request = getRequest[IO](`/v1` + `/session` + `/` + user)
+    val request = getRequest[IO](`/v1` + `/session` + `/` + `user`)
 
     val response: Response[IO] = application.httpApp.run(request).unsafeRunSync()
 
@@ -352,7 +352,7 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     val application =
       HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken).withLockedUser(lockedUser)
 
-    val request = authenticatedRequest(authenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + user))
+    val request = authenticatedRequest(authenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + `user`))
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -381,7 +381,7 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
 
     val retrieveUserRequest =
-      authenticatedRequest[IO](authenticationToken.secret, getRequest(`/v1` + `/session` + `/` + user))
+      authenticatedRequest[IO](authenticationToken.secret, getRequest(`/v1` + `/session` + `/` + `user`))
 
     val retrieveUserResponse = application.httpApp.run(retrieveUserRequest).unsafeRunSync()
 

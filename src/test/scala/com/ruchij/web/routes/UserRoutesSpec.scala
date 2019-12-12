@@ -4,6 +4,7 @@ import java.util.UUID
 
 import cats.effect.{Clock, IO}
 import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.services.email.models.Email
 import com.ruchij.services.user.models.User
@@ -16,7 +17,7 @@ import com.ruchij.types.Random
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.headers.`X-Correlation-ID`
 import com.ruchij.web.requests.queryparameters.QueryParameter.{PageNumberQueryParameter, PageSizeQueryParameter}
-import com.ruchij.web.routes.Paths.{`/`, `/session`, `/user`, `/v1`, `reset-password`, `weight-entry`}
+import com.ruchij.web.routes.Paths.{`/`, `/session`, `/user`, `/v1`, `reset-password`, `unlock`, `user`, `weight-entry`}
 import io.circe.Json
 import io.circe.literal._
 import org.http4s.{Method, Request, Response, Status, Uri}
@@ -348,8 +349,11 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
 
     val firstPageRequest = authenticatedRequest[IO](
       databaseAuthenticationToken.secret,
-      Request[IO](uri = Uri.unsafeFromString(`/v1` + `/user` + `/` + databaseUser.id + `/` + `weight-entry` + "?" + PageSizeQueryParameter.key.value + "=2"))
-        .putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
+      Request[IO](
+        uri = Uri.unsafeFromString(
+          `/v1` + `/user` + `/` + databaseUser.id + `/` + `weight-entry` + "?" + PageSizeQueryParameter.key.value + "=2"
+        )
+      ).putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
     )
 
     val firstPageResponse = application.httpApp.run(firstPageRequest).unsafeRunSync()
@@ -385,7 +389,9 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
       authenticatedRequest(
         databaseAuthenticationToken.secret,
         Request[IO](
-          uri = Uri.unsafeFromString(`/v1` + `/user` + `/` + databaseUser.id + `/` + `weight-entry` + "?" + PageNumberQueryParameter.key.value + "=1&" + PageSizeQueryParameter.key.value + "=2")
+          uri = Uri.unsafeFromString(
+            `/v1` + `/user` + `/` + databaseUser.id + `/` + `weight-entry` + "?" + PageNumberQueryParameter.key.value + "=1&" + PageSizeQueryParameter.key.value + "=2"
+          )
         ).putHeaders(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
       )
 
@@ -439,7 +445,7 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
       }"""
 
     val request: Request[IO] =
-      jsonRequest[IO, Json](Method.PUT, `/v1`+ `/user` + `/` + databaseUser.id + `/` + `reset-password`, requestBody)
+      jsonRequest[IO, Json](Method.PUT, `/v1` + `/user` + `/` + databaseUser.id + `/` + `reset-password`, requestBody)
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -462,7 +468,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "password": ${RandomGenerator.PASSWORD}
       }"""
 
-    val loginWithOldPasswordRequest = jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, loginWithOldPasswordRequestBody)
+    val loginWithOldPasswordRequest =
+      jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, loginWithOldPasswordRequestBody)
 
     val loginWithOldPasswordResponse = application.httpApp.run(loginWithOldPasswordRequest).unsafeRunSync()
 
@@ -476,7 +483,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "password": $newPassword
       }"""
 
-    val loginWithNewPasswordRequest = jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, loginWithNewPasswordRequestBody)
+    val loginWithNewPasswordRequest =
+      jsonRequest[IO, Json](Method.POST, `/v1` + `/session`, loginWithNewPasswordRequestBody)
 
     val loginWithNewPasswordResponse = application.httpApp.run(loginWithNewPasswordRequest).unsafeRunSync()
 
@@ -534,7 +542,11 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
-    val request = jsonRequest[IO, Json](Method.PUT, `/v1`+ `/user` + `/` + databaseUser.id + `/` + `reset-password`, requestJsonBody)
+    val request = jsonRequest[IO, Json](
+      Method.PUT,
+      `/v1` + `/user` + `/` + databaseUser.id + `/` + `reset-password`,
+      requestJsonBody
+    )
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -570,7 +582,11 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "password": ${RandomGenerator.password()}
       }"""
 
-    val request = jsonRequest[IO, Json](Method.PUT, `/v1` + `/user` + `/` + databaseUser.id + `/` + `reset-password`, jsonRequestBody)
+    val request = jsonRequest[IO, Json](
+      Method.PUT,
+      `/v1` + `/user` + `/` + databaseUser.id + `/` + `reset-password`,
+      jsonRequestBody
+    )
 
     val response = application.httpApp.run(request).unsafeRunSync()
 
@@ -583,6 +599,85 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     response must haveJson(expectedJsonResponse)
     response must haveStatus(Status.Unauthorized)
     response must haveCorrelationIdOf(request)
+
+    application.shutdown()
+  }
+
+  s"PUT ${`/v1` + `/user` + `/` + ":userId" + `/` + `unlock`}" should "unlock the locked user account" in {
+    val databaseUser = RandomGenerator.databaseUser()
+    val lockedUser = DatabaseLockedUser(databaseUser.id, DateTime.now(), "secret-code", None)
+    val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
+
+    val application =
+      HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken).withLockedUser(lockedUser)
+
+    val authenticatedUserRequest = authenticatedRequest(authenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + `user`))
+
+    val authenticatedUserFailureResponse = application.httpApp.run(authenticatedUserRequest).unsafeRunSync()
+
+    val expectedFailureResponseBody =
+      json"""{
+        "errorMessages": [
+          "User account is locked"
+        ]
+      }"""
+
+    authenticatedUserFailureResponse must beJsonContentType
+    authenticatedUserFailureResponse must haveJson(expectedFailureResponseBody)
+    authenticatedUserFailureResponse must haveStatus(Status.Unauthorized)
+    authenticatedUserFailureResponse must haveCorrelationIdOf(authenticatedUserRequest)
+
+    val incorrectUserUnlockRequestBody =
+      json"""{
+        "unlockCode": "wrong"
+      }"""
+
+    val incorrectUnlockUserRequest =
+      jsonRequest[IO, Json](Method.PUT, `/v1` + `/user` + `/` + databaseUser.id + `/` + `unlock`, incorrectUserUnlockRequestBody)
+
+    val incorrectUserUnlockResponse = application.httpApp.run(incorrectUnlockUserRequest).unsafeRunSync()
+
+    val expectedIncorrectUserUnlockJsonResponse =
+      json"""{
+        "errorMessages": [
+          ${s"Locked user not found with id = ${databaseUser.id}"}
+        ]
+      }"""
+
+    incorrectUserUnlockResponse must beJsonContentType
+    incorrectUserUnlockResponse must haveJson(expectedIncorrectUserUnlockJsonResponse)
+    incorrectUserUnlockResponse must haveStatus(Status.NotFound)
+    incorrectUserUnlockResponse must haveCorrelationIdOf(incorrectUnlockUserRequest)
+
+    val unlockUserRequestBody =
+      json"""{
+        "unlockCode": "secret-code"
+      }"""
+
+    val unlockUserRequest =
+      jsonRequest[IO, Json](Method.PUT, `/v1` + `/user` + `/` + databaseUser.id + `/` + `unlock`, unlockUserRequestBody)
+
+    val unlockUserResponse = application.httpApp.run(unlockUserRequest).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "id": ${databaseUser.id},
+        "email": ${databaseUser.email},
+        "firstName": ${databaseUser.firstName},
+        "lastName": ${databaseUser.lastName}
+      }"""
+
+    unlockUserResponse must beJsonContentType
+    unlockUserResponse must haveJson(expectedJsonResponse)
+    unlockUserResponse must haveStatus(Status.Ok)
+    unlockUserResponse must haveCorrelationIdOf(unlockUserRequest)
+
+    val authenticatedUserSuccessResponse = application.httpApp.run(authenticatedUserRequest).unsafeRunSync()
+
+    authenticatedUserSuccessResponse must beJsonContentType
+    authenticatedUserSuccessResponse must haveJson(expectedJsonResponse)
+    authenticatedUserSuccessResponse must haveStatus(Status.Ok)
+    authenticatedUserSuccessResponse must haveCorrelationIdOf(authenticatedUserRequest)
 
     application.shutdown()
   }

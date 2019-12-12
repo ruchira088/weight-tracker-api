@@ -32,6 +32,8 @@ object ExceptionHandler {
 
           case _: AuthorizationException => Status.Forbidden
 
+          case _: LockedUserAccountException => Status.Unauthorized
+
           case _ => Status.InternalServerError
         }
     }

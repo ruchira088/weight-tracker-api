@@ -11,9 +11,11 @@ import cats.implicits._
 import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
 import com.ruchij.config.{AuthenticationConfiguration, BuildInformation, RedisConfiguration}
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
+import com.ruchij.daos.authenticationfailure.models.DatabaseAuthenticationFailure
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.authtokens.{AuthenticationTokenDao, RedisAuthenticationTokenDao}
 import com.ruchij.daos.lockeduser.DoobieLockedUserDao
+import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.daos.resetpassword.{DoobieResetPasswordTokenDao, ResetPasswordTokenDao}
 import com.ruchij.daos.user.models.DatabaseUser
@@ -47,6 +49,8 @@ case class HttpTestApp[F[_]](
   authenticationTokenDao: AuthenticationTokenDao[F],
   weightEntryDao: WeightEntryDao[F],
   resetPasswordTokenDao: ResetPasswordTokenDao[F],
+  authenticationFailureDao: DoobieAuthenticationFailureDao[F],
+  lockedUserDao: DoobieLockedUserDao[F],
   externalEmailMailBox: ConcurrentLinkedQueue[Email],
   shutdownHook: () => Unit
 )
@@ -95,7 +99,7 @@ object HttpTestApp {
         resetPasswordTokenDao,
         authenticationTokenDao,
         new AuthenticationSecretGeneratorImpl[F],
-        AuthenticationConfiguration(SESSION_TIMEOUT, BruteForceProtectionConfiguration(5, 30 seconds))
+        AuthenticationConfiguration(SESSION_TIMEOUT, BruteForceProtectionConfiguration(3, 30 seconds))
       )
 
     val userService = new UserServiceImpl[F](userDao, authenticationService, stubbedEmailService)
@@ -117,6 +121,8 @@ object HttpTestApp {
       authenticationTokenDao,
       weightEntryDao,
       resetPasswordTokenDao,
+      authenticationFailureDao,
+      lockedUserDao,
       emailMailBox,
       shutdownHook
     )
@@ -148,6 +154,20 @@ object HttpTestApp {
       self {
         UnsafeCopoint.unsafeExtract {
           httpTestApp.resetPasswordTokenDao.insert(databaseResetPasswordToken)
+        }
+      }
+
+    def withAuthenticationFailure(databaseAuthenticationFailure: DatabaseAuthenticationFailure): HttpTestApp[F] =
+      self {
+        UnsafeCopoint.unsafeExtract {
+          httpTestApp.authenticationFailureDao.insert(databaseAuthenticationFailure)
+        }
+      }
+
+    def withLockedUser(databaseLockedUser: DatabaseLockedUser): HttpTestApp[F] =
+      self {
+        UnsafeCopoint.unsafeExtract {
+          httpTestApp.lockedUserDao.insert(databaseLockedUser)
         }
       }
 

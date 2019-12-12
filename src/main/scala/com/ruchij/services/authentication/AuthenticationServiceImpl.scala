@@ -16,7 +16,7 @@ import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.daos.resetpassword.ResetPasswordTokenDao
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.daos.user.UserDao
-import com.ruchij.exceptions.{AuthenticationException, ResourceNotFoundException}
+import com.ruchij.exceptions.{AuthenticationException, LockedUserAccountException, ResourceNotFoundException}
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
 import com.ruchij.services.email.EmailService
 import com.ruchij.services.email.models.Email
@@ -50,7 +50,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
         .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Email not found: $email")))
 
       isLockedUser <- lockedUserDao.findLockedUserById(databaseUser.id).isDefined
-      _ <- predicate(isLockedUser, AuthenticationException("User account is locked"))
+      _ <- predicate(isLockedUser, LockedUserAccountException(databaseUser.id))
 
       isSuccess <- passwordHashingService.checkPassword(password, databaseUser.password)
 
@@ -94,7 +94,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
                 } else
               Sync[F].raiseError[Unit] {
                 AuthenticationException(
-                  s"Invalid credentials. ${authenticationConfiguration.bruteForceProtection.maximumFailures - authenticationFailures.length} authentication attempts remain before the user account is locked"
+                  s"Invalid credentials. ${authenticationConfiguration.bruteForceProtection.maximumFailures - authenticationFailures.length} incorrect authentication attempts remain before the user account is locked"
                 )
               }
           }
@@ -128,6 +128,9 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       databaseUser <- userDao
         .findById(authenticationToken.userId)
         .getOrElseF(Sync[F].raiseError(ResourceNotFoundException("User not found")))
+
+      isLockedUser <- lockedUserDao.findLockedUserById(databaseUser.id).isDefined
+      _ <- predicate(isLockedUser, LockedUserAccountException(databaseUser.id))
 
       _ <- authenticationTokenDao.extendExpiry(authenticationToken.secret, authenticationConfiguration.sessionTimeout)
     } yield User.fromDatabaseUser(databaseUser)

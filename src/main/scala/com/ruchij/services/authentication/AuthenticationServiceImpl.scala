@@ -76,8 +76,13 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
               authenticationSecretGenerator
                 .generate(User.fromDatabaseUser(databaseUser))
                 .flatMap { unlockCode =>
-                  lockedUserDao.insert {
-                    DatabaseLockedUser(databaseUser.id, currentDateTime, unlockCode, None)
+                  val lockedUser = DatabaseLockedUser(databaseUser.id, currentDateTime, unlockCode, None)
+
+                  lockedUserDao.insert(lockedUser).as(lockedUser)
+                }
+                .flatMap {
+                  lockedUser => emailService.send {
+                    Email.unlockUser(User.fromDatabaseUser(databaseUser), lockedUser)
                   }
                 }
                 .productR {

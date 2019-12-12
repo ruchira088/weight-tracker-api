@@ -226,7 +226,7 @@
 					"script": {
 						"id": "a3251c2f-14f5-49d0-bd7c-968b2cf9ecaf",
 						"exec": [
-							"pm.environment.set(\"secret\", pm.response.json().secret)"
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -273,7 +273,7 @@
 					"script": {
 						"id": "a3251c2f-14f5-49d0-bd7c-968b2cf9ecaf",
 						"exec": [
-							"pm.environment.set(\"secret\", pm.response.json().secret)"
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -308,6 +308,54 @@
 						"user",
 						"{{userId}}",
 						"reset-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Unlock user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a3251c2f-14f5-49d0-bd7c-968b2cf9ecaf",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"unlockCode\": \"<unlock code>\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/v1/user/{{userId}}/unlock",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"v1",
+						"user",
+						"{{userId}}",
+						"unlock"
 					]
 				}
 			},

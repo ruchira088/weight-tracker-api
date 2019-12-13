@@ -50,7 +50,7 @@ object Dependencies
 
   lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
-  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.6.0"
+  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.6.1"
 
   lazy val commonsValidator = "commons-validator" % "commons-validator" % "1.6"
 

@@ -420,6 +420,35 @@
 			"response": []
 		},
 		{
+			"name": "Delete user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{weightTrackerApiHost}}/v1/user/{{userId}}",
+					"host": [
+						"{{weightTrackerApiHost}}"
+					],
+					"path": [
+						"v1",
+						"user",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Add weight entry",
 			"event": [
 				{

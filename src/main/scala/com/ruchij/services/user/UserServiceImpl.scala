@@ -2,6 +2,7 @@ package com.ruchij.services.user
 
 import java.util.UUID
 
+import cats.Applicative
 import cats.implicits._
 import cats.data.OptionT
 import cats.effect.{Clock, Sync}
@@ -84,4 +85,16 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       _ <- predicate(!success, ResourceNotFoundException(s"Locked user not found with id = $userId"))
     }
     yield User.fromDatabaseUser(databaseUser)
+
+  override def deleteById(id: UUID): F[User] =
+    getById(id).flatMap {
+      user =>
+        databaseUserDao.deleteById(id).flatMap {
+          deleted =>
+            if (deleted)
+              Applicative[F].pure(user)
+            else
+              Sync[F].raiseError(InternalServiceException(s"Unable to delete user with id = $id"))
+        }
+    }
 }

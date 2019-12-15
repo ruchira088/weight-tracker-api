@@ -15,5 +15,7 @@ trait UserDao[F[_]] {
 
   def findByEmail(email: EmailAddress): OptionT[F, DatabaseUser]
 
+  def deleteById(userId: UUID): F[Boolean]
+
   def updatePassword(userId: UUID, hashedPassword: String): F[Boolean]
 }

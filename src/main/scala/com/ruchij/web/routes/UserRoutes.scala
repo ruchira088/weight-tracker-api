@@ -101,6 +101,21 @@ object UserRoutes {
               } yield response
             }
 
+
+          case DELETE -> Root / UUIDVar(userId) withId correlationId as authenticatedUser =>
+            authorizer(authenticatedUser, userId, Permission.WRITE) {
+              for {
+                _ <- logger.infoF[F](s"Deleting user with id=$userId")(correlationId)
+
+                user <- userService.deleteById(userId)
+
+                _ <- logger.infoF[F](s"Deleted user with id=$userId")(correlationId)
+
+                response <- Ok(user)
+              }
+              yield response
+            }
+
           case authenticatedRequest @ POST -> Root / UUIDVar(userId) / `weight-entry` withId correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.WRITE) {
               for {

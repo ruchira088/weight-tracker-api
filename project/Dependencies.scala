@@ -30,7 +30,7 @@ object Dependencies
 
   lazy val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
 
-  lazy val doobiePostgres =  "org.tpolecat" %% "doobie-postgres" % "0.8.6"
+  lazy val doobiePostgres =  "org.tpolecat" %% "doobie-postgres" % "0.8.7"
 
   lazy val flywayCore = "org.flywaydb" % "flyway-core" % "6.0.6"
 
@@ -40,7 +40,7 @@ object Dependencies
 
   lazy val redisScala = "com.github.etaty" %% "rediscala" % "1.9.0"
 
-  lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.5.13"
+  lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.5.14"
 
   lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 

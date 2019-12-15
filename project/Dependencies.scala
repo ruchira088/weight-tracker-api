@@ -26,7 +26,7 @@ object Dependencies
 
   lazy val jbcrypt = "org.mindrot" % "jbcrypt" % "0.4"
 
-  lazy val kindProjector = "org.typelevel" %% "kind-projector" % "0.10.3"
+  lazy val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
 
   lazy val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
 

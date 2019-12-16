@@ -18,18 +18,19 @@ import scala.language.higherKinds
 object ScratchPad extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
-    for {
-      email <- IO.delay(Email.welcomeEmail(RandomGenerator.user()))
-
+    IO(println(RandomGenerator.databaseUser())).as(ExitCode.Success)
+//    for {
+//      email <- IO.delay(Email.welcomeEmail(RandomGenerator.user()))
+//
 //      sendgridApiKey <- environmentValue("SENDGRID_API_KEY")
 //      sendgridEmailService = new SendGridEmailService[IO](new SendGrid(sendgridApiKey), ExecutionContext.global)
 //      _ <- sendgridEmailService.send(email)
 //
-      filePath = Paths.get("welcome.html")
-      _ <- deleteFile[IO](filePath, ExecutionContext.global).value
-      _ <- writeToFile[IO](filePath, email.content.body.getBytes)
-
-    } yield ExitCode.Success
+//      filePath = Paths.get("welcome.html")
+//      _ <- deleteFile[IO](filePath, ExecutionContext.global).value
+//      _ <- writeToFile[IO](filePath, email.content.body.getBytes)
+//
+//    } yield ExitCode.Success
 
   def environmentValue[F[_]: Sync](name: String): F[String] =
     Sync[F].suspend {

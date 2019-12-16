@@ -13,6 +13,7 @@ case class ServiceConfiguration(
   authenticationConfiguration: AuthenticationConfiguration,
   redisConfiguration: RedisConfiguration,
   emailConfiguration: EmailConfiguration,
+  developmentConfiguration: DevelopmentConfiguration,
   buildInformation: BuildInformation
 )
 

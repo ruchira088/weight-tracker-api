@@ -17,7 +17,7 @@ import com.ruchij.daos.weightentry.DoobieWeightEntryDao
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
-import com.ruchij.services.email.SendGridEmailService
+import com.ruchij.services.email.{ConsoleEmailService, SendGridEmailService}
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
@@ -52,10 +52,15 @@ object App extends IOApp {
       passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
       authenticationTokenDao = new RedisAuthenticationTokenDao[IO](redisClient)
       authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
-      emailService = new SendGridEmailService[IO](
-        new SendGrid(serviceConfiguration.emailConfiguration.sendgridApiKey),
-        ioBlockingExecutionContext
-      )
+
+      emailService =
+        if (serviceConfiguration.developmentConfiguration.disableEmails)
+          new ConsoleEmailService[IO]
+        else
+          new SendGridEmailService[IO](
+            new SendGrid(serviceConfiguration.emailConfiguration.sendgridApiKey),
+            ioBlockingExecutionContext
+          )
 
       healthCheckService = new HealthCheckServiceImpl[IO](doobieTransactor, redisClient, serviceConfiguration.buildInformation)
 

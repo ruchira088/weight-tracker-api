@@ -46,6 +46,10 @@ class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
          |  sendgrid-api-key = "secret-sendgrid-key"
          |}
          |
+         |development-configuration {
+         |  disable-emails = false
+         |}
+         |
          |build-information {
          |  git-branch = "master"
          |  git-commit = "1234abc"
@@ -65,6 +69,7 @@ class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
         AuthenticationConfiguration(60 seconds, BruteForceProtectionConfiguration(10, 30 seconds)),
         RedisConfiguration(host = "redis-server", port = 6379, password = Some("password")),
         EmailConfiguration("secret-sendgrid-key"),
+        DevelopmentConfiguration(false),
         BuildInformation(Some("master"), Some("1234abc"), Some(currentDateTime))
       )
 

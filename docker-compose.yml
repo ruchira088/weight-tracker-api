@@ -25,6 +25,7 @@ services:
       DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
       DB_USER: weight-tracker
       DB_PASSWORD: Fzy46pxRRd92sE2JRyR2
+      DISABLE_EMAILS: "true"
 
   database-migration:
     build: .

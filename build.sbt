@@ -35,6 +35,19 @@ lazy val databaseMigration =
       topLevelDirectory := None
     )
 
+lazy val loadTest =
+  (project in file("./gatling-load-test"))
+    .enablePlugins(GatlingPlugin)
+    .settings(
+      name := "gatling-load-test",
+      version := "0.0.1",
+      organization := "com.ruchij",
+      scalaVersion := SCALA_VERSION,
+      maintainer := "me@ruchij.com",
+      libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts)
+    )
+    .dependsOn(root % "test->test")
+
 lazy val rootDependencies =
   Seq(
     http4sDsl,

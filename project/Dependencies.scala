@@ -63,4 +63,8 @@ object Dependencies
   lazy val javaFaker = "com.github.javafaker" % "javafaker" % "1.0.1"
 
   lazy val pegdown = "org.pegdown" % "pegdown" % "1.6.0"
+
+  lazy val gatlingTestFramework = "io.gatling" % "gatling-test-framework" % "3.3.1"
+
+  lazy val gatlingCharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.3.1"
 }

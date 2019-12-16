@@ -12,15 +12,15 @@ import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.Providers.{clock, contextShift, random}
 import com.ruchij.test.utils.{Providers, RandomGenerator}
-import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest}
-import com.ruchij.types.Random
+import com.ruchij.test.utils.RequestUtils.{authenticatedRequest, getRequest, jsonRequest, simpleRequest}
+import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.headers.`X-Correlation-ID`
 import com.ruchij.web.requests.queryparameters.QueryParameter.{PageNumberQueryParameter, PageSizeQueryParameter}
 import com.ruchij.web.routes.Paths.{`/`, `/session`, `/user`, `/v1`, `reset-password`, `unlock`, `user`, `weight-entry`}
 import io.circe.Json
 import io.circe.literal._
-import org.http4s.{Method, Request, Response, Status, Uri}
+import org.http4s.{Headers, Method, Request, Response, Status, Uri}
 import org.http4s.circe.jsonEncoder
 import org.joda.time.{DateTime, Duration}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -611,7 +611,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     val application =
       HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken).withLockedUser(lockedUser)
 
-    val authenticatedUserRequest = authenticatedRequest(authenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + `user`))
+    val authenticatedUserRequest =
+      authenticatedRequest(authenticationToken.secret, getRequest[IO](`/v1` + `/session` + `/` + `user`))
 
     val authenticatedUserFailureResponse = application.httpApp.run(authenticatedUserRequest).unsafeRunSync()
 
@@ -633,7 +634,11 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
       }"""
 
     val incorrectUnlockUserRequest =
-      jsonRequest[IO, Json](Method.PUT, `/v1` + `/user` + `/` + databaseUser.id + `/` + `unlock`, incorrectUserUnlockRequestBody)
+      jsonRequest[IO, Json](
+        Method.PUT,
+        `/v1` + `/user` + `/` + databaseUser.id + `/` + `unlock`,
+        incorrectUserUnlockRequestBody
+      )
 
     val incorrectUserUnlockResponse = application.httpApp.run(incorrectUnlockUserRequest).unsafeRunSync()
 
@@ -678,6 +683,43 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     authenticatedUserSuccessResponse must haveJson(expectedJsonResponse)
     authenticatedUserSuccessResponse must haveStatus(Status.Ok)
     authenticatedUserSuccessResponse must haveCorrelationIdOf(authenticatedUserRequest)
+
+    application.shutdown()
+  }
+
+  s"DELETE ${`/v1` + `/user` + `/` + ":userId"}" should "delete the user" in {
+    val databaseUser = RandomGenerator.databaseUser()
+    val authenticationToken = RandomGenerator.databaseAuthenticationToken(databaseUser.id)
+
+    val application = HttpTestApp[IO]().withUser(databaseUser).withAuthenticationToken(authenticationToken)
+
+    UnsafeCopoint.unsafeExtract(application.userDao.findById(databaseUser.id).value) mustBe Some(databaseUser)
+
+    val request = authenticatedRequest(
+      authenticationToken.secret,
+      simpleRequest[IO](
+        Method.DELETE,
+        `/v1` + `/user` + `/` + databaseUser.id,
+        Headers.of(`X-Correlation-ID`.from(RandomGenerator.uuid().toString))
+      )
+    )
+
+    val response = application.httpApp.run(request).unsafeRunSync()
+
+    val expectedJsonResponse =
+      json"""{
+        "id": ${databaseUser.id},
+        "email": ${databaseUser.email},
+        "firstName": ${databaseUser.firstName},
+        "lastName": ${databaseUser.lastName}
+      }"""
+
+    response must beJsonContentType
+    response must haveJson(expectedJsonResponse)
+    response must haveStatus(Status.Ok)
+    response must haveCorrelationIdOf(request)
+
+    UnsafeCopoint.unsafeExtract(application.userDao.findById(databaseUser.id).value) mustBe None
 
     application.shutdown()
   }

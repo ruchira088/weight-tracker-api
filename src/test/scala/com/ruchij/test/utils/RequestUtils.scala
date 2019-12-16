@@ -21,7 +21,10 @@ object RequestUtils {
     )
 
   def getRequest[F[_]](path: String, headers: Headers = Headers.of(`X-Correlation-ID`.from(uuid().toString))): Request[F] =
-    Request[F](uri = Uri(path = path), headers = headers)
+    simpleRequest(Method.GET, path, headers)
+
+  def simpleRequest[F[_]](method: Method, path: String, headers: Headers): Request[F] =
+    Request(method = method, uri = Uri(path = path), headers = headers)
 
   def authenticatedRequest[F[_]](secret: String, request: Request[F]): Request[F] =
     request.putHeaders {

@@ -1,11 +1,15 @@
 package com.ruchij.gatling.simulations
 
+import cats.effect.IO
+import com.ruchij.gatling.config.LoadTestConfiguration
 import com.ruchij.gatling.utils.GatlingUtils._
+import com.ruchij.types.FunctionKTypes.eitherThrowableToIO
 import com.ruchij.web.routes.Paths._
 import io.gatling.core.Predef._
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
+import pureconfig.ConfigSource
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -37,6 +41,11 @@ class UserLoadTest extends Simulation {
           .check(userCheck: _*)
       }
 
-  setUp { userScenario.inject(constantUsersPerSec(1).during(2 seconds)) }
-    .protocols(httpProtocol)
+  LoadTestConfiguration
+    .loadF[IO](ConfigSource.resources("application.load-test.conf"))
+    .map { loadTestConfiguration =>
+      setUp { userScenario.inject(constantUsersPerSec(1).during(2 seconds)) }
+        .protocols(http.baseUrl(loadTestConfiguration.baseUrl))
+    }
+    .unsafeRunSync()
 }

@@ -44,7 +44,8 @@ lazy val loadTest =
       organization := "com.ruchij",
       scalaVersion := SCALA_VERSION,
       maintainer := "me@ruchij.com",
-      libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts)
+      addCompilerPlugin(kindProjector),
+      libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts, pureconfig, catsEffect).map(_ % Test)
     )
     .dependsOn(root % "test->test")
 

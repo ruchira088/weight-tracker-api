@@ -1,9 +1,10 @@
-package com.ruchij.gatling
+package com.ruchij.gatling.simulations
 
+import com.ruchij.gatling.utils.GatlingUtils._
+import com.ruchij.web.routes.Paths._
 import io.gatling.core.Predef._
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
-import com.ruchij.gatling.utils.GatlingUtils._
 import io.gatling.http.protocol.HttpProtocolBuilder
 
 import scala.concurrent.duration._
@@ -19,19 +20,19 @@ class UserLoadTest extends Simulation {
       .exec(loginUser)
       .exec {
         http("Authenticated user")
-          .get("/v1/session/user")
+          .get(`/v1` + `/session` + `/` + `user`)
           .header(HttpHeaderNames.Authorization, bearerToken)
           .check(userCheck: _*)
       }
       .exec {
         http("Fetch user")
-          .get("/v1/user/${userId}")
+          .get(`/v1` + `/user` + `/` + "${userId}")
           .header(HttpHeaderNames.Authorization, bearerToken)
           .check(userCheck: _*)
       }
       .exec {
         http("Delete user")
-          .delete("/v1/user/${userId}")
+          .delete(`/v1` + `/user` + `/` + "${userId}")
           .header(HttpHeaderNames.Authorization, bearerToken)
           .check(userCheck: _*)
       }

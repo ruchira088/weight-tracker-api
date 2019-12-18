@@ -37,6 +37,6 @@ class UserLoadTest extends Simulation {
           .check(userCheck: _*)
       }
 
-  setUp { userScenario.inject(constantUsersPerSec(10).during(20 seconds)) }
+  setUp { userScenario.inject(constantUsersPerSec(1).during(2 seconds)) }
     .protocols(httpProtocol)
 }

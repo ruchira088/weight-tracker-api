@@ -15,18 +15,24 @@ class WeightEntryLoadTest extends Simulation {
     scenario("Creating multiple weight entries")
       .exec(createUser)
       .exec(loginUser)
-      .repeat(10) {
+      .repeat(40) {
         exec {
+          _.setAll(
+            "timestamp" -> DateTime.now().toString,
+            "weight" -> RandomGenerator.weight().toString,
+            "description" -> RandomGenerator.description()
+          )
+        }.exec {
           http("Create weight entry")
             .post(`/v1` + `/user` + `/` + "${userId}" + `/` + `weight-entry`)
             .header(HttpHeaderNames.Authorization, bearerToken)
             .body {
               StringBody {
-                s"""{
-                  "timestamp": "${DateTime.now().toString}",
-                  "weight": "${RandomGenerator.weight()}",
-                  "description": "${RandomGenerator.description()}"
-                }"""
+                """{
+                    "timestamp": "${timestamp}",
+                    "weight": "${weight}",
+                    "description": "${description}"
+                  }"""
               }
             }
         }

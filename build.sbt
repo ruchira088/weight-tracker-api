@@ -18,7 +18,7 @@ lazy val root =
       topLevelDirectory := None,
       addCompilerPlugin(kindProjector),
       addCompilerPlugin(betterMonadicFor),
-      coverageExcludedPackages := "<empty>;com.ruchij.App;html.*;.*SendGridEmailService",
+      coverageExcludedPackages := "<empty>;com.ruchij.App;html.*;.*SendGridEmailService;.*ConsoleEmailService"
 )
     .dependsOn(databaseMigration)
 

@@ -20,4 +20,6 @@ trait WeightEntryService[F[_]] {
   def getById(id: UUID): F[WeightEntry]
 
   def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[WeightEntry]]
+
+  def delete(id: UUID): F[WeightEntry]
 }

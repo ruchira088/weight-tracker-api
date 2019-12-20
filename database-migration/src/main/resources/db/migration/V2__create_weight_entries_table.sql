@@ -7,6 +7,7 @@ create table weight_entries(
     timestamp timestamp not null,
     weight double precision not null,
     description text,
+    deleted boolean not null,
     primary key (id),
 
     constraint fk_weight_entries_user_id

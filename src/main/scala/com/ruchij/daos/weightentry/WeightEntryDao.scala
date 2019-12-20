@@ -14,4 +14,6 @@ trait WeightEntryDao[F[_]] {
   def findById(id: UUID): OptionT[F, DatabaseWeightEntry]
 
   def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[DatabaseWeightEntry]]
+
+  def delete(id: UUID): F[Boolean]
 }

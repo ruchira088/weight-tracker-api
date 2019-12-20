@@ -3,6 +3,7 @@ package com.ruchij.services.data
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import cats.Applicative
 import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.ruchij.daos.weightentry.WeightEntryDao
@@ -18,7 +19,13 @@ import scala.language.higherKinds
 class WeightEntryServiceImpl[F[_]: Clock: Sync: Random[*[_], UUID]](weightEntryDao: WeightEntryDao[F])
     extends WeightEntryService[F] {
 
-  override def create(timestamp: DateTime, weight: Double, description: Option[String], userId: UUID, createdBy: UUID): F[WeightEntry] =
+  override def create(
+    timestamp: DateTime,
+    weight: Double,
+    description: Option[String],
+    userId: UUID,
+    createdBy: UUID
+  ): F[WeightEntry] =
     for {
       currentTimestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
       id <- Random[F, UUID].value
@@ -27,19 +34,30 @@ class WeightEntryServiceImpl[F[_]: Clock: Sync: Random[*[_], UUID]](weightEntryD
         DatabaseWeightEntry(id, 0, new DateTime(currentTimestamp), createdBy, userId, timestamp, weight, description)
       }
 
-      weightEntry <-
-        getById(id).adaptError {
-          case _: ResourceNotFoundException => InternalServiceException("Unable to persist weight entry")
-        }
+      weightEntry <- getById(id).adaptError {
+        case _: ResourceNotFoundException => InternalServiceException("Unable to persist weight entry")
+      }
     } yield weightEntry
 
   override def getById(id: UUID): F[WeightEntry] =
-    weightEntryDao.findById(id)
+    weightEntryDao
+      .findById(id)
       .map(WeightEntry.fromDatabaseWeightEntry)
       .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Weight entry not found for id = $id")))
 
   override def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[WeightEntry]] =
-  weightEntryDao.findByUser(userId, pageNumber, pageSize)
-    .map(_.map(WeightEntry.fromDatabaseWeightEntry))
+    weightEntryDao
+      .findByUser(userId, pageNumber, pageSize)
+      .map(_.map(WeightEntry.fromDatabaseWeightEntry))
 
+  override def delete(id: UUID): F[WeightEntry] =
+    getById(id)
+      .flatMap { weightEntry =>
+        weightEntryDao.delete(id).flatMap { deleted =>
+          if (deleted)
+            Applicative[F].pure(weightEntry)
+          else
+            Sync[F].raiseError(InternalServiceException(s"Unable to delete weight entry with id = $id"))
+        }
+      }
 }

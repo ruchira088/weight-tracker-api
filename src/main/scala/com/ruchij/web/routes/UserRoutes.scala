@@ -15,8 +15,16 @@ import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authorization.Authorizer
 import com.ruchij.web.middleware.correlation.CorrelationId.withId
 import com.ruchij.web.requests.RequestParser._
-import com.ruchij.web.requests.bodies.{CreateUserRequest, CreateWeightEntryRequest, UnlockUserRequest, UpdatePasswordRequest}
-import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{PageNumberQueryParameterMatcher, PageSizeQueryParameterMatcher}
+import com.ruchij.web.requests.bodies.{
+  CreateUserRequest,
+  CreateWeightEntryRequest,
+  UnlockUserRequest,
+  UpdatePasswordRequest
+}
+import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{
+  PageNumberQueryParameterMatcher,
+  PageSizeQueryParameterMatcher
+}
 import com.ruchij.web.responses.PaginatedResultsResponse
 import com.ruchij.web.routes.Paths.{`unlock`, `reset-password`, `weight-entry`}
 import org.http4s.dsl.Http4sDsl
@@ -67,8 +75,7 @@ object UserRoutes {
           _ <- logger.infoF[F](s"Unlocked user with id=$userId")(correlationId)
 
           response <- Ok(user)
-        }
-        yield response
+        } yield response
 
       case request @ PUT -> Root / UUIDVar(userId) / `reset-password` withId correlationId =>
         for {
@@ -91,16 +98,19 @@ object UserRoutes {
           case GET -> Root / UUIDVar(userId) withId correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.READ) {
               for {
-                _ <- logger.infoF[F](s"Fetching user with id=$userId for user with email=${authenticatedUser.email}")(correlationId)
+                _ <- logger.infoF[F](s"Fetching user with id=$userId for user with email=${authenticatedUser.email}")(
+                  correlationId
+                )
 
                 user <- userService.getById(userId)
 
-                _ <- logger.infoF[F](s"Successfully fetched user with id=$userId for user with email=${authenticatedUser.email}")(correlationId)
+                _ <- logger.infoF[F](
+                  s"Successfully fetched user with id=$userId for user with email=${authenticatedUser.email}"
+                )(correlationId)
 
                 response <- Ok(user)
               } yield response
             }
-
 
           case DELETE -> Root / UUIDVar(userId) withId correlationId as authenticatedUser =>
             authorizer(authenticatedUser, userId, Permission.WRITE) {
@@ -112,8 +122,7 @@ object UserRoutes {
                 _ <- logger.infoF[F](s"Deleted user with id=$userId")(correlationId)
 
                 response <- Ok(user)
-              }
-              yield response
+              } yield response
             }
 
           case authenticatedRequest @ POST -> Root / UUIDVar(userId) / `weight-entry` withId correlationId as authenticatedUser =>
@@ -126,7 +135,9 @@ object UserRoutes {
 
                 weightEntry <- weightEntryService.create(timestamp, weight, description, userId, authenticatedUser.id)
 
-                _ <- logger.infoF[F](s"Successfully inserted weight entry for email=${authenticatedUser.email}")(correlationId)
+                _ <- logger.infoF[F](s"Successfully inserted weight entry for email=${authenticatedUser.email}")(
+                  correlationId
+                )
 
                 response <- Created(weightEntry)
               } yield response
@@ -140,14 +151,46 @@ object UserRoutes {
                 pageSize <- functionK(size)
                 pageNumber <- functionK(number)
 
-                _ <- logger.infoF[F](s"Fetching weight entries for email=${authenticatedUser.email} pageSize=$pageSize pageNumber=$pageNumber")(correlationId)
+                _ <- logger.infoF[F](
+                  s"Fetching weight entries for email=${authenticatedUser.email} pageSize=$pageSize pageNumber=$pageNumber"
+                )(correlationId)
 
                 weightEntryList <- weightEntryService.findByUser(userId, pageNumber, pageSize)
 
-                _ <- logger.infoF[F](s"Fetched ${weightEntryList.size} weight entries for email=${authenticatedUser.email} pageSize=$pageSize pageNumber=$pageNumber")(correlationId)
+                _ <- logger.infoF[F](
+                  s"Fetched ${weightEntryList.size} weight entries for email=${authenticatedUser.email} pageSize=$pageSize pageNumber=$pageNumber"
+                )(correlationId)
 
                 response <- Ok(PaginatedResultsResponse(weightEntryList, pageNumber, pageSize))
               } yield response
+            }
+
+          case GET -> Root / UUIDVar(userId) / `weight-entry` / UUIDVar(weightEntryId) withId correlationId as authenticatedUser =>
+            authorizer(authenticatedUser, userId, Permission.READ) {
+              for {
+                _ <- logger.infoF[F](s"Fetching weight entry with id = $weightEntryId")(correlationId)
+
+                weightEntry <- weightEntryService.getById(weightEntryId)
+
+                _ <- logger.infoF[F](s"Successfully fetched weight entry with id = $weightEntry")(correlationId)
+
+                response <- Ok(weightEntry)
+              }
+              yield response
+            }
+
+          case DELETE -> Root / UUIDVar(userId) / `weight-entry` / UUIDVar(weightEntryId) withId correlationId as authenticatedUser =>
+            authorizer(authenticatedUser, userId, Permission.WRITE) {
+              for {
+                _ <- logger.infoF[F](s"Deleting weight entry with id = $weightEntryId")(correlationId)
+
+                weightEntry <- weightEntryService.delete(weightEntryId)
+
+                _ <- logger.infoF[F](s"Successfully deleted weight entry with id = $weightEntryId")(correlationId)
+
+                response <- Ok(weightEntry)
+              }
+              yield response
             }
         }
       }

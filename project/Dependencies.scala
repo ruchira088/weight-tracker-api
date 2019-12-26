@@ -20,7 +20,7 @@ object Dependencies
 
   lazy val jawnFs2 = "org.http4s" %% "jawn-fs2" % "0.15.0"
 
-  lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.1"
+  lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.2"
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
 

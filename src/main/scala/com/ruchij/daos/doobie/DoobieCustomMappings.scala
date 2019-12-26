@@ -3,6 +3,7 @@ package com.ruchij.daos.doobie
 import java.sql.Timestamp
 
 import doobie.util.{Get, Put}
+import doobie.implicits.javasql._
 import org.joda.time.DateTime
 import shapeless.tag.@@
 import shapeless.tag

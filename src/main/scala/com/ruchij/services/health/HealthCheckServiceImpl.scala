@@ -6,6 +6,7 @@ import cats.effect.{Clock, Sync}
 import cats.implicits._
 import cats.~>
 import com.ruchij.config.BuildInformation
+import com.ruchij.config.development.ApplicationMode
 import com.ruchij.services.health.models.{HealthStatus, ServiceInformation}
 import doobie.implicits._
 import doobie.util.transactor.Transactor
@@ -18,6 +19,7 @@ import scala.language.higherKinds
 class HealthCheckServiceImpl[F[_]: Clock: Sync](
   transactor: Transactor.Aux[F, Unit],
   redisClient: RedisClient,
+  applicationMode: ApplicationMode,
   buildInformation: BuildInformation
 )(implicit functionK: Future ~> F)
     extends HealthCheckService[F] {
@@ -26,7 +28,7 @@ class HealthCheckServiceImpl[F[_]: Clock: Sync](
     Clock[F]
       .realTime(TimeUnit.MILLISECONDS)
       .map { timestamp =>
-        ServiceInformation(new DateTime(timestamp), buildInformation)
+        ServiceInformation(applicationMode, new DateTime(timestamp), buildInformation)
       }
 
   override def database(): F[HealthStatus] =

@@ -30,6 +30,7 @@ class HealthRoutesSpec extends AnyFlatSpec with Matchers {
 
     val expectedJsonResponse =
       json"""{
+         "applicationMode": "Local",
          "serviceName": "weight-tracker-api",
          "serviceVersion": "0.0.1",
          "organization": "com.ruchij",

@@ -1,6 +1,9 @@
 package com.ruchij.config
 
+import cats.effect.IO
 import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
+import com.ruchij.config.development.ApplicationMode
+import com.ruchij.types.FunctionKTypes.configReaderResultToIO
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -16,15 +19,10 @@ class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
 
     val configurationFile =
       s"""
+         |application-mode = "Local"
+         |
          |http-configuration {
          |  port = 80
-         |}
-         |
-         |doobie-configuration {
-         |  driver = "ruchij.com"
-         |  url = "jdbc://ruchij.com/awesome_db"
-         |  user = "john.doe"
-         |  password = "my-password"
          |}
          |
          |authentication-configuration {
@@ -34,20 +32,6 @@ class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
          |    maximum-failures = 10
          |    roll-over-period = "30s"
          |  }
-         |}
-         |
-         |redis-configuration {
-         |  host = "redis-server"
-         |  port = 6379
-         |  password = "password"
-         |}
-         |
-         |email-configuration {
-         |  sendgrid-api-key = "secret-sendgrid-key"
-         |}
-         |
-         |development-configuration {
-         |  disable-emails = false
          |}
          |
          |build-information {
@@ -60,19 +44,11 @@ class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
     val expectedServiceConfiguration =
       ServiceConfiguration(
         HttpConfiguration(port = 80),
-        DoobieConfiguration(
-          driver = "ruchij.com",
-          url = "jdbc://ruchij.com/awesome_db",
-          user = "john.doe",
-          password = "my-password"
-        ),
         AuthenticationConfiguration(60 seconds, BruteForceProtectionConfiguration(10, 30 seconds)),
-        RedisConfiguration(host = "redis-server", port = 6379, password = Some("password")),
-        EmailConfiguration("secret-sendgrid-key"),
-        DevelopmentConfiguration(false),
+        ApplicationMode.Local,
         BuildInformation(Some("master"), Some("1234abc"), Some(currentDateTime))
       )
 
-    ServiceConfiguration.load(ConfigSource.string(configurationFile)) mustBe Right(expectedServiceConfiguration)
+    ServiceConfiguration.load[IO](ConfigSource.string(configurationFile)).unsafeRunSync() mustBe expectedServiceConfiguration
   }
 }

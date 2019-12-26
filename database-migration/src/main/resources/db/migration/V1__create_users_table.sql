@@ -1,11 +1,13 @@
-create table users(
-    id uuid,
-    index bigserial,
-    created_at timestamp not null,
-    email varchar(255) not null unique,
-    password varchar(2047) not null,
-    first_name varchar(255) not null,
-    last_name varchar(255),
-    deleted boolean not null,
-    primary key (id)
+CREATE TABLE users(
+    id UUID,
+    index BIGSERIAL,
+    created_at TIMESTAMP NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(2047) NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255),
+    deleted BOOLEAN NOT NULL,
+    PRIMARY KEY (id)
 );
+
+CREATE INDEX users_by_email ON users (email);

@@ -68,10 +68,12 @@ lazy val rootDependencies =
     scalaLogging,
     akkaSlf4j,
     commonsValidator,
-    sendgrid
+    sendgrid,
+    h2,
+    embeddedRedis
   )
 
 lazy val rootTestDependencies =
-  Seq(scalaTest, h2, circeLiteral, embeddedRedis, javaFaker, pegdown)
+  Seq(scalaTest, circeLiteral, javaFaker, pegdown)
 
 addCommandAlias("testWithCoverage", "; coverage; test; coverageReport")

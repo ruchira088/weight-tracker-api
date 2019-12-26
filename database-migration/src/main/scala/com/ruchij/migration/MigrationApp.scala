@@ -1,8 +1,11 @@
 package com.ruchij.migration
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO, IOApp, Sync}
+import cats.implicits._
 import com.ruchij.migration.config.{DatabaseConfiguration, MigrationConfiguration}
 import org.flywaydb.core.Flyway
+
+import scala.language.higherKinds
 
 object MigrationApp extends IOApp {
 
@@ -10,20 +13,20 @@ object MigrationApp extends IOApp {
     for {
       migrationConfiguration <- IO.fromEither(MigrationConfiguration.load())
 
-      result <- migrate(migrationConfiguration.databaseConfiguration)
+      result <- migrate[IO](migrationConfiguration.databaseConfiguration)
 
       _ <- IO(println(s"Migration result: $result"))
     }
     yield ExitCode.Success
 
-  def migrate(databaseConfiguration: DatabaseConfiguration): IO[Int] =
+  def migrate[F[_]: Sync](databaseConfiguration: DatabaseConfiguration): F[Int] =
     for {
-      flyway <- IO {
+      flyway <- Sync[F].delay {
         Flyway.configure().dataSource(databaseConfiguration.url, databaseConfiguration.user, databaseConfiguration.password)
           .load()
       }
 
-      result <- IO(flyway.migrate())
+      result <- Sync[F].delay(flyway.migrate())
     }
     yield result
 }

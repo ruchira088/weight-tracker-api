@@ -4,12 +4,13 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 import akka.actor.ActorSystem
-import cats.{Applicative, ~>}
 import cats.data.ValidatedNel
 import cats.effect.{Async, Clock, ContextShift}
 import cats.implicits._
+import cats.{Applicative, ~>}
 import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
-import com.ruchij.config.{AuthenticationConfiguration, BuildInformation, RedisConfiguration}
+import com.ruchij.config.development.{ApplicationMode, ExternalComponents}
+import com.ruchij.config.{AuthenticationConfiguration, BuildInformation}
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authenticationfailure.models.DatabaseAuthenticationFailure
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
@@ -22,7 +23,6 @@ import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.user.{DoobieUserDao, UserDao}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.daos.weightentry.{DoobieWeightEntryDao, WeightEntryDao}
-import com.ruchij.migration.MigrationApp
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
@@ -31,12 +31,9 @@ import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.test.stubs.StubbedEmailService
-import com.ruchij.test.utils.DaoUtils
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
 import org.http4s.HttpApp
-import redis.embedded.RedisServer
-import redis.embedded.ports.EphemeralPortProvider
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -59,32 +56,22 @@ object HttpTestApp {
   val SESSION_TIMEOUT: FiniteDuration = 30 seconds
 
   def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]:
-    ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]](): HttpTestApp[F] = {
-
-    MigrationApp.migrate(DaoUtils.H2_DATABASE_CONFIGURATION).unsafeRunSync()
-
-    val userDao: DoobieUserDao[F] = new DoobieUserDao[F](DaoUtils.h2Transactor)
-    val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
-      new DoobieResetPasswordTokenDao[F](DaoUtils.h2Transactor)
-    val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](DaoUtils.h2Transactor)
-    val lockedUserDao = new DoobieLockedUserDao[F](DaoUtils.h2Transactor)
-    val authenticationFailureDao = new DoobieAuthenticationFailureDao[F](DaoUtils.h2Transactor)
-
-    //    val authenticationTokenDao: InMemoryAuthenticationTokenDao[F] =
-//      new InMemoryAuthenticationTokenDao[F](new ConcurrentHashMap[String, AuthenticationToken]())
-
-    val redisPort = new EphemeralPortProvider().next()
-    val redisServer = new RedisServer(redisPort)
-
-    redisServer.start()
-
-    val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
+    ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint](): HttpTestApp[F] = {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
-    val redisClient = RedisAuthenticationTokenDao.redisClient(RedisConfiguration("localhost", redisPort, None))
+    val externalComponents: ExternalComponents[F] = UnsafeCopoint.unsafeExtract(ExternalComponents.local[F, F]())
 
-    val authenticationTokenDao = new RedisAuthenticationTokenDao[F](redisClient)
+    val userDao: DoobieUserDao[F] = new DoobieUserDao[F](externalComponents.transactor)
+    val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
+      new DoobieResetPasswordTokenDao[F](externalComponents.transactor)
+    val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](externalComponents.transactor)
+    val lockedUserDao = new DoobieLockedUserDao[F](externalComponents.transactor)
+    val authenticationFailureDao = new DoobieAuthenticationFailureDao[F](externalComponents.transactor)
+
+    val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
+
+    val authenticationTokenDao = new RedisAuthenticationTokenDao[F](externalComponents.redisClient)
 
     val emailMailBox = new ConcurrentLinkedQueue[Email]()
     val stubbedEmailService = new StubbedEmailService[F](emailMailBox)
@@ -104,7 +91,7 @@ object HttpTestApp {
 
     val userService = new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, stubbedEmailService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
-    val healthCheckService = new HealthCheckServiceImpl[F](DaoUtils.h2Transactor, redisClient, buildInformation)
+    val healthCheckService = new HealthCheckServiceImpl[F](externalComponents.transactor, externalComponents.redisClient, ApplicationMode.Local, buildInformation)
     val authorizationService = new AuthorizationServiceImpl[F]
 
     val httpApp =
@@ -112,7 +99,7 @@ object HttpTestApp {
 
     val shutdownHook: () => Unit = () => {
       Await.ready(actorSystem.terminate(), 5 seconds)
-      redisServer.stop()
+      UnsafeCopoint.unsafeExtract(externalComponents.shutdownHook())
     }
 
     HttpTestApp(

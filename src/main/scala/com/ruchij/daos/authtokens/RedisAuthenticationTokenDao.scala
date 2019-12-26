@@ -2,12 +2,10 @@ package com.ruchij.daos.authtokens
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
 import cats.data.OptionT
 import cats.effect.{Clock, Sync}
 import cats.implicits._
 import cats.~>
-import com.ruchij.config.RedisConfiguration
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.exceptions.{AuthenticationException, InternalServiceException}
 import org.joda.time.DateTime
@@ -80,9 +78,4 @@ class RedisAuthenticationTokenDao[F[_]: Clock: Sync](redisClient: RedisClient)(
           .getOrElseF(Future.failed(AuthenticationException("Authentication token not found")))
       }
     }
-}
-
-object RedisAuthenticationTokenDao {
-  def redisClient(redisConfiguration: RedisConfiguration)(implicit actorSystem: ActorSystem): RedisClient =
-    RedisClient(redisConfiguration.host, redisConfiguration.port, redisConfiguration.password)
 }

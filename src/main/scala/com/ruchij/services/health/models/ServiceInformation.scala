@@ -6,13 +6,15 @@ import io.circe.generic.auto._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 import org.joda.time.DateTime
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.{enumEncoder, jodaTimeEncoder}
 import com.ruchij.config.BuildInformation
+import com.ruchij.config.development.ApplicationMode
 
 import scala.language.higherKinds
 import scala.util.Properties
 
 case class ServiceInformation(
+  applicationMode: ApplicationMode,
   serviceName: String,
   serviceVersion: String,
   organization: String,
@@ -26,8 +28,9 @@ case class ServiceInformation(
 )
 
 object ServiceInformation {
-  def apply(dateTime: DateTime, buildInformation: BuildInformation): ServiceInformation =
+  def apply(applicationMode: ApplicationMode, dateTime: DateTime, buildInformation: BuildInformation): ServiceInformation =
     ServiceInformation(
+      applicationMode,
       BuildInfo.name,
       BuildInfo.version,
       BuildInfo.organization,

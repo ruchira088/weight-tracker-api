@@ -7,9 +7,9 @@ import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ServiceConfiguration
+import com.ruchij.config.development.ExternalComponents
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
-import com.ruchij.daos.doobie.DoobieTransactor
 import com.ruchij.daos.lockeduser.DoobieLockedUserDao
 import com.ruchij.daos.resetpassword.DoobieResetPasswordTokenDao
 import com.ruchij.daos.user.DoobieUserDao
@@ -17,74 +17,85 @@ import com.ruchij.daos.weightentry.DoobieWeightEntryDao
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
-import com.ruchij.services.email.{ConsoleEmailService, SendGridEmailService}
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.Routes
-import com.sendgrid.SendGrid
+import org.http4s.HttpApp
 import org.http4s.server.blaze.BlazeServerBuilder
-import pureconfig.ConfigSource
+import pureconfig.{ConfigObjectSource, ConfigSource}
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 object App extends IOApp {
   implicit lazy val actorSystem: ActorSystem = ActorSystem(BuildInfo.name)
 
+  lazy val cpuBlockingExecutionContext: ExecutionContextExecutorService =
+    ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
+
+  def application(serviceConfiguration: ServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] =
+    ExternalComponents
+      .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource)
+      .map { externalComponents =>
+        val databaseUserDao = new DoobieUserDao(externalComponents.transactor)
+        val resetPasswordTokenDao = new DoobieResetPasswordTokenDao(externalComponents.transactor)
+        val weightEntryDao = new DoobieWeightEntryDao(externalComponents.transactor)
+        val lockedUserDao = new DoobieLockedUserDao(externalComponents.transactor)
+        val authenticationFailuresDao = new DoobieAuthenticationFailureDao(externalComponents.transactor)
+
+        val passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
+        val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
+        val authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
+
+        val healthCheckService = new HealthCheckServiceImpl[IO](
+          externalComponents.transactor,
+          externalComponents.redisClient,
+          serviceConfiguration.applicationMode,
+          serviceConfiguration.buildInformation
+        )
+
+        val authenticationService = new AuthenticationServiceImpl(
+          passwordHashingService,
+          externalComponents.emailService,
+          databaseUserDao,
+          lockedUserDao,
+          authenticationFailuresDao,
+          resetPasswordTokenDao,
+          authenticationTokenDao,
+          authenticationSecretGenerator,
+          serviceConfiguration.authenticationConfiguration
+        )
+
+        val authorizationService = new AuthorizationServiceImpl[IO]
+
+        val userService =
+          new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, externalComponents.emailService)
+        val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
+
+        Runtime.getRuntime.addShutdownHook {
+          new Thread(() => externalComponents.shutdownHook().unsafeRunSync())
+        }
+
+        Routes(
+          userService,
+          weightEntryService,
+          healthCheckService,
+          authenticationService,
+          authorizationService
+        )
+      }
+
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      serviceConfiguration <- IO.suspend(IO.fromEither(ServiceConfiguration.load(ConfigSource.default)))
+      configSource <- IO.delay(ConfigSource.default)
+      serviceConfiguration <- ServiceConfiguration.load[IO](configSource)
 
-      cpuBlockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
-      ioBlockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
-
-      redisClient = RedisAuthenticationTokenDao.redisClient(serviceConfiguration.redisConfiguration)
-
-      doobieTransactor = DoobieTransactor.fromConfiguration[IO](serviceConfiguration.doobieConfiguration)
-      databaseUserDao = new DoobieUserDao(doobieTransactor)
-      resetPasswordTokenDao = new DoobieResetPasswordTokenDao(doobieTransactor)
-      weightEntryDao = new DoobieWeightEntryDao(doobieTransactor)
-      lockedUserDao = new DoobieLockedUserDao(doobieTransactor)
-      authenticationFailuresDao = new DoobieAuthenticationFailureDao(doobieTransactor)
-
-      passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
-      authenticationTokenDao = new RedisAuthenticationTokenDao[IO](redisClient)
-      authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
-
-      emailService =
-        if (serviceConfiguration.developmentConfiguration.disableEmails)
-          new ConsoleEmailService[IO]
-        else
-          new SendGridEmailService[IO](
-            new SendGrid(serviceConfiguration.emailConfiguration.sendgridApiKey),
-            ioBlockingExecutionContext
-          )
-
-      healthCheckService = new HealthCheckServiceImpl[IO](doobieTransactor, redisClient, serviceConfiguration.buildInformation)
-
-      authenticationService = new AuthenticationServiceImpl(
-        passwordHashingService,
-        emailService,
-        databaseUserDao,
-        lockedUserDao,
-        authenticationFailuresDao,
-        resetPasswordTokenDao,
-        authenticationTokenDao,
-        authenticationSecretGenerator,
-        serviceConfiguration.authenticationConfiguration
-      )
-
-      authorizationService = new AuthorizationServiceImpl[IO]
-
-      userService = new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, emailService)
-      weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
+      httpApp <- application(serviceConfiguration, configSource)
 
       exitCode <- BlazeServerBuilder[IO]
-        .withHttpApp {
-          Routes(userService, weightEntryService, healthCheckService, authenticationService, authorizationService)
-        }
+        .withHttpApp(httpApp)
         .bindHttp(serviceConfiguration.httpConfiguration.port, "0.0.0.0")
         .withoutBanner
         .serve

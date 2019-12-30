@@ -169,3 +169,7 @@ workflows:
           context: aws-credentials
           requires:
             - build-and-publish-docker-images
+          filters:
+            branches:
+              only:
+                - master

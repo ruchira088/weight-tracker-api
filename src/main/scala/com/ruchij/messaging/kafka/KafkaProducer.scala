@@ -3,8 +3,8 @@ package com.ruchij.messaging.kafka
 import akka.actor.ActorSystem
 import akka.kafka.ProducerSettings
 import cats.effect.Async
+import com.ruchij.config.KafkaClientConfiguration
 import com.ruchij.messaging.Publisher
-import com.ruchij.messaging.kafka.models.KafkaClientConfiguration
 import com.ruchij.messaging.models.Message
 import io.confluent.kafka.serializers.KafkaAvroSerializer
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord, RecordMetadata}

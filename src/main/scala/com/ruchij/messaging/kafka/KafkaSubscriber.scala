@@ -7,8 +7,8 @@ import akka.kafka.scaladsl.Consumer
 import akka.stream.scaladsl.Source
 import cats.effect.Sync
 import cats.~>
+import com.ruchij.config.KafkaClientConfiguration
 import com.ruchij.messaging.Subscriber
-import com.ruchij.messaging.kafka.models.KafkaClientConfiguration
 import com.ruchij.messaging.models.Topic
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.IndexedRecord

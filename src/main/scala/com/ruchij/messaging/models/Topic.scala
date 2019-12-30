@@ -16,7 +16,7 @@ sealed trait Topic[A] extends EnumEntry {
 
 object Topic extends Enum[Topic[_]] {
 
-  case object UserCreated extends Topic[User] {
+  implicit case object UserCreated extends Topic[User] {
     override val recordFormat: RecordFormat[User] = RecordFormat[User]
   }
 

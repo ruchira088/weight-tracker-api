@@ -10,6 +10,8 @@ import com.ruchij.daos.lockeduser.LockedUserDao
 import com.ruchij.daos.user.UserDao
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.{AuthenticationException, InternalServiceException, ResourceConflictException, ResourceNotFoundException}
+import com.ruchij.messaging.Publisher
+import com.ruchij.messaging.models.Message
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.email.EmailService
@@ -26,6 +28,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   databaseUserDao: UserDao[F],
   lockedUserDao: LockedUserDao[F],
   authenticationService: AuthenticationService[F],
+  publisher: Publisher[F, _],
   emailService: EmailService[F]
 ) extends UserService[F] {
 
@@ -46,6 +49,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
         case _: ResourceNotFoundException => InternalServiceException("Unable to persist user")
       }
 
+      _ <- publisher.publish(Message(user))
       _ <- emailService.send(Email.welcomeEmail(user))
 
     } yield user

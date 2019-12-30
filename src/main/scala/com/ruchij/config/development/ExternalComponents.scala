@@ -7,7 +7,10 @@ import cats.effect.{Async, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.development.ApplicationMode.{DockerCompose, Local, Production}
-import com.ruchij.config.{DoobieConfiguration, EmailConfiguration, RedisConfiguration}
+import com.ruchij.config.{DoobieConfiguration, EmailConfiguration, KafkaClientConfiguration, RedisConfiguration}
+import com.ruchij.messaging.Publisher
+import com.ruchij.messaging.inmemory.InMemoryPublisher
+import com.ruchij.messaging.kafka.KafkaProducer
 import com.ruchij.migration.MigrationApp
 import com.ruchij.migration.config.DatabaseConfiguration
 import com.ruchij.services.email.{ConsoleEmailService, EmailService, SendGridEmailService}
@@ -26,6 +29,7 @@ case class ExternalComponents[F[_]](
   redisClient: RedisClient,
   transactor: Transactor.Aux[F, Unit],
   emailService: EmailService[F],
+  publisher: Publisher[F, _],
   shutdownHook: () => F[Unit]
 )
 
@@ -48,6 +52,7 @@ object ExternalComponents {
             redisClient(redisConfiguration),
             doobieTransactor[F](doobieConfiguration),
             new SendGridEmailService[F](new SendGrid(emailConfiguration.sendgridApiKey), ioBlockingExecutionContext),
+            ???,
             () => Applicative[F].unit
           )
 
@@ -55,12 +60,13 @@ object ExternalComponents {
         for {
           redisConfiguration <- RedisConfiguration.load[G](configObjectSource)
           doobieConfiguration <- DoobieConfiguration.load[G](configObjectSource)
-        }
-        yield
+          kafkaClientConfiguration <- KafkaClientConfiguration.local[G](configObjectSource)
+        } yield
           ExternalComponents(
             redisClient(redisConfiguration),
             doobieTransactor(doobieConfiguration),
             new ConsoleEmailService[F],
+            new KafkaProducer[F](kafkaClientConfiguration),
             () => Applicative[F].unit
           )
 
@@ -76,6 +82,7 @@ object ExternalComponents {
         redisClient(RedisConfiguration("localhost", redisPort, None)),
         h2Transactor[F],
         new ConsoleEmailService[F],
+        InMemoryPublisher.empty[F],
         () => Sync[F].delay(redisServer.stop())
       )
 

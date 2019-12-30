@@ -23,6 +23,7 @@ import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.user.{DoobieUserDao, UserDao}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.daos.weightentry.{DoobieWeightEntryDao, WeightEntryDao}
+import com.ruchij.messaging.inmemory.InMemoryPublisher
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
@@ -48,6 +49,7 @@ case class HttpTestApp[F[_]](
   resetPasswordTokenDao: ResetPasswordTokenDao[F],
   authenticationFailureDao: DoobieAuthenticationFailureDao[F],
   lockedUserDao: DoobieLockedUserDao[F],
+  inMemoryPublisher: InMemoryPublisher[F],
   externalEmailMailBox: ConcurrentLinkedQueue[Email],
   shutdownHook: () => Unit
 )
@@ -55,8 +57,8 @@ case class HttpTestApp[F[_]](
 object HttpTestApp {
   val SESSION_TIMEOUT: FiniteDuration = 30 seconds
 
-  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]:
-    ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint](): HttpTestApp[F] = {
+  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]: ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint]()
+    : HttpTestApp[F] = {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
@@ -72,6 +74,8 @@ object HttpTestApp {
     val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
 
     val authenticationTokenDao = new RedisAuthenticationTokenDao[F](externalComponents.redisClient)
+
+    val inMemoryPublisher = InMemoryPublisher.empty[F]
 
     val emailMailBox = new ConcurrentLinkedQueue[Email]()
     val stubbedEmailService = new StubbedEmailService[F](emailMailBox)
@@ -89,9 +93,15 @@ object HttpTestApp {
         AuthenticationConfiguration(SESSION_TIMEOUT, BruteForceProtectionConfiguration(3, 30 seconds))
       )
 
-    val userService = new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, stubbedEmailService)
+    val userService =
+      new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, inMemoryPublisher, stubbedEmailService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
-    val healthCheckService = new HealthCheckServiceImpl[F](externalComponents.transactor, externalComponents.redisClient, ApplicationMode.Local, buildInformation)
+    val healthCheckService = new HealthCheckServiceImpl[F](
+      externalComponents.transactor,
+      externalComponents.redisClient,
+      ApplicationMode.Local,
+      buildInformation
+    )
     val authorizationService = new AuthorizationServiceImpl[F]
 
     val httpApp =
@@ -110,6 +120,7 @@ object HttpTestApp {
       resetPasswordTokenDao,
       authenticationFailureDao,
       lockedUserDao,
+      inMemoryPublisher,
       emailMailBox,
       shutdownHook
     )

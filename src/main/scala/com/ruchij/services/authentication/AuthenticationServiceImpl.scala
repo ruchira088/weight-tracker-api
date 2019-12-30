@@ -20,10 +20,10 @@ import com.ruchij.exceptions.{AuthenticationException, LockedUserAccountExceptio
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
 import com.ruchij.services.email.EmailService
 import com.ruchij.services.email.models.Email
-import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.services.hashing.PasswordHashingService
 import com.ruchij.services.user.models.User
 import com.ruchij.types.Random
+import com.ruchij.types.Tags.EmailAddress
 import com.ruchij.types.Utils.predicate
 import org.joda.time.DateTime
 

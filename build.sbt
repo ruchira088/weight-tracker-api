@@ -1,23 +1,29 @@
 import Dependencies._
 
+inThisBuild {
+  Seq(
+    organization := "com.ruchij",
+    scalaVersion := SCALA_VERSION,
+    maintainer := "me@ruchij.com",
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
+    topLevelDirectory := None,
+    scalacOptions ++= Seq("-Ypartial-unification", "-Xlint", "-feature", "-deprecation"),
+    resolvers += "confluent" at "https://packages.confluent.io/maven/"
+  )
+}
+
 lazy val root =
   (project in file("."))
     .enablePlugins(BuildInfoPlugin, JavaAppPackaging, SbtTwirl)
     .settings(
       name := "weight-tracker-api",
       version := "0.0.1",
-      organization := "com.ruchij",
-      scalaVersion := SCALA_VERSION,
-      maintainer := "me@ruchij.com",
       libraryDependencies ++= rootDependencies ++ rootTestDependencies.map(_ % Test),
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
-      scalacOptions ++= Seq("-Ypartial-unification", "-Xlint", "-feature", "-deprecation"),
       javaOptions in Test += s"-Dconfig.resource=application.test.conf",
       fork in Test := true,
-      topLevelDirectory := None,
-      addCompilerPlugin(kindProjector),
-      addCompilerPlugin(betterMonadicFor),
       coverageExcludedPackages := "<empty>;com.ruchij.App;html.*;.*SendGridEmailService;.*ConsoleEmailService"
 )
     .dependsOn(databaseMigration)
@@ -28,11 +34,7 @@ lazy val databaseMigration =
     .settings(
       name := "database-migration",
       version := "0.0.1",
-      organization := "com.ruchij",
-      scalaVersion := SCALA_VERSION,
-      maintainer := "me@ruchij.com",
-      libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2),
-      topLevelDirectory := None
+      libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2)
     )
 
 lazy val loadTest =
@@ -41,10 +43,6 @@ lazy val loadTest =
     .settings(
       name := "gatling-load-test",
       version := "0.0.1",
-      organization := "com.ruchij",
-      scalaVersion := SCALA_VERSION,
-      maintainer := "me@ruchij.com",
-      addCompilerPlugin(kindProjector),
       libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts, pureconfig, catsEffect).map(_ % Test)
     )
     .dependsOn(root % "test->test")
@@ -60,6 +58,9 @@ lazy val rootDependencies =
     pureconfig,
     jodaTime,
     jbcrypt,
+    akkaStreamKafka,
+    kafkaAvroSerializer,
+    avro4sCore,
     doobiePostgres,
     redisScala,
     enumeratum,

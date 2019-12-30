@@ -8,7 +8,7 @@ import com.ruchij.daos.user.models.DatabaseUser
 import doobie.postgres.implicits._
 import com.ruchij.daos.doobie.DoobieCustomMappings._
 import com.ruchij.daos.doobie.singleUpdate
-import com.ruchij.services.email.models.Email.EmailAddress
+import com.ruchij.types.Tags.EmailAddress
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 

@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.data.OptionT
 import com.ruchij.daos.user.models.DatabaseUser
-import com.ruchij.services.email.models.Email.EmailAddress
+import com.ruchij.types.Tags.EmailAddress
 
 import scala.language.higherKinds
 

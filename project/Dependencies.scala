@@ -26,6 +26,12 @@ object Dependencies
 
   lazy val jbcrypt = "org.mindrot" % "jbcrypt" % "0.4"
 
+  lazy val akkaStreamKafka = "com.typesafe.akka" %% "akka-stream-kafka" % "1.1.0"
+
+  lazy val kafkaAvroSerializer = "io.confluent" % "kafka-avro-serializer" % "5.3.2"
+
+  lazy val avro4sCore = "com.sksamuel.avro4s" %% "avro4s-core" % "3.0.4"
+
   lazy val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
 
   lazy val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
@@ -50,7 +56,7 @@ object Dependencies
 
   lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
-  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.6.1"
+  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.5.23"
 
   lazy val commonsValidator = "commons-validator" % "commons-validator" % "1.6"
 

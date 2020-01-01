@@ -3,8 +3,8 @@ import Dependencies._
 inThisBuild {
   Seq(
     organization := "com.ruchij",
-    scalaVersion := SCALA_VERSION,
     maintainer := "me@ruchij.com",
+    scalaVersion := SCALA_VERSION,
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     topLevelDirectory := None,
@@ -15,7 +15,7 @@ inThisBuild {
 
 lazy val root =
   (project in file("."))
-    .enablePlugins(BuildInfoPlugin, JavaAppPackaging, SbtTwirl)
+    .enablePlugins(BuildInfoPlugin, JavaAppPackaging)
     .settings(
       name := "weight-tracker-api",
       version := "0.0.1",
@@ -43,11 +43,21 @@ lazy val loadTest =
     .settings(
       name := "gatling-load-test",
       version := "0.0.1",
-      libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts, pureconfig, catsEffect).map(_ % Test)
+      libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts).map(_ % Test)
     )
     .dependsOn(root % "test->test")
 
-lazy val rootDependencies =
+lazy val emailService =
+  (project in file("./email-service"))
+    .enablePlugins(SbtTwirl)
+    .settings(
+      name := "email-service",
+      version := "0.0.1",
+      libraryDependencies ++= Seq(sendgrid)
+    )
+    .dependsOn(root)
+
+val rootDependencies =
   Seq(
     http4sDsl,
     http4sBlazeServer,
@@ -69,7 +79,6 @@ lazy val rootDependencies =
     scalaLogging,
     akkaSlf4j,
     commonsValidator,
-    sendgrid,
     h2,
     embeddedRedis
   )

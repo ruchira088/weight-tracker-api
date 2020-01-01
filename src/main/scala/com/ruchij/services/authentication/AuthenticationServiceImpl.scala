@@ -17,9 +17,8 @@ import com.ruchij.daos.resetpassword.ResetPasswordTokenDao
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.daos.user.UserDao
 import com.ruchij.exceptions.{AuthenticationException, LockedUserAccountException, ResourceNotFoundException}
+import com.ruchij.messaging.Publisher
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
-import com.ruchij.services.email.EmailService
-import com.ruchij.services.email.models.Email
 import com.ruchij.services.hashing.PasswordHashingService
 import com.ruchij.services.user.models.User
 import com.ruchij.types.Random
@@ -31,7 +30,7 @@ import scala.language.higherKinds
 
 class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   passwordHashingService: PasswordHashingService[F, String],
-  emailService: EmailService[F],
+  publisher: Publisher[F, _],
   userDao: UserDao[F],
   lockedUserDao: LockedUserDao[F],
   authenticationFailureDao: AuthenticationFailureDao[F],
@@ -80,11 +79,11 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
 
                   lockedUserDao.insert(lockedUser).as(lockedUser)
                 }
-                .flatMap {
-                  lockedUser => emailService.send {
-                    Email.unlockUser(User.fromDatabaseUser(databaseUser), lockedUser)
-                  }
-                }
+//                .flatMap { lockedUser =>
+//                  emailService.send {
+//                    Email.unlockUser(User.fromDatabaseUser(databaseUser), lockedUser)
+//                  }
+//                }
                 .productR {
                   authenticationFailures.traverse { authenticationFailure =>
                     authenticationFailureDao.delete(authenticationFailure.id)
@@ -160,7 +159,7 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       _ <- resetPasswordTokenDao.insert(databaseResetPasswordToken)
 
       resetPasswordToken = ResetPasswordToken.fromDatabaseResetPasswordToken(databaseResetPasswordToken)
-      _ <- emailService.send(Email.resetPassword(User.fromDatabaseUser(databaseUser), resetPasswordToken, frontEndUrl))
+//      _ <- emailService.send(Email.resetPassword(User.fromDatabaseUser(databaseUser), resetPasswordToken, frontEndUrl))
 
     } yield resetPasswordToken
 

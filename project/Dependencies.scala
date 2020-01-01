@@ -3,7 +3,8 @@ import sbt._
 object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
-  val HTTP4S_VERSION = "0.20.15"
+
+  val HTTP4S_VERSION = "0.21.0-M6"
   val CIRCE_VERSION = "0.12.3"
 
   lazy val http4sDsl = "org.http4s" %% "http4s-dsl" % HTTP4S_VERSION
@@ -46,7 +47,7 @@ object Dependencies
 
   lazy val redisScala = "com.github.etaty" %% "rediscala" % "1.9.0"
 
-  lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.5.14"
+  lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.5.15"
 
   lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 

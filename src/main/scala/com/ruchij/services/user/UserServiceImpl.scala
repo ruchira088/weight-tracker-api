@@ -14,8 +14,6 @@ import com.ruchij.messaging.Publisher
 import com.ruchij.messaging.models.Message
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
-import com.ruchij.services.email.EmailService
-import com.ruchij.services.email.models.Email
 import com.ruchij.types.Random
 import com.ruchij.types.Tags.EmailAddress
 import com.ruchij.types.Utils.predicate
@@ -28,8 +26,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   databaseUserDao: UserDao[F],
   lockedUserDao: LockedUserDao[F],
   authenticationService: AuthenticationService[F],
-  publisher: Publisher[F, _],
-  emailService: EmailService[F]
+  publisher: Publisher[F, _]
 ) extends UserService[F] {
 
   override def create(email: EmailAddress, password: String, firstName: String, lastName: Option[String]): F[User] =
@@ -50,8 +47,6 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       }
 
       _ <- publisher.publish(Message(user))
-      _ <- emailService.send(Email.welcomeEmail(user))
-
     } yield user
 
   override def getById(id: UUID): F[User] =

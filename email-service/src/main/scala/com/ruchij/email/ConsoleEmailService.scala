@@ -1,13 +1,13 @@
-package com.ruchij.services.email
+package com.ruchij.email
+
 import cats.effect.Sync
-import com.ruchij.services.email.models.Email
 
 import scala.language.higherKinds
 
 class ConsoleEmailService[F[_]: Sync] extends EmailService[F] {
   override type Response = Unit
 
-  override def send(email: Email): F[Unit] =
+  override def send(email: models.Email): F[Unit] =
     Sync[F].delay {
       println {
         s"""

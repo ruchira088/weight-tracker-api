@@ -58,7 +58,7 @@ object App extends IOApp {
 
         val authenticationService = new AuthenticationServiceImpl(
           passwordHashingService,
-          externalComponents.emailService,
+          externalComponents.publisher,
           databaseUserDao,
           lockedUserDao,
           authenticationFailuresDao,
@@ -71,13 +71,12 @@ object App extends IOApp {
         val authorizationService = new AuthorizationServiceImpl[IO]
 
         val userService =
-          new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, externalComponents.publisher, externalComponents.emailService)
+          new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, externalComponents.publisher)
         val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
 
         Runtime.getRuntime.addShutdownHook {
           new Thread(() => externalComponents.shutdownHook().unsafeRunSync())
         }
-
 
         Routes(
           userService,

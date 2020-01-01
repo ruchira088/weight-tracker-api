@@ -9,6 +9,7 @@ import pureconfig.ConfigReader.Result
 import pureconfig.error.ConfigReaderException
 
 import scala.concurrent.Future
+import scala.language.higherKinds
 
 object FunctionKTypes {
   implicit def futureToIO(implicit contextShift: ContextShift[IO]): Future ~> IO =
@@ -34,4 +35,8 @@ object FunctionKTypes {
     new ~>[ConfigReader.Result, IO] {
       override def apply[A](result: Result[A]): IO[A] = IO.fromEither(result.left.map(ConfigReaderException.apply))
     }
+
+  implicit def identityFunctionK[F[_]]: F ~> F = new ~>[F, F] {
+    override def apply[A](fa: F[A]): F[A] = fa
+  }
 }

@@ -1,10 +1,10 @@
-package com.ruchij.services.email.models
+package com.ruchij.email.models
 
 import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.services.authentication.models.ResetPasswordToken
 import com.ruchij.services.user.models.User
 import com.ruchij.types.Tags.{EmailAddress, emailAddress}
-import html.{LockedUser, ResetPassword, Welcome}
+import html._
 import play.twirl.api.HtmlFormat
 
 case class Email(to: EmailAddress, from: EmailAddress, subject: String, content: HtmlFormat.Appendable)

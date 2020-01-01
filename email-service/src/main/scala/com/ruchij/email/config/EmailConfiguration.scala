@@ -1,9 +1,8 @@
-package com.ruchij.config
+package com.ruchij.email.config
 
 import cats.effect.Sync
 import cats.~>
 import pureconfig.{ConfigObjectSource, ConfigReader}
-import pureconfig.generic.auto._
 
 import scala.language.higherKinds
 

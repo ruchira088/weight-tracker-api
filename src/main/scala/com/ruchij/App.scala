@@ -89,10 +89,10 @@ object App extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      configSource <- IO.delay(ConfigSource.default)
-      serviceConfiguration <- ServiceConfiguration.load[IO](configSource)
+      configObjectSource <- IO.delay(ConfigSource.default)
+      serviceConfiguration <- ServiceConfiguration.load[IO](configObjectSource)
 
-      httpApp <- application(serviceConfiguration, configSource)
+      httpApp <- application(serviceConfiguration, configObjectSource)
 
       exitCode <- BlazeServerBuilder[IO]
         .withHttpApp(httpApp)

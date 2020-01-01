@@ -26,7 +26,7 @@ class KafkaSubscriber[F[_]: Sync](kafkaClientConfiguration: KafkaClientConfigura
 
   override def subscribe[A](topic: Topic[A]): Source[(A, F[CommitResult]), _] =
     Consumer
-      .committableSource(KafkaSubscriber.settings(kafkaClientConfiguration), Subscriptions.topics())
+      .committableSource(KafkaSubscriber.settings(kafkaClientConfiguration), Subscriptions.topics(topic.entryName))
       .map { committableMessage =>
         committableMessage.record.value() -> committableMessage.committableOffset
       }

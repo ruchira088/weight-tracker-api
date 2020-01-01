@@ -8,13 +8,14 @@ services:
       - redis
       - postgres
       - database-migration
+      - kafka-broker
+      - schema-registry
     ports:
       - 5005:5005
       - 8000:8000
     volumes:
       - "~/.sbt:/root/.sbt"
       - "~/.coursier:/root/.coursier"
-      - ".:/opt/weight-tracker-api"
       - "/root/.sbt/1.0/plugins"
     environment:
       REDIS_HOST: redis
@@ -36,12 +37,26 @@ services:
     volumes:
       - "~/.sbt:/root/.sbt"
       - "~/.coursier:/root/.coursier"
-      - ".:/opt/weight-tracker-api"
       - "/root/.sbt/1.0/plugins"
     environment:
       DB_URL: "jdbc:postgresql://postgres:5432/weight-tracker"
       DB_USER: weight-tracker
       DB_PASSWORD: Fzy46pxRRd92sE2JRyR2
+
+  email-service:
+    build: .
+    command: emailService/run
+    depends_on:
+      - kafka-broker
+      - schema-registry
+    volumes:
+      - "~/.sbt:/root/.sbt"
+      - "~/.coursier:/root/.coursier"
+      - "/root/.sbt/1.0/plugins"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-broker:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONSUMER_GROUP_ID: email-service
 
   postgres:
     image: postgres

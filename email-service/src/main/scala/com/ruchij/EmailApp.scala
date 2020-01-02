@@ -23,7 +23,7 @@ object EmailApp extends IOApp {
       kafkaSubscriber = new KafkaSubscriber[IO](kafkaClientConfiguration)
       emailService = new ConsoleEmailService[IO]
 
-      _ <-IO.fromFuture(IO.delay(EmailSubscriber.run(kafkaSubscriber, emailService)))
+      _ <- EmailSubscriber.run(kafkaSubscriber, emailService)
     }
     yield ExitCode.Success
 }

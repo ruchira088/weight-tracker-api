@@ -4,7 +4,6 @@ import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.effect.Sync
 import com.ruchij.exceptions._
-import com.ruchij.types.FunctionKTypes
 import com.ruchij.web.responses.ErrorResponse
 import org.http4s.dsl.impl.EntityResponseGenerator
 import org.http4s.{HttpApp, Request, Response, Status}
@@ -39,7 +38,7 @@ object ExceptionHandler {
           case _ => Status.InternalServerError
         }
 
-      override def liftG: FunctionK[F, F] = FunctionKTypes.identityFunctionK[F]
+      override def liftG: FunctionK[F, F] = FunctionK.id[F]
     }
 
   private def throwableErrorResponseMapper(throwable: Throwable): ErrorResponse =

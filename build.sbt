@@ -49,7 +49,7 @@ lazy val loadTest =
 
 lazy val emailService =
   (project in file("./email-service"))
-    .enablePlugins(SbtTwirl)
+    .enablePlugins(SbtTwirl, JavaAppPackaging)
     .settings(
       name := "email-service",
       version := "0.0.1",

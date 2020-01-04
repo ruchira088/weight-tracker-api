@@ -4,6 +4,7 @@ import cats.effect.Sync
 import cats.~>
 import com.ruchij.config.development.ApplicationMode
 import pureconfig.{ConfigObjectSource, ConfigReader}
+import pureconfig.generic.auto._
 
 import scala.language.higherKinds
 

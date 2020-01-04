@@ -18,13 +18,13 @@ import pureconfig.{ConfigObjectSource, ConfigReader}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 
-case class EmailServiceDependencies[F[_]](emailService: EmailService[F], subscriber: Subscriber[F])
+case class EmailServiceComponents[F[_]](emailService: EmailService[F], subscriber: Subscriber[F])
 
-object EmailServiceDependencies {
+object EmailServiceComponents {
   def from[F[_]: Sync: ContextShift: Future ~> *[_], G[_]: Sync: ConfigReader.Result ~> *[_]](
     applicationMode: ApplicationMode,
     configObjectSource: ConfigObjectSource
-  )(implicit actorSystem: ActorSystem): G[EmailServiceDependencies[F]] =
+  )(implicit actorSystem: ActorSystem): G[EmailServiceComponents[F]] =
     applicationMode match {
       case Production =>
         for {
@@ -37,18 +37,18 @@ object EmailServiceDependencies {
             new SendGrid(sendgridConfiguration.sendgridApiKey),
             ioBlockingExecutionContext
           )
-        } yield EmailServiceDependencies(sendgridEmailService, kafkaSubscriber)
+        } yield EmailServiceComponents(sendgridEmailService, kafkaSubscriber)
 
       case DockerCompose =>
         for {
           kafkaClientConfiguration <- KafkaClientConfiguration.local[G](configObjectSource)
           kafkaSubscriber = new KafkaSubscriber[F](kafkaClientConfiguration)
         }
-        yield EmailServiceDependencies(new ConsoleEmailService[F], kafkaSubscriber)
+        yield EmailServiceComponents(new ConsoleEmailService[F], kafkaSubscriber)
 
       case Local =>
         Applicative[G].pure {
-          EmailServiceDependencies(
+          EmailServiceComponents(
             new ConsoleEmailService[F],
             ???
           )

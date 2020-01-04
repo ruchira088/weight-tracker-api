@@ -1,7 +1,7 @@
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-  namespace: weight-tracker-api-{{ git_branch }}
+  namespace: weight-tracker-{{ git_branch }}
   name: weight-tracker-api-tls-certificate
 spec:
   secretName: weight-tracker-api-tls

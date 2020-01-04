@@ -1,13 +1,17 @@
 package com.ruchij
 
+import java.util.concurrent.Executors
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import cats.effect.{ExitCode, IO, IOApp}
 import com.ruchij.config.KafkaClientConfiguration
-import com.ruchij.email.ConsoleEmailService
+import com.ruchij.email.{ConsoleEmailService, EmailSubscriber}
 import com.ruchij.messaging.kafka.KafkaSubscriber
 import com.ruchij.types.FunctionKTypes._
 import pureconfig.ConfigSource
+
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 object EmailApp extends IOApp {
   implicit val actorSystem: ActorSystem = ActorSystem("email-service")

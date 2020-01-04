@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
-import com.ruchij.config.ServiceConfiguration
+import com.ruchij.config.ApiServiceConfiguration
 import com.ruchij.config.development.ExternalComponents
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
@@ -35,7 +35,7 @@ object App extends IOApp {
   lazy val cpuBlockingExecutionContext: ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
 
-  def application(serviceConfiguration: ServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] =
+  def application(serviceConfiguration: ApiServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] =
     ExternalComponents
       .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource)
       .map { externalComponents =>
@@ -90,7 +90,7 @@ object App extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     for {
       configObjectSource <- IO.delay(ConfigSource.default)
-      serviceConfiguration <- ServiceConfiguration.load[IO](configObjectSource)
+      serviceConfiguration <- ApiServiceConfiguration.load[IO](configObjectSource)
 
       httpApp <- application(serviceConfiguration, configObjectSource)
 

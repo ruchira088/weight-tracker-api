@@ -9,6 +9,7 @@
   vars:
     weight_tracker_api_docker_image: "{{ weight_tracker_api_ecr_url }}:{{ git_commit }}"
     database_migration_docker_image: "{{ database_migration_ecr_url }}:{{ git_commit }}"
+    email_service_docker_image: "{{ email_service_ecr_url }}:{{ git_commit }}"
     k8s_config: "{{ lookup('aws_ssm', '/weight-tracker/k8s/config') }}"
 
   tasks:
@@ -32,6 +33,11 @@
         - name: Create database migration output directory
           file:
             path: output/database-migration
+            state: directory
+
+        - name: Create Email service output directory
+          file:
+            path: output/email-service
             state: directory
 
     - name: Create K8s config file
@@ -59,6 +65,13 @@
         dest: "output/database-migration/{{ item | basename }}"
       with_fileglob:
         - k8s/database-migration/*.yaml
+
+    - name: Render Email service K8s resource files
+      template:
+        src: "{{ item }}"
+        dest: "output/email-service/{{ item | basename }}"
+      with_fileglob:
+        - k8s/email-service/*.yaml
 
     - name: Create Namespace in K8s
       command: kubectl apply -f output/Namespace.yaml --kubeconfig output/kubeconfig
@@ -90,3 +103,17 @@
 
         - name: Wait for successful Deployment
           command: "kubectl rollout status deployment weight-tracker-api-deployment --kubeconfig output/kubeconfig -n weight-tracker-api-{{ git_branch }}"
+
+    - name: Deploy Email service
+      block:
+        - name: Create ConfigMap
+          command: kubectl apply -f output/email-service/ConfigMap.yaml --kubeconfig output/kubeconfig
+
+        - name: Create Secrets
+          command: kubectl apply -f output/email-service/Secrets.yaml --kubeconfig output/kubeconfig
+
+        - name: Deploy application
+          command: kubectl apply -f output/email-service/ --kubeconfig output/kubeconfig
+
+        - name: Wait for successful Deployment
+          command: "kubectl rollout status deployment email-service-deployment --kubeconfig output/kubeconfig -n weight-tracker-api-{{ git_branch }}"

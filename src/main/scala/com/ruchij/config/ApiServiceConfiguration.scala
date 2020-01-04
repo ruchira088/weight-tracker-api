@@ -10,19 +10,19 @@ import pureconfig.{ConfigObjectSource, ConfigReader}
 import scala.language.higherKinds
 import scala.util.Try
 
-case class ServiceConfiguration(
+case class ApiServiceConfiguration(
   httpConfiguration: HttpConfiguration,
   authenticationConfiguration: AuthenticationConfiguration,
   applicationMode: ApplicationMode,
   buildInformation: BuildInformation
 )
 
-object ServiceConfiguration {
+object ApiServiceConfiguration {
   implicit val dateTimeReader: ConfigReader[DateTime] =
     ConfigReader.fromNonEmptyStringTry[DateTime](string => Try(DateTime.parse(string)))
 
-  def load[F[_]: Sync](configObjectSource: ConfigObjectSource)(implicit functionK: ConfigReader.Result ~> F): F[ServiceConfiguration] =
+  def load[F[_]: Sync](configObjectSource: ConfigObjectSource)(implicit functionK: ConfigReader.Result ~> F): F[ApiServiceConfiguration] =
     Sync[F].suspend {
-      functionK(configObjectSource.load[ServiceConfiguration])
+      functionK(configObjectSource.load[ApiServiceConfiguration])
     }
 }

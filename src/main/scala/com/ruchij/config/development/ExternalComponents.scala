@@ -43,11 +43,12 @@ object ExternalComponents {
         for {
           redisConfiguration <- RedisConfiguration.load[G](configObjectSource)
           doobieConfiguration <- DoobieConfiguration.load[G](configObjectSource)
+          kafkaClientConfiguration <- KafkaClientConfiguration.confluent[G](configObjectSource)
         } yield
           ExternalComponents[F](
             redisClient(redisConfiguration),
             doobieTransactor[F](doobieConfiguration),
-            ???,
+            new KafkaProducer[F](kafkaClientConfiguration),
             () => Applicative[F].unit
           )
 

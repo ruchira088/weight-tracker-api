@@ -1,11 +1,10 @@
-package com.ruchij
+package com.ruchij.email
 
 import akka.Done
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import cats.effect.Sync
 import cats.implicits._
-import com.ruchij.email.EmailService
 import com.ruchij.email.models.Email
 import com.ruchij.messaging.Subscriber
 import com.ruchij.messaging.models.{CommittableMessage, Message, Topic}

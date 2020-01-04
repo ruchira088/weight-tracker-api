@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: weight-tracker-api-{{ git_branch }}
+  namespace: weight-tracker-{{ git_branch }}
   name: weight-tracker-api-deployment
 spec:
   replicas: 1

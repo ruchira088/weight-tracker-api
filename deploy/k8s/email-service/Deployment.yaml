@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: weight-tracker-{{ git_branch }}
+  name: email-service-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+      branch: {{ git_branch }}
+  template:
+    metadata:
+      labels:
+        app: email-service
+        branch: {{ git_branch }}
+    spec:
+      containers:
+        - name: email-service
+          image: {{ email_service_docker_image }}
+          envFrom:
+            - configMapRef:
+                name: email-service-config-map
+            - secretRef:
+                name: email-service-secrets
+

@@ -9,4 +9,6 @@ set-values.sh
 secrets.env
 target
 
+file-based-messaging.txt
+
 /*.html

@@ -5,5 +5,5 @@ import com.sksamuel.avro4s.SchemaFor.StringSchemaFor
 import shapeless.tag.@@
 
 object Schemas {
-  implicit def taggedStringSchema[A]: SchemaFor[String @@ A] = StringSchemaFor.map[String @@ A](identity)
+  implicit def taggedStringAvro4sSchema[A]: SchemaFor[String @@ A] = StringSchemaFor.map[String @@ A](identity)
 }

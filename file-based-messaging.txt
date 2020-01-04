@@ -1,0 +1,4 @@
+{"topic":"UserCreated","value":{"id":"214591ee-fcae-4903-a29a-d46cb82c665b","email":"orlando.stokes@hotmail.com","firstName":"Orlando","lastName":"Stokes"}}
+{"topic":"UserCreated","value":{"id":"61a27edc-3304-4486-b015-5750cd5baf59","email":"fredia.durgan@me.com","firstName":"Fredia","lastName":"Durgan"}}
+{"topic":"UserCreated","value":{"id":"d3c1a0e4-a4f2-428e-a749-1eb56c07d513","email":"nakesha.parisian@yahoo.com","firstName":"Nakesha","lastName":"Parisian"}}
+{"topic":"UserCreated","value":{"id":"e2a2e3a5-dc64-4e7d-81d5-2af1d4f4fa2d","email":"dave.smith@outlook.com","firstName":"Dave","lastName":"Smith"}}

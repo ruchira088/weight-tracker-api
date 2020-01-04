@@ -75,7 +75,7 @@ object App extends IOApp {
         val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
 
         Runtime.getRuntime.addShutdownHook {
-          new Thread(() => externalComponents.shutdownHook().unsafeRunSync())
+          new Thread(() => externalComponents.shutdownHook.unsafeRunSync())
         }
 
         Routes(

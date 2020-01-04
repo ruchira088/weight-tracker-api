@@ -58,7 +58,7 @@ object HttpTestApp {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
-    val externalComponents: ExternalComponents[F] = UnsafeCopoint.unsafeExtract(ExternalComponents.local[F, F]())
+    val externalComponents: ExternalComponents[F] = UnsafeCopoint.unsafeExtract(ExternalComponents.slim[F, F](ApplicationMode.Test))
 
     val userDao: DoobieUserDao[F] = new DoobieUserDao[F](externalComponents.transactor)
     val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
@@ -102,7 +102,7 @@ object HttpTestApp {
 
     val shutdownHook: () => Unit = () => {
       Await.ready(actorSystem.terminate(), 5 seconds)
-      UnsafeCopoint.unsafeExtract(externalComponents.shutdownHook())
+      UnsafeCopoint.unsafeExtract(externalComponents.shutdownHook)
     }
 
     HttpTestApp(

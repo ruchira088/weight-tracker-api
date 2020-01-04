@@ -3,7 +3,7 @@ package com.ruchij.web.routes
 import java.util.UUID
 
 import cats.effect.{Clock, IO}
-import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.circe.Encoders.{jodaTimeCirceEncoder, taggedStringCirceEncoder}
 import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.messaging.models.{Message, Topic}

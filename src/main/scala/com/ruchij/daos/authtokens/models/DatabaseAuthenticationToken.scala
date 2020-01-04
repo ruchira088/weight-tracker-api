@@ -3,8 +3,8 @@ package com.ruchij.daos.authtokens.models
 import java.util.UUID
 
 import akka.util.ByteString
-import com.ruchij.circe.Decoders.jodaTimeDecoder
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Decoders.jodaTimeCirceDecoder
+import com.ruchij.circe.Encoders.jodaTimeCirceEncoder
 import com.ruchij.types.UnsafeCopoint
 import io.circe.generic.auto._
 import io.circe.syntax._

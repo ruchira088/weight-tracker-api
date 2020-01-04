@@ -4,7 +4,7 @@ import java.util.UUID
 
 import cats.Applicative
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.jodaTimeCirceEncoder
 import io.circe.Encoder
 import io.circe.generic.semiauto._
 import org.http4s.EntityEncoder

@@ -3,7 +3,7 @@ package com.ruchij.services.user.models
 import java.util.UUID
 
 import cats.Applicative
-import com.ruchij.circe.Encoders.taggedStringEncoder
+import com.ruchij.circe.Encoders.taggedStringCirceEncoder
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.types.Tags.EmailAddress
 import io.circe.generic.auto._

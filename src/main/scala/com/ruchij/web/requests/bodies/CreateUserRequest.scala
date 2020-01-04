@@ -3,7 +3,7 @@ package com.ruchij.web.requests.bodies
 import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.implicits._
-import com.ruchij.circe.Decoders.{optionStringDecoder, taggedStringDecoder}
+import com.ruchij.circe.Decoders.{optionStringCirceDecoder, taggedStringCirceDecoder}
 import com.ruchij.exceptions.ValidationException
 import com.ruchij.types.Tags.EmailAddress
 import com.ruchij.web.requests.validators.Validator

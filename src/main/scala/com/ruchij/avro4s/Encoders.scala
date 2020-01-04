@@ -5,5 +5,5 @@ import com.sksamuel.avro4s.Encoder.StringEncoder
 import shapeless.tag.@@
 
 object Encoders {
-  implicit def taggedStringEncoder[A]: Encoder[String @@ A] = StringEncoder.comap(_.toString)
+  implicit def taggedStringAvro4sEncoder[A]: Encoder[String @@ A] = StringEncoder.comap(_.toString)
 }

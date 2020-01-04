@@ -1,14 +1,16 @@
 package com.ruchij.config.development
 
+import java.nio.file.Paths
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import cats.effect.{Async, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
-import com.ruchij.config.development.ApplicationMode.{DockerCompose, Local, Production}
+import com.ruchij.config.development.ApplicationMode.{DockerCompose, Production}
 import com.ruchij.config.{DoobieConfiguration, KafkaClientConfiguration, RedisConfiguration}
 import com.ruchij.messaging.Publisher
+import com.ruchij.messaging.file.FileBasedPublisher
 import com.ruchij.messaging.inmemory.InMemoryPublisher
 import com.ruchij.messaging.kafka.KafkaProducer
 import com.ruchij.migration.MigrationApp
@@ -27,7 +29,7 @@ case class ExternalComponents[F[_]](
   redisClient: RedisClient,
   transactor: Transactor.Aux[F, Unit],
   publisher: Publisher[F, _],
-  shutdownHook: () => F[Unit]
+  shutdownHook: F[Unit]
 )
 
 object ExternalComponents {
@@ -49,7 +51,7 @@ object ExternalComponents {
             redisClient(redisConfiguration),
             doobieTransactor[F](doobieConfiguration),
             new KafkaProducer[F](kafkaClientConfiguration),
-            () => Applicative[F].unit
+            Applicative[F].unit
           )
 
       case DockerCompose =>
@@ -62,13 +64,13 @@ object ExternalComponents {
             redisClient(redisConfiguration),
             doobieTransactor(doobieConfiguration),
             new KafkaProducer[F](kafkaClientConfiguration),
-            () => Applicative[F].unit
+            Applicative[F].unit
           )
 
-      case Local => local[G, F]()
+      case _ => slim[G, F](applicationMode)
     }
 
-  def local[G[_]: Sync, F[_]: Async: ContextShift]()(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
+  def slim[G[_]: Sync, F[_]: Async: ContextShift](applicationMode: ApplicationMode)(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
     for {
       (redisServer, redisPort) <- startEmbeddedRedisServer[G]
       _ <- MigrationApp.migrate[G](H2_DATABASE_CONFIGURATION)
@@ -76,8 +78,11 @@ object ExternalComponents {
       ExternalComponents(
         redisClient(RedisConfiguration("localhost", redisPort, None)),
         h2Transactor[F],
-        InMemoryPublisher.empty[F],
-        () => Sync[F].delay(redisServer.stop())
+        if (applicationMode == ApplicationMode.Local)
+          new FileBasedPublisher[F](Paths.get("./file-based-messaging.txt"))
+        else
+          InMemoryPublisher.empty[F],
+        Sync[F].delay(redisServer.stop())
       )
 
   val H2_DATABASE_CONFIGURATION: DatabaseConfiguration =

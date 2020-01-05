@@ -88,7 +88,7 @@
           command: kubectl apply -f output/database-migration/Job.yaml --kubeconfig output/kubeconfig
 
         - name: Wait for Job completion
-          command: "kubectl wait --for=condition=complete job/database-migration-job-{{ git_commit }} --kubeconfig output/kubeconfig -n weight-tracker-api-{{ git_branch }} --timeout=600s"
+          command: "kubectl wait --for=condition=complete job/database-migration-job-{{ git_commit }} --kubeconfig output/kubeconfig -n weight-tracker-{{ git_branch }} --timeout=600s"
 
     - name: Deploy Weight Tracker API
       block:
@@ -102,7 +102,7 @@
           command: kubectl apply -f output/weight-tracker-api/ --kubeconfig output/kubeconfig
 
         - name: Wait for successful Deployment
-          command: "kubectl rollout status deployment weight-tracker-api-deployment --kubeconfig output/kubeconfig -n weight-tracker-api-{{ git_branch }}"
+          command: "kubectl rollout status deployment weight-tracker-api-deployment --kubeconfig output/kubeconfig -n weight-tracker-{{ git_branch }}"
 
     - name: Deploy Email service
       block:
@@ -116,4 +116,4 @@
           command: kubectl apply -f output/email-service/ --kubeconfig output/kubeconfig
 
         - name: Wait for successful Deployment
-          command: "kubectl rollout status deployment email-service-deployment --kubeconfig output/kubeconfig -n weight-tracker-api-{{ git_branch }}"
+          command: "kubectl rollout status deployment email-service-deployment --kubeconfig output/kubeconfig -n weight-tracker-{{ git_branch }}"

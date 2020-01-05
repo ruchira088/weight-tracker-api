@@ -52,6 +52,7 @@ object App extends IOApp {
         val healthCheckService = new HealthCheckServiceImpl[IO](
           externalComponents.transactor,
           externalComponents.redisClient,
+          externalComponents.publisher,
           serviceConfiguration.applicationMode,
           serviceConfiguration.buildInformation
         )

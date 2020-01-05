@@ -92,6 +92,7 @@ object HttpTestApp {
     val healthCheckService = new HealthCheckServiceImpl[F](
       externalComponents.transactor,
       externalComponents.redisClient,
+      externalComponents.publisher,
       ApplicationMode.Local,
       buildInformation
     )

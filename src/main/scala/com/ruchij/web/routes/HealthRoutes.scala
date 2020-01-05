@@ -35,10 +35,7 @@ object HealthRoutes {
         for {
           _ <- logger.infoF[F]("External services health check request received")(correlationId)
 
-          databaseHealthStatus <- healthCheckService.database()
-          redisHealthStatus <- healthCheckService.redis()
-
-          healthCheckResponse = HealthCheckResponse(databaseHealthStatus, redisHealthStatus)
+          healthCheckResponse <- healthCheckService.healthCheck()
 
           response <- if (HealthCheckResponse.isAllHealthy(healthCheckResponse))
             Ok(healthCheckResponse) <* logger.infoF[F]("External services health check is OK")(correlationId)

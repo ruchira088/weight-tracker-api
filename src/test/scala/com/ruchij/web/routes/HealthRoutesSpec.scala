@@ -61,7 +61,8 @@ class HealthRoutesSpec extends AnyFlatSpec with Matchers {
     val expectedJsonResponse =
       json"""{
         "database": "Healthy",
-        "redis": "Healthy"
+        "redis": "Healthy",
+        "publisher": "Healthy"
       }"""
 
     response must beJsonContentType

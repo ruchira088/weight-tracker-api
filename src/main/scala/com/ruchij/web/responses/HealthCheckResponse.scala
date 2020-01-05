@@ -8,12 +8,13 @@ import org.http4s.EntityEncoder
 
 import scala.language.higherKinds
 
-case class HealthCheckResponse(database: HealthStatus, redis: HealthStatus)
+case class HealthCheckResponse(database: HealthStatus, redis: HealthStatus, publisher: HealthStatus)
 
 object HealthCheckResponse {
   implicit def healthCheckResponse[F[_]: Applicative]: EntityEncoder[F, HealthCheckResponse] =
     jsonEncoderOf[F, HealthCheckResponse]
 
   def isAllHealthy(healthCheckResponse: HealthCheckResponse): Boolean =
-    List(healthCheckResponse.database, healthCheckResponse.redis).forall(_ == HealthStatus.Healthy)
+    List(healthCheckResponse.database, healthCheckResponse.redis, healthCheckResponse.publisher)
+      .forall(_ == HealthStatus.Healthy)
 }

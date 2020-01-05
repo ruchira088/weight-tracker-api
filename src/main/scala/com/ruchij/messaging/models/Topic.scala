@@ -27,6 +27,11 @@ object Topic extends Enum[Topic[_]] with CirceEnum[Topic[_]] {
     override val codec: Codec[User] = deriveCodec[User]
   }
 
+  implicit case object HealthCheck extends Topic[HealthCheckProbe] {
+    override val recordFormat: RecordFormat[HealthCheckProbe] = RecordFormat[HealthCheckProbe]
+    override val codec: Codec[HealthCheckProbe] = deriveCodec[HealthCheckProbe]
+  }
+
   override def values: IndexedSeq[Topic[_]] = findValues
 
   implicit def topicEncoder[A]: Encoder[Topic[A]] = enumEncoder.contramap[Topic[A]](identity)

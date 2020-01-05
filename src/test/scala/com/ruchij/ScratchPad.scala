@@ -2,15 +2,12 @@ package com.ruchij
 
 import java.nio.ByteBuffer
 import java.nio.channels.{AsynchronousFileChannel, CompletionHandler}
-import java.nio.file.{Path, Paths, StandardOpenOption}
+import java.nio.file.{Path, StandardOpenOption}
 
 import cats.data.OptionT
 import cats.effect.{Async, Blocker, ContextShift, ExitCode, IO, IOApp, Resource, Sync}
 import cats.implicits._
-import com.ruchij.services.email.SendGridEmailService
-import com.ruchij.services.email.models.Email
 import com.ruchij.test.utils.RandomGenerator
-import com.sendgrid.SendGrid
 
 import scala.concurrent.ExecutionContext
 import scala.language.higherKinds

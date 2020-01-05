@@ -14,3 +14,7 @@ output "weight_tracker_api_ecr_url" {
 output "weight_tracker_database_migration_ecr_url" {
   value = aws_ecr_repository.weight_tracker_database_migration.repository_url
 }
+
+output "weight_tracker_email_service_ecr_url" {
+  value = aws_ecr_repository.weight_tracker_email_service.repository_url
+}

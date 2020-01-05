@@ -1,8 +1,8 @@
 package com.ruchij.web.responses
 
 import cats.Applicative
-import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
-import com.ruchij.services.email.models.Email.EmailAddress
+import com.ruchij.circe.Encoders.{jodaTimeCirceEncoder, taggedStringCirceEncoder}
+import com.ruchij.types.Tags.EmailAddress
 import io.circe.generic.auto._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf

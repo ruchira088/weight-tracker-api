@@ -99,6 +99,9 @@ jobs:
       - run:
           name: Compile database migration project
           command: sbt databaseMigration/compile
+      - run:
+          name: Compile email service
+          command: sbt emailService/compile
       - save_cache:
           key: sbt-cache-{{ checksum "project/build.properties" }}-{{ checksum "project/plugins.sbt" }}-{{ checksum "project/Dependencies.scala" }}
           paths:

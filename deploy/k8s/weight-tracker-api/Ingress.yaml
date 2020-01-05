@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  namespace: weight-tracker-api-{{ git_branch }}
+  namespace: weight-tracker-{{ git_branch }}
   name: weight-tracker-api-ingress
   annotations:
     ingress.kubernetes.io/rewrite-target: /

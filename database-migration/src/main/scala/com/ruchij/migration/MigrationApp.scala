@@ -4,6 +4,7 @@ import cats.effect.{ExitCode, IO, IOApp, Sync}
 import cats.implicits._
 import com.ruchij.migration.config.{DatabaseConfiguration, MigrationConfiguration}
 import org.flywaydb.core.Flyway
+import pureconfig.ConfigSource
 
 import scala.language.higherKinds
 
@@ -11,7 +12,8 @@ object MigrationApp extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      migrationConfiguration <- IO.fromEither(MigrationConfiguration.load())
+      configObjectSource <- IO.delay(ConfigSource.default)
+      migrationConfiguration <- IO.fromEither(MigrationConfiguration.load(configObjectSource))
 
       result <- migrate[IO](migrationConfiguration.databaseConfiguration)
 

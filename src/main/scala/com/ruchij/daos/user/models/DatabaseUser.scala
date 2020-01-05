@@ -2,7 +2,7 @@ package com.ruchij.daos.user.models
 
 import java.util.UUID
 
-import com.ruchij.services.email.models.Email.EmailAddress
+import com.ruchij.types.Tags.EmailAddress
 import org.joda.time.DateTime
 
 case class DatabaseUser(

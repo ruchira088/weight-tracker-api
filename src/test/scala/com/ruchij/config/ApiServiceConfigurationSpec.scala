@@ -12,7 +12,7 @@ import pureconfig.ConfigSource
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
+class ApiServiceConfigurationSpec extends AnyFlatSpec with Matchers {
 
   "Loading the ServiceConfiguration" should "return a successful ServiceConfiguration for a configuration file" in {
     val currentDateTime = DateTime.now().withZone(DateTimeZone.UTC)
@@ -42,13 +42,13 @@ class ServiceConfigurationSpec extends AnyFlatSpec with Matchers {
          |""".stripMargin
 
     val expectedServiceConfiguration =
-      ServiceConfiguration(
+      ApiServiceConfiguration(
         HttpConfiguration(port = 80),
         AuthenticationConfiguration(60 seconds, BruteForceProtectionConfiguration(10, 30 seconds)),
         ApplicationMode.Local,
         BuildInformation(Some("master"), Some("1234abc"), Some(currentDateTime))
       )
 
-    ServiceConfiguration.load[IO](ConfigSource.string(configurationFile)).unsafeRunSync() mustBe expectedServiceConfiguration
+    ApiServiceConfiguration.load[IO](ConfigSource.string(configurationFile)).unsafeRunSync() mustBe expectedServiceConfiguration
   }
 }

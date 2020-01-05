@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: weight-tracker-{{ git_branch }}
+  name: email-service-config-map
+data:
+{% for key, value in config_values.email_service.items() %}
+  {{ key }}: "{{ value }}"
+{% endfor %}

@@ -6,11 +6,10 @@ import com.github.javafaker.Faker
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
-import com.ruchij.services.email.models.Email.{EmailAddress, EmailAddressTag}
 import com.ruchij.services.user.models.User
 import com.ruchij.test.HttpTestApp
+import com.ruchij.types.Tags.{EmailAddress, emailAddress}
 import org.joda.time.DateTime
-import shapeless.tag
 
 import scala.util.{Random => ScalaRandom}
 
@@ -22,7 +21,7 @@ object RandomGenerator {
   val PASSWORD = "Pa$$w0rd"
   val SALTED_PASSWORD = "$2a$10$afXIMtS3CcuWZMdDOkBmdOdGlnivbG/IgFtilPDvK40BHt8a7QUV2"
 
-  def email(): EmailAddress = tag[EmailAddressTag][String](internet().emailAddress())
+  def email(): EmailAddress = emailAddress(internet().emailAddress())
 
   def password(): String = "5ca|a" + internet().password(8, 100, true, true, true)
 

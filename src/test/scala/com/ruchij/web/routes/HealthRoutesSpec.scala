@@ -1,7 +1,7 @@
 package com.ruchij.web.routes
 
 import cats.effect.{Clock, IO}
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.jodaTimeCirceEncoder
 import com.ruchij.test.HttpTestApp
 import com.ruchij.test.matchers._
 import com.ruchij.test.utils.RequestUtils.getRequest
@@ -61,7 +61,8 @@ class HealthRoutesSpec extends AnyFlatSpec with Matchers {
     val expectedJsonResponse =
       json"""{
         "database": "Healthy",
-        "redis": "Healthy"
+        "redis": "Healthy",
+        "publisher": "Healthy"
       }"""
 
     response must beJsonContentType

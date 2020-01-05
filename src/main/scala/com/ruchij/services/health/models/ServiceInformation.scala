@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import org.http4s.EntityEncoder
 import org.http4s.circe.jsonEncoderOf
 import org.joda.time.DateTime
-import com.ruchij.circe.Encoders.{enumEncoder, jodaTimeEncoder}
+import com.ruchij.circe.Encoders.jodaTimeCirceEncoder
 import com.ruchij.config.BuildInformation
 import com.ruchij.config.development.ApplicationMode
 

@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  namespace: weight-tracker-api-{{ git_branch }}
+  namespace: weight-tracker-{{ git_branch }}
   name: database-migration-job-{{ git_commit }}
 spec:
   template:

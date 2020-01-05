@@ -3,7 +3,8 @@ import sbt._
 object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
-  val HTTP4S_VERSION = "0.20.15"
+
+  val HTTP4S_VERSION = "0.21.0-M6"
   val CIRCE_VERSION = "0.12.3"
 
   lazy val http4sDsl = "org.http4s" %% "http4s-dsl" % HTTP4S_VERSION
@@ -26,6 +27,12 @@ object Dependencies
 
   lazy val jbcrypt = "org.mindrot" % "jbcrypt" % "0.4"
 
+  lazy val akkaStreamKafka = "com.typesafe.akka" %% "akka-stream-kafka" % "1.1.0"
+
+  lazy val kafkaAvroSerializer = "io.confluent" % "kafka-avro-serializer" % "5.3.2"
+
+  lazy val avro4sCore = "com.sksamuel.avro4s" %% "avro4s-core" % "3.0.4"
+
   lazy val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
 
   lazy val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
@@ -40,7 +47,7 @@ object Dependencies
 
   lazy val redisScala = "com.github.etaty" %% "rediscala" % "1.9.0"
 
-  lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.5.14"
+  lazy val enumeratum = "com.beachape" %% "enumeratum" % "1.5.15"
 
   lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
@@ -50,7 +57,7 @@ object Dependencies
 
   lazy val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
-  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.6.1"
+  lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % "2.5.23"
 
   lazy val commonsValidator = "commons-validator" % "commons-validator" % "1.6"
 

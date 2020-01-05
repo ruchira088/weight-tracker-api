@@ -12,8 +12,6 @@ WORKDIR /opt/weight-tracker-api
 
 COPY . .
 
-EXPOSE 8000 5005
-
 ENTRYPOINT ["sbt"]
 
 CMD ["-jvm-debug", "5005", "run"]

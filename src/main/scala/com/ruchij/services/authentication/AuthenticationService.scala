@@ -2,9 +2,9 @@ package com.ruchij.services.authentication
 
 import java.util.UUID
 
-import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
-import com.ruchij.services.email.models.Email.EmailAddress
+import com.ruchij.services.user.models.User
+import com.ruchij.types.Tags.EmailAddress
 
 import scala.language.higherKinds
 

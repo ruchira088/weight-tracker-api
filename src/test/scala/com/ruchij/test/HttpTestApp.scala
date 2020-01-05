@@ -1,7 +1,6 @@
 package com.ruchij.test
 
 import java.util.UUID
-import java.util.concurrent.ConcurrentLinkedQueue
 
 import akka.actor.ActorSystem
 import cats.data.ValidatedNel
@@ -23,14 +22,13 @@ import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.daos.user.{DoobieUserDao, UserDao}
 import com.ruchij.daos.weightentry.models.DatabaseWeightEntry
 import com.ruchij.daos.weightentry.{DoobieWeightEntryDao, WeightEntryDao}
+import com.ruchij.messaging.inmemory.InMemoryPublisher
 import com.ruchij.services.authentication.{AuthenticationSecretGeneratorImpl, AuthenticationServiceImpl}
 import com.ruchij.services.authorization.AuthorizationServiceImpl
 import com.ruchij.services.data.WeightEntryServiceImpl
-import com.ruchij.services.email.models.Email
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
-import com.ruchij.test.stubs.StubbedEmailService
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
 import org.http4s.HttpApp
@@ -48,19 +46,19 @@ case class HttpTestApp[F[_]](
   resetPasswordTokenDao: ResetPasswordTokenDao[F],
   authenticationFailureDao: DoobieAuthenticationFailureDao[F],
   lockedUserDao: DoobieLockedUserDao[F],
-  externalEmailMailBox: ConcurrentLinkedQueue[Email],
+  inMemoryPublisher: InMemoryPublisher[F],
   shutdownHook: () => Unit
 )
 
 object HttpTestApp {
   val SESSION_TIMEOUT: FiniteDuration = 30 seconds
 
-  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]:
-    ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint](): HttpTestApp[F] = {
+  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]: ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint]()
+    : HttpTestApp[F] = {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
-    val externalComponents: ExternalComponents[F] = UnsafeCopoint.unsafeExtract(ExternalComponents.local[F, F]())
+    val externalComponents: ExternalComponents[F] = UnsafeCopoint.unsafeExtract(ExternalComponents.slim[F, F](ApplicationMode.Test))
 
     val userDao: DoobieUserDao[F] = new DoobieUserDao[F](externalComponents.transactor)
     val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
@@ -73,13 +71,12 @@ object HttpTestApp {
 
     val authenticationTokenDao = new RedisAuthenticationTokenDao[F](externalComponents.redisClient)
 
-    val emailMailBox = new ConcurrentLinkedQueue[Email]()
-    val stubbedEmailService = new StubbedEmailService[F](emailMailBox)
+    val inMemoryPublisher = InMemoryPublisher.empty[F]
 
     val authenticationService =
       new AuthenticationServiceImpl[F](
         new BCryptService[F](ExecutionContext.global),
-        stubbedEmailService,
+        inMemoryPublisher,
         userDao,
         lockedUserDao,
         authenticationFailureDao,
@@ -89,9 +86,16 @@ object HttpTestApp {
         AuthenticationConfiguration(SESSION_TIMEOUT, BruteForceProtectionConfiguration(3, 30 seconds))
       )
 
-    val userService = new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, stubbedEmailService)
+    val userService =
+      new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, inMemoryPublisher)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
-    val healthCheckService = new HealthCheckServiceImpl[F](externalComponents.transactor, externalComponents.redisClient, ApplicationMode.Local, buildInformation)
+    val healthCheckService = new HealthCheckServiceImpl[F](
+      externalComponents.transactor,
+      externalComponents.redisClient,
+      externalComponents.publisher,
+      ApplicationMode.Local,
+      buildInformation
+    )
     val authorizationService = new AuthorizationServiceImpl[F]
 
     val httpApp =
@@ -99,7 +103,7 @@ object HttpTestApp {
 
     val shutdownHook: () => Unit = () => {
       Await.ready(actorSystem.terminate(), 5 seconds)
-      UnsafeCopoint.unsafeExtract(externalComponents.shutdownHook())
+      UnsafeCopoint.unsafeExtract(externalComponents.shutdownHook)
     }
 
     HttpTestApp(
@@ -110,7 +114,7 @@ object HttpTestApp {
       resetPasswordTokenDao,
       authenticationFailureDao,
       lockedUserDao,
-      emailMailBox,
+      inMemoryPublisher,
       shutdownHook
     )
   }

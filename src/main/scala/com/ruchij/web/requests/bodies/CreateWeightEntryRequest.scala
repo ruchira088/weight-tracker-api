@@ -1,7 +1,7 @@
 package com.ruchij.web.requests.bodies
 
 import cats.effect.Sync
-import com.ruchij.circe.Decoders.jodaTimeDecoder
+import com.ruchij.circe.Decoders.jodaTimeCirceDecoder
 import io.circe.generic.auto._
 import org.http4s.EntityDecoder
 import org.http4s.circe.jsonOf

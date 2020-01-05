@@ -1,17 +1,20 @@
 package com.ruchij.config.development
 
+import java.nio.file.Paths
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import cats.effect.{Async, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
-import com.ruchij.config.development.ApplicationMode.{DockerCompose, Local, Production}
-import com.ruchij.config.{DoobieConfiguration, EmailConfiguration, RedisConfiguration}
+import com.ruchij.config.development.ApplicationMode.{DockerCompose, Production}
+import com.ruchij.config.{DoobieConfiguration, KafkaClientConfiguration, RedisConfiguration}
+import com.ruchij.messaging.Publisher
+import com.ruchij.messaging.file.FileBasedPublisher
+import com.ruchij.messaging.inmemory.InMemoryPublisher
+import com.ruchij.messaging.kafka.KafkaProducer
 import com.ruchij.migration.MigrationApp
 import com.ruchij.migration.config.DatabaseConfiguration
-import com.ruchij.services.email.{ConsoleEmailService, EmailService, SendGridEmailService}
-import com.sendgrid.SendGrid
 import doobie.util.transactor.Transactor
 import doobie.util.transactor.Transactor.Aux
 import pureconfig.{ConfigObjectSource, ConfigReader}
@@ -25,8 +28,8 @@ import scala.language.higherKinds
 case class ExternalComponents[F[_]](
   redisClient: RedisClient,
   transactor: Transactor.Aux[F, Unit],
-  emailService: EmailService[F],
-  shutdownHook: () => F[Unit]
+  publisher: Publisher[F, _],
+  shutdownHook: F[Unit]
 )
 
 object ExternalComponents {
@@ -42,32 +45,32 @@ object ExternalComponents {
         for {
           redisConfiguration <- RedisConfiguration.load[G](configObjectSource)
           doobieConfiguration <- DoobieConfiguration.load[G](configObjectSource)
-          emailConfiguration <- EmailConfiguration.load[G](configObjectSource)
+          kafkaClientConfiguration <- KafkaClientConfiguration.confluent[G](configObjectSource)
         } yield
           ExternalComponents[F](
             redisClient(redisConfiguration),
             doobieTransactor[F](doobieConfiguration),
-            new SendGridEmailService[F](new SendGrid(emailConfiguration.sendgridApiKey), ioBlockingExecutionContext),
-            () => Applicative[F].unit
+            new KafkaProducer[F](kafkaClientConfiguration),
+            Applicative[F].unit
           )
 
       case DockerCompose =>
         for {
           redisConfiguration <- RedisConfiguration.load[G](configObjectSource)
           doobieConfiguration <- DoobieConfiguration.load[G](configObjectSource)
-        }
-        yield
+          kafkaClientConfiguration <- KafkaClientConfiguration.local[G](configObjectSource)
+        } yield
           ExternalComponents(
             redisClient(redisConfiguration),
             doobieTransactor(doobieConfiguration),
-            new ConsoleEmailService[F],
-            () => Applicative[F].unit
+            new KafkaProducer[F](kafkaClientConfiguration),
+            Applicative[F].unit
           )
 
-      case Local => local[G, F]()
+      case _ => slim[G, F](applicationMode)
     }
 
-  def local[G[_]: Sync, F[_]: Async: ContextShift]()(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
+  def slim[G[_]: Sync, F[_]: Async: ContextShift](applicationMode: ApplicationMode)(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
     for {
       (redisServer, redisPort) <- startEmbeddedRedisServer[G]
       _ <- MigrationApp.migrate[G](H2_DATABASE_CONFIGURATION)
@@ -75,8 +78,11 @@ object ExternalComponents {
       ExternalComponents(
         redisClient(RedisConfiguration("localhost", redisPort, None)),
         h2Transactor[F],
-        new ConsoleEmailService[F],
-        () => Sync[F].delay(redisServer.stop())
+        if (applicationMode == ApplicationMode.Local)
+          new FileBasedPublisher[F](Paths.get("./file-based-messaging.txt"))
+        else
+          InMemoryPublisher.empty[F],
+        Sync[F].delay(redisServer.stop())
       )
 
   val H2_DATABASE_CONFIGURATION: DatabaseConfiguration =

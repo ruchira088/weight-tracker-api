@@ -3,7 +3,7 @@ package com.ruchij.services.authentication.models
 import java.util.UUID
 
 import cats.Applicative
-import com.ruchij.circe.Encoders.jodaTimeEncoder
+import com.ruchij.circe.Encoders.jodaTimeCirceEncoder
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
 import io.circe.generic.auto._
 import org.http4s.EntityEncoder

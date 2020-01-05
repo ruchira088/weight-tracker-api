@@ -60,6 +60,33 @@
             path: ../Dockerfile-prod
             state: absent
 
+    - name: Build Email service application binary
+      shell: cd ../ && sbt clean emailService/universal:packageZipTarball
+
+    - name: Build Email service Docker image
+      block:
+        - name: Generate Dockerfile
+          template:
+            src: docker/Dockerfile-prod.j2
+            dest: ../email-service/Dockerfile-prod
+          vars:
+            project_name: email-service
+
+        - name: Build production Docker image
+          shell: |
+            docker build \
+              -t email-service:{{ git_commit }} \
+              --build-arg git_commit={{ git_commit }} \
+              --build-arg git_branch={{ git_branch }} \
+              --build-arg build_timestamp={{ ansible_date_time.iso8601 }} \
+              -f ../email-service/Dockerfile-prod \
+              ../email-service
+
+        - name: Remove Dockerfile
+          file:
+            path: ../email-service/Dockerfile-prod
+            state: absent
+
     - name: Login to ECR
       shell: $(aws ecr get-login --no-include-email --region ap-southeast-2)
 
@@ -78,3 +105,13 @@
       with_items:
         - "{{ git_commit }}"
         - "{{ git_branch }}-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}"
+
+    - name: Push Email service Docker image to ECR
+      shell: |
+        docker tag email-service:{{ git_commit }} {{ email_service_ecr_url }}:{{ item }}
+        docker push {{ email_service_ecr_url }}:{{ item }}
+      with_items:
+        - "{{ git_commit }}"
+        - "{{ git_branch }}-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}"
+
+

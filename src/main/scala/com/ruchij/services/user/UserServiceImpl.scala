@@ -10,12 +10,12 @@ import com.ruchij.daos.lockeduser.LockedUserDao
 import com.ruchij.daos.user.UserDao
 import com.ruchij.daos.user.models.DatabaseUser
 import com.ruchij.exceptions.{AuthenticationException, InternalServiceException, ResourceConflictException, ResourceNotFoundException}
+import com.ruchij.messaging.Publisher
+import com.ruchij.messaging.models.Message
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
-import com.ruchij.services.email.EmailService
-import com.ruchij.services.email.models.Email
-import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.types.Random
+import com.ruchij.types.Tags.EmailAddress
 import com.ruchij.types.Utils.predicate
 import org.joda.time.DateTime
 
@@ -26,7 +26,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   databaseUserDao: UserDao[F],
   lockedUserDao: LockedUserDao[F],
   authenticationService: AuthenticationService[F],
-  emailService: EmailService[F]
+  publisher: Publisher[F, _]
 ) extends UserService[F] {
 
   override def create(email: EmailAddress, password: String, firstName: String, lastName: Option[String]): F[User] =
@@ -46,8 +46,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
         case _: ResourceNotFoundException => InternalServiceException("Unable to persist user")
       }
 
-      _ <- emailService.send(Email.welcomeEmail(user))
-
+      _ <- publisher.publish(Message(user))
     } yield user
 
   override def getById(id: UUID): F[User] =

@@ -1,7 +1,7 @@
 package com.ruchij.logging.models
 
 import ch.qos.logback.classic.Level
-import com.ruchij.circe.Encoders.{jodaTimeEncoder, taggedStringEncoder}
+import com.ruchij.circe.Encoders.{jodaTimeCirceEncoder, taggedStringCirceEncoder}
 import com.ruchij.web.headers.`X-Correlation-ID`.CorrelationId
 import io.circe.Encoder
 import io.circe.generic.semiauto.deriveEncoder

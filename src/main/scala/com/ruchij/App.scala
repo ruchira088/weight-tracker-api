@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
-import com.ruchij.config.ServiceConfiguration
+import com.ruchij.config.ApiServiceConfiguration
 import com.ruchij.config.development.ExternalComponents
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
@@ -35,7 +35,7 @@ object App extends IOApp {
   lazy val cpuBlockingExecutionContext: ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
 
-  def application(serviceConfiguration: ServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] =
+  def application(serviceConfiguration: ApiServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] =
     ExternalComponents
       .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource)
       .map { externalComponents =>
@@ -52,13 +52,14 @@ object App extends IOApp {
         val healthCheckService = new HealthCheckServiceImpl[IO](
           externalComponents.transactor,
           externalComponents.redisClient,
+          externalComponents.publisher,
           serviceConfiguration.applicationMode,
           serviceConfiguration.buildInformation
         )
 
         val authenticationService = new AuthenticationServiceImpl(
           passwordHashingService,
-          externalComponents.emailService,
+          externalComponents.publisher,
           databaseUserDao,
           lockedUserDao,
           authenticationFailuresDao,
@@ -71,11 +72,11 @@ object App extends IOApp {
         val authorizationService = new AuthorizationServiceImpl[IO]
 
         val userService =
-          new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, externalComponents.emailService)
+          new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, externalComponents.publisher)
         val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
 
         Runtime.getRuntime.addShutdownHook {
-          new Thread(() => externalComponents.shutdownHook().unsafeRunSync())
+          new Thread(() => externalComponents.shutdownHook.unsafeRunSync())
         }
 
         Routes(
@@ -89,10 +90,10 @@ object App extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      configSource <- IO.delay(ConfigSource.default)
-      serviceConfiguration <- ServiceConfiguration.load[IO](configSource)
+      configObjectSource <- IO.delay(ConfigSource.default)
+      serviceConfiguration <- ApiServiceConfiguration.load[IO](configObjectSource)
 
-      httpApp <- application(serviceConfiguration, configSource)
+      httpApp <- application(serviceConfiguration, configObjectSource)
 
       exitCode <- BlazeServerBuilder[IO]
         .withHttpApp(httpApp)

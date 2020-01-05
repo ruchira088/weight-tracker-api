@@ -16,7 +16,7 @@ object FunctionKTypes {
       override def apply[A](future: Future[A]): IO[A] = IO.fromFuture(IO(future))
     }
 
-  implicit def validateNelToIO: ValidatedNel[Throwable, *] ~> IO =
+  implicit val validateNelToIO: ValidatedNel[Throwable, *] ~> IO =
     new ~>[ValidatedNel[Throwable, *], IO] {
       override def apply[A](validatedNel: ValidatedNel[Throwable, A]): IO[A] =
         validatedNel.fold[IO[A]](
@@ -25,13 +25,17 @@ object FunctionKTypes {
         )
     }
 
-  implicit def eitherThrowableToIO: Either[Throwable, *] ~> IO =
+  implicit val eitherThrowableToIO: Either[Throwable, *] ~> IO =
     new ~>[Either[Throwable, *], IO] {
       override def apply[A](either: Either[Throwable, A]): IO[A] = IO.fromEither(either)
     }
 
-  implicit def configReaderResultToIO: ConfigReader.Result ~> IO =
+  implicit val configReaderResultToIO: ConfigReader.Result ~> IO =
     new ~>[ConfigReader.Result, IO] {
       override def apply[A](result: Result[A]): IO[A] = IO.fromEither(result.left.map(ConfigReaderException.apply))
     }
+
+  implicit val ioToFuture: IO ~> Future = new ~>[IO, Future] {
+    override def apply[A](fa: IO[A]): Future[A] = fa.unsafeToFuture()
+  }
 }

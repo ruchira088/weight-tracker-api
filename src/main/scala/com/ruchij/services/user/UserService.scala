@@ -3,8 +3,8 @@ package com.ruchij.services.user
 import java.util.UUID
 
 import cats.data.OptionT
-import com.ruchij.services.email.models.Email.EmailAddress
 import com.ruchij.services.user.models.User
+import com.ruchij.types.Tags.EmailAddress
 
 import scala.language.higherKinds
 

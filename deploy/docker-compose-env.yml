@@ -14,4 +14,8 @@
       copy:
         dest: ../secrets.env
         content: |
-          SENDGRID_API_KEY={{ secrets.weight_tracker_api.SENDGRID_API_KEY }}
+          SENDGRID_API_KEY={{ secrets.email_service.SENDGRID_API_KEY }}
+          KAFKA_USERNAME={{ secrets.email_service.KAFKA_USERNAME }}
+          KAFKA_PASSWORD={{ secrets.email_service.KAFKA_PASSWORD }}
+          SCHEMA_REGISTRY_USERNAME={{ secrets.email_service.SCHEMA_REGISTRY_USERNAME }}
+          SCHEMA_REGISTRY_PASSWORD={{ secrets.email_service.SCHEMA_REGISTRY_PASSWORD }}

@@ -7,7 +7,6 @@ inThisBuild {
     scalaVersion := SCALA_VERSION,
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
-    topLevelDirectory := None,
     scalacOptions ++= Seq("-Ypartial-unification", "-Xlint", "-feature", "-deprecation"),
     resolvers += "confluent" at "https://packages.confluent.io/maven/"
   )
@@ -22,6 +21,7 @@ lazy val root =
       libraryDependencies ++= rootDependencies ++ rootTestDependencies.map(_ % Test),
       buildInfoKeys := BuildInfoKey.ofN(name, organization, version, scalaVersion, sbtVersion),
       buildInfoPackage := "com.eed3si9n.ruchij",
+      topLevelDirectory := None,
       javaOptions in Test += s"-Dconfig.resource=application.test.conf",
       fork in Test := true,
       coverageExcludedPackages := "<empty>;com.ruchij.App;html.*;.*SendGridEmailService;.*ConsoleEmailService"
@@ -34,6 +34,7 @@ lazy val databaseMigration =
     .settings(
       name := "database-migration",
       version := "0.0.1",
+      topLevelDirectory := None,
       libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2)
     )
 
@@ -43,6 +44,7 @@ lazy val loadTest =
     .settings(
       name := "gatling-load-test",
       version := "0.0.1",
+      topLevelDirectory := None,
       libraryDependencies ++= Seq(gatlingTestFramework, gatlingCharts).map(_ % Test)
     )
     .dependsOn(root % "test->test")
@@ -53,6 +55,7 @@ lazy val emailService =
     .settings(
       name := "email-service",
       version := "0.0.1",
+      topLevelDirectory := None,
       libraryDependencies ++= Seq(sendgrid)
     )
     .dependsOn(root)

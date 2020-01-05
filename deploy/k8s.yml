@@ -110,7 +110,7 @@
           command: kubectl apply -f output/email-service/ConfigMap.yaml --kubeconfig output/kubeconfig
 
         - name: Create Secrets
-          command: kubectl apply -f output/email-service/Secrets.yaml --kubeconfig output/kubeconfig
+          command: kubectl apply -f output/email-service/Secret.yaml --kubeconfig output/kubeconfig
 
         - name: Deploy application
           command: kubectl apply -f output/email-service/ --kubeconfig output/kubeconfig

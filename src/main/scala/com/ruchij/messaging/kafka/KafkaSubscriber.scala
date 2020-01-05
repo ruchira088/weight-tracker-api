@@ -52,5 +52,5 @@ object KafkaSubscriber {
         configure(KafkaClientConfiguration.schemaRegistryConfiguration(kafkaClientConfiguration).asJava, false)
       }
     ).withProperties(KafkaClientConfiguration.coreConfiguration(kafkaClientConfiguration))
-      .withGroupId(kafkaClientConfiguration.consumerGroupId.getOrElse(BuildInfo.name))
+      .withGroupId(kafkaClientConfiguration.consumerGroupId)
 }

@@ -15,11 +15,11 @@ import pureconfig.generic.auto._
 import scala.language.higherKinds
 
 sealed trait KafkaClientConfiguration {
-  val consumerGroupId: Option[String]
+  val consumerGroupId: String
 }
 
 object KafkaClientConfiguration {
-  case class LocalKafkaClientConfiguration(bootstrapServers: String, schemaRegistryUrl: String, consumerGroupId: Option[String])
+  case class LocalKafkaClientConfiguration(bootstrapServers: String, schemaRegistryUrl: String, consumerGroupId: String)
       extends KafkaClientConfiguration
 
   case class ConfluentKafkaClientConfiguration(
@@ -29,7 +29,7 @@ object KafkaClientConfiguration {
     kafkaPassword: String,
     schemaRegistryUsername: String,
     schemaRegistryPassword: String,
-    consumerGroupId: Option[String]
+    consumerGroupId: String
   ) extends KafkaClientConfiguration
 
   def local[F[_]: Sync](

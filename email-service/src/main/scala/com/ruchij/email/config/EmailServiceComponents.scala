@@ -36,7 +36,7 @@ object EmailServiceComponents {
           sendgridConfiguration <- SendgridConfiguration.load[G](configObjectSource)
           ioBlockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
           sendgridEmailService = new SendGridEmailService[F](
-            new SendGrid(sendgridConfiguration.sendgridApiKey),
+            new SendGrid(sendgridConfiguration.apiKey),
             ioBlockingExecutionContext
           )
         } yield EmailServiceComponents(sendgridEmailService, kafkaSubscriber)

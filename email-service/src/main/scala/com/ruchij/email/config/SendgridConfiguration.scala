@@ -7,7 +7,7 @@ import pureconfig.generic.auto._
 
 import scala.language.higherKinds
 
-case class SendgridConfiguration(sendgridApiKey: String)
+case class SendgridConfiguration(apiKey: String)
 
 object SendgridConfiguration {
   def load[F[_]: Sync](configObjectSource: ConfigObjectSource)(implicit functionK: ConfigReader.Result ~> F): F[SendgridConfiguration] =

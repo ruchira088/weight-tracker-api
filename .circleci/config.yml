@@ -97,8 +97,8 @@ jobs:
           name: Run unit tests
           command: sbt test
       - run:
-          name: Compile database migration project
-          command: sbt databaseMigration/compile
+          name: Compile migration application
+          command: sbt migrationApplication/compile
       - run:
           name: Compile email service
           command: sbt emailService/compile

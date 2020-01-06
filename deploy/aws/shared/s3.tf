@@ -8,7 +8,7 @@ resource "aws_s3_bucket_object" "images" {
   count = length(local.images)
   bucket = local.s3_bucket
   key = "email/${local.images[count.index]}"
-  source = "../../../email-assets/${local.images[count.index]}"
+  source = "../../../email-service/assets/${local.images[count.index]}"
   content_type = "image/png"
   acl = "public-read"
 }

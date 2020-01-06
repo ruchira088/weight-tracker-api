@@ -34,6 +34,6 @@
           region: ap-southeast-2
 
     - set_fact:
-        database_migration_ecr_url: "{{ terraform_shared_output.outputs.weight_tracker_database_migration_ecr_url.value }}"
+        migration_application_ecr_url: "{{ terraform_shared_output.outputs.migration_application_ecr_url.value }}"
         weight_tracker_api_ecr_url: "{{ terraform_shared_output.outputs.weight_tracker_api_ecr_url.value }}"
-        email_service_ecr_url: "{{ terraform_shared_output.outputs.weight_tracker_email_service_ecr_url.value }}"
+        email_service_ecr_url: "{{ terraform_shared_output.outputs.email_service_ecr_url.value }}"

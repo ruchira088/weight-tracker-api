@@ -28,9 +28,9 @@ services:
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
       APPLICATION_MODE: DockerCompose
 
-  database-migration:
+  migration-application:
     build: .
-    command: databaseMigration/run
+    command: migrationApplication/run
     depends_on:
       - postgres
     volumes:

@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: weight-tracker-{{ git_branch }}
+  name: migration-application-job-{{ git_commit }}
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migration-application
+          image: {{ migration_application_docker_image }}
+          envFrom:
+            - configMapRef:
+                name: migration-application-config-map
+            - secretRef:
+                name: migration-application-secrets

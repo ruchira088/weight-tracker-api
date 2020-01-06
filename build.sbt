@@ -26,13 +26,13 @@ lazy val root =
       fork in Test := true,
       coverageExcludedPackages := "<empty>;com.ruchij.App;html.*;.*SendGridEmailService;.*ConsoleEmailService"
 )
-    .dependsOn(databaseMigration)
+    .dependsOn(migrationApplication)
 
-lazy val databaseMigration =
-  (project in file("./database-migration"))
+lazy val migrationApplication =
+  (project in file("./migration-application"))
     .enablePlugins(JavaAppPackaging)
     .settings(
-      name := "database-migration",
+      name := "migration-application",
       version := "0.0.1",
       topLevelDirectory := None,
       libraryDependencies ++= Seq(postgresql, flywayCore, catsEffect, pureconfig, h2)

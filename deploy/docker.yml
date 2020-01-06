@@ -7,30 +7,30 @@
 
   tasks:
     - name: Build database migration binary
-      shell: cd ../ && sbt databaseMigration/clean databaseMigration/universal:packageZipTarball
+      shell: cd ../ && sbt migrationApplication/clean migrationApplication/universal:packageZipTarball
 
-    - name: Build database migration Docker image
+    - name: Build migration application Docker image
       block:
         - name: Generate Dockerfile
           template:
             src: docker/Dockerfile-prod.j2
-            dest: ../database-migration/Dockerfile-prod
+            dest: ../migration-application/Dockerfile-prod
           vars:
-            project_name: database-migration
+            project_name: migration-application
 
-        - name: Build database migration Docker image
+        - name: Build migration application Docker image
           shell: |
             docker build \
-              -t database-migration:{{ git_commit }} \
+              -t migration-application:{{ git_commit }} \
               --build-arg git_commit={{ git_commit }} \
               --build-arg git_branch={{ git_branch }} \
               --build-arg build_timestamp={{ ansible_date_time.iso8601 }} \
-              -f ../database-migration/Dockerfile-prod \
-              ../database-migration
+              -f ../migration-application/Dockerfile-prod \
+              ../migration-application
 
         - name: Remove Dockerfile
           file:
-            path: ../database-migration/Dockerfile-prod
+            path: ../migration-application/Dockerfile-prod
             state: absent
 
     - name: Build Weight Tracker API application binary
@@ -92,8 +92,8 @@
 
     - name: Push database migration Docker image to ECR
       shell: |
-        docker tag database-migration:{{ git_commit }} {{ database_migration_ecr_url }}:{{ item }}
-        docker push {{ database_migration_ecr_url }}:{{ item }}
+        docker tag migration-application:{{ git_commit }} {{ migration_application_ecr_url }}:{{ item }}
+        docker push {{ migration_application_ecr_url }}:{{ item }}
       with_items:
         - "{{ git_commit }}"
         - "{{ git_branch }}-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}"

@@ -8,7 +8,7 @@
 
   vars:
     weight_tracker_api_docker_image: "{{ weight_tracker_api_ecr_url }}:{{ git_commit }}"
-    database_migration_docker_image: "{{ database_migration_ecr_url }}:{{ git_commit }}"
+    migration_application_docker_image: "{{ migration_application_ecr_url }}:{{ git_commit }}"
     email_service_docker_image: "{{ email_service_ecr_url }}:{{ git_commit }}"
     k8s_config: "{{ lookup('aws_ssm', '/weight-tracker/k8s/config') }}"
 
@@ -59,12 +59,12 @@
       with_fileglob:
         - k8s/weight-tracker-api/*.yaml
 
-    - name: Render database migration K8s resource files
+    - name: Render migration application K8s resource files
       template:
         src: "{{ item }}"
-        dest: "output/database-migration/{{ item | basename }}"
+        dest: "output/migration-application/{{ item | basename }}"
       with_fileglob:
-        - k8s/database-migration/*.yaml
+        - k8s/migration-application/*.yaml
 
     - name: Render Email service K8s resource files
       template:
@@ -76,19 +76,19 @@
     - name: Create Namespace in K8s
       command: kubectl apply -f output/Namespace.yaml --kubeconfig output/kubeconfig
 
-    - name: Run database migration job
+    - name: Run migration application job
       block:
         - name: Create ConfigMap
-          command: kubectl apply -f output/database-migration/ConfigMap.yaml --kubeconfig output/kubeconfig
+          command: kubectl apply -f output/migration-application/ConfigMap.yaml --kubeconfig output/kubeconfig
 
         - name: Create Secrets
-          command: kubectl apply -f output/database-migration/Secret.yaml --kubeconfig output/kubeconfig
+          command: kubectl apply -f output/migration-application/Secret.yaml --kubeconfig output/kubeconfig
 
         - name: Run Job
-          command: kubectl apply -f output/database-migration/Job.yaml --kubeconfig output/kubeconfig
+          command: kubectl apply -f output/migration-application/Job.yaml --kubeconfig output/kubeconfig
 
         - name: Wait for Job completion
-          command: "kubectl wait --for=condition=complete job/database-migration-job-{{ git_commit }} --kubeconfig output/kubeconfig -n weight-tracker-{{ git_branch }} --timeout=600s"
+          command: "kubectl wait --for=condition=complete job/migration-application-job-{{ git_commit }} --kubeconfig output/kubeconfig -n weight-tracker-{{ git_branch }} --timeout=600s"
 
     - name: Deploy Weight Tracker API
       block:

@@ -30,9 +30,9 @@
             path: output/weight-tracker-api
             state: directory
 
-        - name: Create database migration output directory
+        - name: Create migration application output directory
           file:
-            path: output/database-migration
+            path: output/migration-application
             state: directory
 
         - name: Create Email service output directory

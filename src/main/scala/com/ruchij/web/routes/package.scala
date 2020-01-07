@@ -21,5 +21,7 @@ package object routes {
     val `unlock` = "unlock"
 
     val `services` = "services"
+
+    val `favicon.ico` = "favicon.ico"
   }
 }

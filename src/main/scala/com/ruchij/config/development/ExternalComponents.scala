@@ -1,7 +1,6 @@
 package com.ruchij.config.development
 
 import java.nio.file.Paths
-import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import cats.effect.{Async, ContextShift, Sync}
@@ -22,7 +21,6 @@ import redis.RedisClient
 import redis.embedded.RedisServer
 import redis.embedded.ports.EphemeralPortProvider
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.language.higherKinds
 
 case class ExternalComponents[F[_]](
@@ -33,8 +31,6 @@ case class ExternalComponents[F[_]](
 )
 
 object ExternalComponents {
-  lazy val ioBlockingExecutionContext: ExecutionContextExecutorService =
-    ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
 
   def from[G[_]: Sync, F[_]: Async: ContextShift](
     applicationMode: ApplicationMode,

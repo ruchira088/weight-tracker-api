@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import cats.data.ValidatedNel
-import cats.effect.{Async, Clock, ContextShift}
+import cats.effect.{Async, Blocker, Clock, ContextShift}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
@@ -31,6 +31,7 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
+import com.ruchij.web.assets.ResourceFileService
 import org.http4s.HttpApp
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -75,7 +76,7 @@ object HttpTestApp {
 
     val authenticationService =
       new AuthenticationServiceImpl[F](
-        new BCryptService[F](ExecutionContext.global),
+        new BCryptService[F](Blocker.liftExecutionContext(ExecutionContext.global)),
         inMemoryPublisher,
         userDao,
         lockedUserDao,
@@ -98,8 +99,10 @@ object HttpTestApp {
     )
     val authorizationService = new AuthorizationServiceImpl[F]
 
+    val resourceFileService = new ResourceFileService[F](Blocker.liftExecutionContext(ExecutionContext.global))
+
     val httpApp =
-      Routes[F](userService, weightEntryService, healthCheckService, authenticationService, authorizationService)
+      Routes[F](userService, weightEntryService, healthCheckService, authenticationService, authorizationService, resourceFileService)
 
     val shutdownHook: () => Unit = () => {
       Await.ready(actorSystem.terminate(), 5 seconds)

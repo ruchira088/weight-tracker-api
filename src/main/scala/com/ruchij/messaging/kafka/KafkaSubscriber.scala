@@ -7,7 +7,6 @@ import akka.kafka.{ConsumerSettings, Subscriptions}
 import akka.stream.scaladsl.Source
 import cats.effect.Sync
 import cats.~>
-import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.KafkaClientConfiguration
 import com.ruchij.messaging.Subscriber
 import com.ruchij.messaging.models.{CommittableMessage, Message, Topic}

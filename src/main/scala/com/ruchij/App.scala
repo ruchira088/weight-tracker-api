@@ -3,7 +3,7 @@ package com.ruchij
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ApiServiceConfiguration
@@ -22,6 +22,7 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.Routes
+import com.ruchij.web.assets.ResourceFileService
 import org.http4s.HttpApp
 import org.http4s.server.blaze.BlazeServerBuilder
 import pureconfig.{ConfigObjectSource, ConfigSource}
@@ -30,12 +31,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 object App extends IOApp {
-  implicit lazy val actorSystem: ActorSystem = ActorSystem(BuildInfo.name)
 
-  lazy val cpuBlockingExecutionContext: ExecutionContextExecutorService =
-    ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
+  def application(serviceConfiguration: ApiServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] = {
+    implicit val actorSystem: ActorSystem = ActorSystem(BuildInfo.name)
 
-  def application(serviceConfiguration: ApiServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] =
+    val cpuBlockingExecutionContext: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
+
+    val ioBlockingExecutionContext: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+
     ExternalComponents
       .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource)
       .map { externalComponents =>
@@ -45,9 +50,11 @@ object App extends IOApp {
         val lockedUserDao = new DoobieLockedUserDao(externalComponents.transactor)
         val authenticationFailuresDao = new DoobieAuthenticationFailureDao(externalComponents.transactor)
 
-        val passwordHashingService = new BCryptService[IO](cpuBlockingExecutionContext)
+        val passwordHashingService = new BCryptService[IO](Blocker.liftExecutionContext(cpuBlockingExecutionContext))
         val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
         val authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
+
+        val resourceFileService = new ResourceFileService[IO](Blocker.liftExecutionContext(ioBlockingExecutionContext))
 
         val healthCheckService = new HealthCheckServiceImpl[IO](
           externalComponents.transactor,
@@ -84,9 +91,11 @@ object App extends IOApp {
           weightEntryService,
           healthCheckService,
           authenticationService,
-          authorizationService
+          authorizationService,
+          resourceFileService
         )
       }
+  }
 
   override def run(args: List[String]): IO[ExitCode] =
     for {

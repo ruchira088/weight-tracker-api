@@ -283,7 +283,8 @@ class SessionRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": ${databaseUser.id},
         "email": ${databaseUser.email},
         "firstName": ${databaseUser.firstName},
-        "lastName": ${databaseUser.lastName}
+        "lastName": ${databaseUser.lastName},
+        "profileImage": ${databaseUser.profileImage}
       }"""
 
     response must beJsonContentType

@@ -33,11 +33,13 @@ object RandomGenerator {
 
   def url(): String = internet().url()
 
+  def profileImage(): String = s"${uuid()}/${file().fileName()}.jpg"
+
   def user(): User =
-    User(uuid(), email(), firstName(), option(lastName()))
+    User(uuid(), email(), firstName(), option(lastName()), None)
 
   def databaseUser(): DatabaseUser =
-    DatabaseUser(uuid(), DateTime.now(), email(), SALTED_PASSWORD, firstName(), option(lastName()))
+    DatabaseUser(uuid(), DateTime.now(), DateTime.now(), email(), SALTED_PASSWORD, firstName(), option(lastName()), option(profileImage()))
 
   def databaseAuthenticationToken(userId: UUID): DatabaseAuthenticationToken =
     DatabaseAuthenticationToken(userId, DateTime.now(), DateTime.now().plus(HttpTestApp.SESSION_TIMEOUT.toMillis), 0, uuid().toString, None)

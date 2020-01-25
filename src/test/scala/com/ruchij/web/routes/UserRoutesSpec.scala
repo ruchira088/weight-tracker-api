@@ -57,7 +57,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": $uuid,
         "email": $email,
         "firstName": $firstName,
-        "lastName": $lastName
+        "lastName": $lastName,
+        "profileImage": null
       }"""
 
     response must beJsonContentType
@@ -68,7 +69,7 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
     val publishedMessage: Message[_] = application.inMemoryPublisher.queue.dequeue()
 
     publishedMessage.topic mustBe Topic.UserCreated
-    publishedMessage.value mustBe User(uuid, email, firstName, lastName)
+    publishedMessage.value mustBe User(uuid, email, firstName, lastName, None)
 
     application.inMemoryPublisher.queue.length mustBe 0
 
@@ -102,7 +103,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": $uuid,
         "email": $email,
         "firstName": $firstName,
-        "lastName": null
+        "lastName": null,
+        "profileImage": null
       }"""
 
     response must beJsonContentType
@@ -252,7 +254,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": ${databaseUser.id},
         "email": ${databaseUser.email},
         "firstName": ${databaseUser.firstName},
-        "lastName": ${databaseUser.lastName}
+        "lastName": ${databaseUser.lastName},
+        "profileImage": ${databaseUser.profileImage}
       }"""
 
     response must beJsonContentType
@@ -458,7 +461,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": ${databaseUser.id},
         "email": ${databaseUser.email},
         "firstName": ${databaseUser.firstName},
-        "lastName": ${databaseUser.lastName}
+        "lastName": ${databaseUser.lastName},
+        "profileImage": ${databaseUser.profileImage}
       }"""
 
     response must beJsonContentType
@@ -673,7 +677,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": ${databaseUser.id},
         "email": ${databaseUser.email},
         "firstName": ${databaseUser.firstName},
-        "lastName": ${databaseUser.lastName}
+        "lastName": ${databaseUser.lastName},
+        "profileImage": ${databaseUser.profileImage}
       }"""
 
     unlockUserResponse must beJsonContentType
@@ -715,7 +720,8 @@ class UserRoutesSpec extends AnyFlatSpec with Matchers with OptionValues {
         "id": ${databaseUser.id},
         "email": ${databaseUser.email},
         "firstName": ${databaseUser.firstName},
-        "lastName": ${databaseUser.lastName}
+        "lastName": ${databaseUser.lastName},
+        "profileImage": ${databaseUser.profileImage}
       }"""
 
     response must beJsonContentType

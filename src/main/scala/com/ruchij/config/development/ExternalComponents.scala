@@ -85,7 +85,7 @@ object ExternalComponents {
             redisClient(RedisConfiguration("localhost", redisPort, None)),
             h2Transactor[F],
             new FileBasedPublisher[F](Paths.get("./file-based-messaging.txt")),
-            new S3ResourceService[F](S3AsyncClient.create(), "resources.weight-tracker.ruchij.com", ""),
+            InMemoryResourceService[F],
             Sync[F].delay(redisServer.stop())
           )
 

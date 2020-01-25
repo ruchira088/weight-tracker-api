@@ -91,7 +91,7 @@ object HttpTestApp {
       )
 
     val userService =
-      new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, testExternalComponents.inMemoryPublisher)
+      new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, testExternalComponents.inMemoryPublisher, testExternalComponents.inMemoryResourceService)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
     val healthCheckService = new HealthCheckServiceImpl[F](
       testExternalComponents.transactor,

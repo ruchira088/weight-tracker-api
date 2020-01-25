@@ -4,8 +4,10 @@ object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
 
-  val HTTP4S_VERSION = "0.21.0-M6"
-  val CIRCE_VERSION = "0.12.3"
+  val HTTP4S_VERSION = "0.21.0-RC1"
+  val CIRCE_VERSION = "0.13.0-RC1"
+
+  lazy val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
 
   lazy val http4sDsl = "org.http4s" %% "http4s-dsl" % HTTP4S_VERSION
 
@@ -19,17 +21,15 @@ object Dependencies
 
   lazy val circeLiteral = "io.circe" %% "circe-literal" % CIRCE_VERSION
 
-  lazy val jawnFs2 = "org.http4s" %% "jawn-fs2" % "0.15.0"
-
   lazy val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.2"
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
 
   lazy val jbcrypt = "org.mindrot" % "jbcrypt" % "0.4"
 
-  lazy val akkaStreamKafka = "com.typesafe.akka" %% "akka-stream-kafka" % "1.1.0"
+  lazy val akkaStreamKafka = "com.typesafe.akka" %% "akka-stream-kafka" % "2.0.1"
 
-  lazy val kafkaAvroSerializer = "io.confluent" % "kafka-avro-serializer" % "5.3.2"
+  lazy val kafkaAvroSerializer = "io.confluent" % "kafka-avro-serializer" % "5.4.0"
 
   lazy val avro4sCore = "com.sksamuel.avro4s" %% "avro4s-core" % "3.0.4"
 
@@ -41,7 +41,7 @@ object Dependencies
 
   lazy val flywayCore = "org.flywaydb" % "flyway-core" % "6.0.6"
 
-  lazy val postgresql = "org.postgresql" % "postgresql" % "42.2.8"
+  lazy val postgresql = "org.postgresql" % "postgresql" % "42.2.9"
 
   lazy val h2 = "com.h2database" % "h2" % "1.4.199"
 
@@ -52,6 +52,8 @@ object Dependencies
   lazy val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.0.0"
+
+  lazy val awsS3 = "software.amazon.awssdk" % "s3" % "2.10.56"
 
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.2.3"
 

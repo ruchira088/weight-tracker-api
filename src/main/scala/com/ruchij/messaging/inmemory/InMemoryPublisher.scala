@@ -13,5 +13,5 @@ class InMemoryPublisher[F[_]: Sync](val queue: mutable.Queue[Message[_]]) extend
 }
 
 object InMemoryPublisher {
-  def empty[F[_]: Sync]: InMemoryPublisher[F] = new InMemoryPublisher(mutable.Queue.empty[Message[_]])
+  def apply[F[_]: Sync]: InMemoryPublisher[F] = new InMemoryPublisher(mutable.Queue.empty[Message[_]])
 }

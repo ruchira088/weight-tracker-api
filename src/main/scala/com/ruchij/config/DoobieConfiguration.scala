@@ -12,6 +12,8 @@ case class DoobieConfiguration(driver: String, url: String, user: String, passwo
 object DoobieConfiguration {
   def load[F[_]: Sync](configObjectSource: ConfigObjectSource)(implicit functionK: ConfigReader.Result ~> F): F[DoobieConfiguration] =
     Sync[F].suspend {
-      functionK(configObjectSource.at("doobie-configuration").load[DoobieConfiguration])
+      functionK {
+        configObjectSource.at("doobie-configuration").load[DoobieConfiguration]
+      }
     }
 }

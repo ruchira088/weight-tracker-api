@@ -15,19 +15,12 @@ import com.ruchij.services.user.models.User
 import com.ruchij.web.middleware.authorization.Authorizer
 import com.ruchij.web.middleware.correlation.CorrelationId.withId
 import com.ruchij.web.requests.RequestParser._
-import com.ruchij.web.requests.bodies.{
-  CreateUserRequest,
-  CreateWeightEntryRequest,
-  UnlockUserRequest,
-  UpdatePasswordRequest
-}
-import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{
-  PageNumberQueryParameterMatcher,
-  PageSizeQueryParameterMatcher
-}
+import com.ruchij.web.requests.bodies._
+import com.ruchij.web.requests.queryparameters.QueryParameterMatcher.{PageNumberQueryParameterMatcher, PageSizeQueryParameterMatcher}
 import com.ruchij.web.responses.PaginatedResultsResponse
-import com.ruchij.web.routes.Paths.{`unlock`, `reset-password`, `weight-entry`}
+import com.ruchij.web.routes.Paths.{`profile-image`, `reset-password`, `unlock`, `weight-entry`}
 import org.http4s.dsl.Http4sDsl
+import org.http4s.multipart.Multipart
 import org.http4s.server.AuthMiddleware
 import org.http4s.{AuthedRoutes, HttpRoutes, Response}
 
@@ -110,6 +103,24 @@ object UserRoutes {
 
                 response <- Ok(user)
               } yield response
+            }
+
+          case authRequest @ POST -> Root / UUIDVar(userId) / `profile-image` withId correlationId as authenticatedUser =>
+            authorizer(authenticatedUser, userId, Permission.WRITE) {
+              for {
+                _ <- logger.infoF[F](s"Setting profile image for userId=$userId")(correlationId)
+
+                multipart <- authRequest.req.as[Multipart[F]]
+                fileResourceRequest <- FileResourceRequest.parse("image", multipart)
+
+                user @ User(_, _, _, _, Some(profileImage)) <-
+                  userService.setProfileImage(userId, fileResourceRequest.fileName, fileResourceRequest.resource)
+
+                _ <- logger.infoF[F](s"Successfully set profile image for userId=$userId with imageKey=$profileImage")(correlationId)
+
+                response <- Ok(user)
+              }
+              yield response
             }
 
           case DELETE -> Root / UUIDVar(userId) withId correlationId as authenticatedUser =>

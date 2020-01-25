@@ -12,3 +12,7 @@ resource "aws_s3_bucket_object" "images" {
   content_type = "image/png"
   acl = "public-read"
 }
+
+resource "aws_s3_bucket" "resources" {
+  bucket = "resources.weight-tracker.ruchij.com"
+}

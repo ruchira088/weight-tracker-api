@@ -12,11 +12,11 @@ import org.http4s.circe.jsonEncoderOf
 
 import scala.language.higherKinds
 
-case class User(id: UUID, email: EmailAddress, firstName: String, lastName: Option[String])
+case class User(id: UUID, email: EmailAddress, firstName: String, lastName: Option[String], profileImage: Option[String])
 
 object User {
   def fromDatabaseUser(databaseUser: DatabaseUser): User =
-    User(databaseUser.id, databaseUser.email, databaseUser.firstName, databaseUser.lastName)
+    User(databaseUser.id, databaseUser.email, databaseUser.firstName, databaseUser.lastName, databaseUser.profileImage)
 
   implicit def userEntityEncoder[F[_]: Applicative]: EntityEncoder[F, User] = jsonEncoderOf[F, User]
 }

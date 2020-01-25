@@ -14,6 +14,8 @@ import com.ruchij.messaging.Publisher
 import com.ruchij.messaging.models.Message
 import com.ruchij.services.user.models.User
 import com.ruchij.services.authentication.AuthenticationService
+import com.ruchij.services.resource.ResourceService
+import com.ruchij.services.resource.models.Resource
 import com.ruchij.types.Random
 import com.ruchij.types.Tags.EmailAddress
 import com.ruchij.types.Utils.predicate
@@ -26,7 +28,8 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   databaseUserDao: UserDao[F],
   lockedUserDao: LockedUserDao[F],
   authenticationService: AuthenticationService[F],
-  publisher: Publisher[F, _]
+  publisher: Publisher[F, _],
+  resourceService: ResourceService[F]
 ) extends UserService[F] {
 
   override def create(email: EmailAddress, password: String, firstName: String, lastName: Option[String]): F[User] =
@@ -39,7 +42,7 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       id <- Random[F, UUID].value
 
       _ <- databaseUserDao.insert {
-        DatabaseUser(id, new DateTime(timestamp), email, hashedPassword, firstName, lastName)
+        DatabaseUser(id, new DateTime(timestamp), new DateTime(timestamp), email, hashedPassword, firstName, lastName, None)
       }
 
       user <- getById(id).adaptError {
@@ -96,4 +99,12 @@ class UserServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
               Sync[F].raiseError(InternalServiceException(s"Unable to delete user with id = $id"))
         }
     }
+
+  override def setProfileImage(userId: UUID, fileName: String, image: Resource[F]): F[User] = {
+    val key = s"$userId/$fileName"
+
+    resourceService.insert(key, image)
+      .productR(databaseUserDao.updateProfileImage(userId, key))
+      .productR(getById(userId))
+  }
 }

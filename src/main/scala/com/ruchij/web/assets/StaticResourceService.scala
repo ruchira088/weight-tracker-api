@@ -6,7 +6,7 @@ import org.http4s.{Request, Response, StaticFile}
 
 import scala.language.higherKinds
 
-class ResourceFileService[F[_]: Sync: ContextShift](blocker: Blocker) {
+class StaticResourceService[F[_]: Sync: ContextShift](blocker: Blocker) {
   def serve(request: Request[F], name: String): OptionT[F, Response[F]] =
     StaticFile.fromResource("/" + name, blocker, Some(request), preferGzipped = true)
 }

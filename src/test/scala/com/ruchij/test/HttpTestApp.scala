@@ -8,6 +8,7 @@ import cats.effect.{Async, Blocker, Clock, ContextShift}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
+import com.ruchij.config.development.ExternalComponents.TestExternalComponents
 import com.ruchij.config.development.{ApplicationMode, ExternalComponents}
 import com.ruchij.config.{AuthenticationConfiguration, BuildInformation}
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
@@ -31,13 +32,13 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
-import com.ruchij.web.assets.ResourceFileService
+import com.ruchij.web.assets.StaticResourceService
 import org.http4s.HttpApp
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.language.{higherKinds, postfixOps}
+import scala.language.{higherKinds, implicitConversions, postfixOps}
 
 case class HttpTestApp[F[_]](
   httpApp: HttpApp[F],
@@ -54,30 +55,32 @@ case class HttpTestApp[F[_]](
 object HttpTestApp {
   val SESSION_TIMEOUT: FiniteDuration = 30 seconds
 
-  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]: ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint]()
+  implicit def toExternalComponents[F[_]](testExternalComponents: TestExternalComponents[F]): ExternalComponents[F] =
+    testExternalComponents.externalComponents
+
+  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]: ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint: Either[Throwable, *] ~> *[_]]()
     : HttpTestApp[F] = {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
-    val externalComponents: ExternalComponents[F] = UnsafeCopoint.unsafeExtract(ExternalComponents.slim[F, F](ApplicationMode.Test))
+    val testExternalComponents: TestExternalComponents[F] =
+      UnsafeCopoint.unsafeExtract(ExternalComponents.testComponents[F, F]())
 
-    val userDao: DoobieUserDao[F] = new DoobieUserDao[F](externalComponents.transactor)
+    val userDao: DoobieUserDao[F] = new DoobieUserDao[F](testExternalComponents.transactor)
     val resetPasswordTokenDao: DoobieResetPasswordTokenDao[F] =
-      new DoobieResetPasswordTokenDao[F](externalComponents.transactor)
-    val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](externalComponents.transactor)
-    val lockedUserDao = new DoobieLockedUserDao[F](externalComponents.transactor)
-    val authenticationFailureDao = new DoobieAuthenticationFailureDao[F](externalComponents.transactor)
+      new DoobieResetPasswordTokenDao[F](testExternalComponents.transactor)
+    val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](testExternalComponents.transactor)
+    val lockedUserDao = new DoobieLockedUserDao[F](testExternalComponents.transactor)
+    val authenticationFailureDao = new DoobieAuthenticationFailureDao[F](testExternalComponents.transactor)
 
     val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
 
-    val authenticationTokenDao = new RedisAuthenticationTokenDao[F](externalComponents.redisClient)
-
-    val inMemoryPublisher = InMemoryPublisher.empty[F]
+    val authenticationTokenDao = new RedisAuthenticationTokenDao[F](testExternalComponents.redisClient)
 
     val authenticationService =
       new AuthenticationServiceImpl[F](
         new BCryptService[F](Blocker.liftExecutionContext(ExecutionContext.global)),
-        inMemoryPublisher,
+        testExternalComponents.inMemoryPublisher,
         userDao,
         lockedUserDao,
         authenticationFailureDao,
@@ -88,25 +91,33 @@ object HttpTestApp {
       )
 
     val userService =
-      new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, inMemoryPublisher)
+      new UserServiceImpl[F](userDao, lockedUserDao, authenticationService, testExternalComponents.inMemoryPublisher)
     val weightEntryService = new WeightEntryServiceImpl[F](weightEntryDao)
     val healthCheckService = new HealthCheckServiceImpl[F](
-      externalComponents.transactor,
-      externalComponents.redisClient,
-      externalComponents.publisher,
+      testExternalComponents.transactor,
+      testExternalComponents.redisClient,
+      testExternalComponents.publisher,
       ApplicationMode.Local,
       buildInformation
     )
     val authorizationService = new AuthorizationServiceImpl[F]
 
-    val resourceFileService = new ResourceFileService[F](Blocker.liftExecutionContext(ExecutionContext.global))
+    val staticResourceService = new StaticResourceService[F](Blocker.liftExecutionContext(ExecutionContext.global))
 
     val httpApp =
-      Routes[F](userService, weightEntryService, healthCheckService, authenticationService, authorizationService, resourceFileService)
+      Routes[F](
+        userService,
+        weightEntryService,
+        healthCheckService,
+        authenticationService,
+        authorizationService,
+        testExternalComponents.resourceService,
+        staticResourceService
+      )
 
     val shutdownHook: () => Unit = () => {
       Await.ready(actorSystem.terminate(), 5 seconds)
-      UnsafeCopoint.unsafeExtract(externalComponents.shutdownHook)
+      UnsafeCopoint.unsafeExtract(testExternalComponents.shutdownHook)
     }
 
     HttpTestApp(
@@ -117,7 +128,7 @@ object HttpTestApp {
       resetPasswordTokenDao,
       authenticationFailureDao,
       lockedUserDao,
-      inMemoryPublisher,
+      testExternalComponents.inMemoryPublisher,
       shutdownHook
     )
   }

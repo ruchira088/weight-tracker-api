@@ -14,6 +14,8 @@ package object routes {
 
     val `weight-entry` = "weight-entry"
 
+    val `profile-image` = "profile-image"
+
     val `user` = "user"
 
     val `reset-password` = "reset-password"
@@ -23,5 +25,7 @@ package object routes {
     val `services` = "services"
 
     val `favicon.ico` = "favicon.ico"
+
+    val resources = "resources"
   }
 }

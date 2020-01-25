@@ -4,3 +4,12 @@
 {"topic":"UserCreated","value":{"id":"e2a2e3a5-dc64-4e7d-81d5-2af1d4f4fa2d","email":"dave.smith@outlook.com","firstName":"Dave","lastName":"Smith"}}
 {"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-01-05T14:17:30.855+11:00","instanceId":null}}
 {"topic":"UserCreated","value":{"id":"1bf50d3c-3d03-4221-83a3-34de019587dd","email":"jed.o'reilly@gmail.com","firstName":"Jed","lastName":"O'Reilly"}}
+{"topic":"UserCreated","value":{"id":"731f7768-936d-4f03-a21c-4bf4fb02256b","email":"fredia.jaskolski@hotmail.com","firstName":"Fredia","lastName":"Jaskolski"}}
+{"topic":"UserCreated","value":{"id":"35732266-f1ff-4097-9a51-03ed105e1aac","email":"chase.senger@me.com","firstName":"Chase","lastName":"Senger"}}
+{"topic":"UserCreated","value":{"id":"5473eb74-9efb-494b-ad9a-374bab03c1ea","email":"flora.murazik@live.com","firstName":"Flora","lastName":"Murazik"}}
+{"topic":"UserCreated","value":{"id":"2a96c74d-c0a5-4d66-95d3-a0c71a5a604c","email":"danna.cartwright@yahoo.com","firstName":"Danna","lastName":"Cartwright"}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-01-26T02:42:55.662+11:00","instanceId":null}}
+{"topic":"UserCreated","value":{"id":"1b9cea6f-be7e-4134-afe0-322a28b9d123","email":"sofia.cole@yahoo.com","firstName":"Sofia","lastName":"Cole","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"c87b2947-bfe4-4b31-81b0-b0e11b30693a","email":"rodger.nicolas@icloud.com","firstName":"Rodger","lastName":"Nicolas","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"5eb3f861-c244-402e-ae24-a306c2e2336e","email":"deedee.champlin@gmail.com","firstName":"Deedee","lastName":"Champlin","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"d4e4a74a-97c8-4400-aa04-313ebd25a51f","email":"misti.kling@icloud.com","firstName":"Misti","lastName":"Kling","profileImage":null}}

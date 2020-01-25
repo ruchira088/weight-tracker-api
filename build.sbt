@@ -62,12 +62,12 @@ lazy val emailService =
 
 val rootDependencies =
   Seq(
+    scalaJava8Compat,
     http4sDsl,
     http4sBlazeServer,
     http4sCirce,
     circeGeneric,
     circeParser,
-    jawnFs2,
     pureconfig,
     jodaTime,
     jbcrypt,
@@ -78,6 +78,7 @@ val rootDependencies =
     redisScala,
     enumeratum,
     shapeless,
+    awsS3,
     logbackClassic,
     scalaLogging,
     akkaSlf4j,

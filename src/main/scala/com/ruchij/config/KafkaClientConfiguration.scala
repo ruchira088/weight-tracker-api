@@ -36,12 +36,16 @@ object KafkaClientConfiguration {
     configObjectSource: ConfigObjectSource
   )(implicit functionK: ConfigReader.Result ~> F): F[LocalKafkaClientConfiguration] =
     Sync[F].defer {
-      functionK(configObjectSource.at("local-kafka-configuration").load[LocalKafkaClientConfiguration])
+      functionK {
+        configObjectSource.at("local-kafka-configuration").load[LocalKafkaClientConfiguration]
+      }
     }
 
   def confluent[F[_]: Sync](configObjectSource: ConfigObjectSource)(implicit functionK: ConfigReader.Result ~> F): F[ConfluentKafkaClientConfiguration] =
     Sync[F].defer {
-      functionK(configObjectSource.at("confluent-kafka-configuration").load[ConfluentKafkaClientConfiguration])
+      functionK {
+        configObjectSource.at("confluent-kafka-configuration").load[ConfluentKafkaClientConfiguration]
+      }
     }
 
   val coreConfiguration: KafkaClientConfiguration => Map[String, String] = {

@@ -18,4 +18,6 @@ trait UserDao[F[_]] {
   def deleteById(userId: UUID): F[Boolean]
 
   def updatePassword(userId: UUID, hashedPassword: String): F[Boolean]
+
+  def updateProfileImage(userId: UUID, imageKey: String): F[Boolean]
 }

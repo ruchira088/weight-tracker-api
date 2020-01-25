@@ -51,7 +51,7 @@ alias:
       chmod +x /tmp/terraform && \
       mv /tmp/terraform /usr/local/bin
     environment:
-      TERRAFORM_VERSION: 0.12.17
+      TERRAFORM_VERSION: 0.12.20
 
   - &install-docker-client
     name: Install Docker client

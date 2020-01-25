@@ -22,7 +22,7 @@ import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
 import com.ruchij.types.FunctionKTypes._
 import com.ruchij.web.Routes
-import com.ruchij.web.assets.ResourceFileService
+import com.ruchij.web.assets.StaticResourceService
 import org.http4s.HttpApp
 import org.http4s.server.blaze.BlazeServerBuilder
 import pureconfig.{ConfigObjectSource, ConfigSource}
@@ -32,7 +32,10 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 object App extends IOApp {
 
-  def application(serviceConfiguration: ApiServiceConfiguration, configObjectSource: ConfigObjectSource): IO[HttpApp[IO]] = {
+  def application(
+    serviceConfiguration: ApiServiceConfiguration,
+    configObjectSource: ConfigObjectSource
+  ): IO[HttpApp[IO]] = {
     implicit val actorSystem: ActorSystem = ActorSystem(BuildInfo.name)
 
     val cpuBlockingExecutionContext: ExecutionContextExecutorService =
@@ -54,7 +57,8 @@ object App extends IOApp {
         val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
         val authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
 
-        val resourceFileService = new ResourceFileService[IO](Blocker.liftExecutionContext(ioBlockingExecutionContext))
+        val staticResourceService =
+          new StaticResourceService[IO](Blocker.liftExecutionContext(ioBlockingExecutionContext))
 
         val healthCheckService = new HealthCheckServiceImpl[IO](
           externalComponents.transactor,
@@ -79,7 +83,13 @@ object App extends IOApp {
         val authorizationService = new AuthorizationServiceImpl[IO]
 
         val userService =
-          new UserServiceImpl(databaseUserDao, lockedUserDao, authenticationService, externalComponents.publisher)
+          new UserServiceImpl(
+            databaseUserDao,
+            lockedUserDao,
+            authenticationService,
+            externalComponents.publisher,
+            externalComponents.resourceService
+          )
         val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
 
         Runtime.getRuntime.addShutdownHook {
@@ -92,14 +102,15 @@ object App extends IOApp {
           healthCheckService,
           authenticationService,
           authorizationService,
-          resourceFileService
+          externalComponents.resourceService,
+          staticResourceService
         )
       }
   }
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      configObjectSource <- IO.delay(ConfigSource.default)
+      configObjectSource <- IO.delay(ConfigSource.defaultApplication)
       serviceConfiguration <- ApiServiceConfiguration.load[IO](configObjectSource)
 
       httpApp <- application(serviceConfiguration, configObjectSource)

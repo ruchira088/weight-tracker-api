@@ -6,47 +6,59 @@ import akka.actor.ActorSystem
 import cats.effect.{Async, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
-import com.ruchij.config.development.ApplicationMode.{DockerCompose, Production}
-import com.ruchij.config.{DoobieConfiguration, KafkaClientConfiguration, RedisConfiguration}
+import com.ruchij.config.development.ApplicationMode.{DockerCompose, Local, Production, Test}
+import com.ruchij.config.{DoobieConfiguration, KafkaClientConfiguration, RedisConfiguration, S3Configuration}
 import com.ruchij.messaging.Publisher
 import com.ruchij.messaging.file.FileBasedPublisher
 import com.ruchij.messaging.inmemory.InMemoryPublisher
 import com.ruchij.messaging.kafka.KafkaProducer
 import com.ruchij.migration.MigrationApp
 import com.ruchij.migration.config.DatabaseConfiguration
+import com.ruchij.services.resource.{InMemoryResourceService, ResourceService, S3ResourceService}
 import doobie.util.transactor.Transactor
 import doobie.util.transactor.Transactor.Aux
-import pureconfig.{ConfigObjectSource, ConfigReader}
+import pureconfig.ConfigObjectSource
+import pureconfig.ConfigReader.Result
 import redis.RedisClient
 import redis.embedded.RedisServer
 import redis.embedded.ports.EphemeralPortProvider
+import software.amazon.awssdk.services.s3.S3AsyncClient
 
+import scala.concurrent.Future
 import scala.language.higherKinds
 
 case class ExternalComponents[F[_]](
   redisClient: RedisClient,
   transactor: Transactor.Aux[F, Unit],
   publisher: Publisher[F, _],
+  resourceService: ResourceService[F],
   shutdownHook: F[Unit]
 )
 
 object ExternalComponents {
+  case class TestExternalComponents[F[_]](
+    externalComponents: ExternalComponents[F],
+    inMemoryPublisher: InMemoryPublisher[F],
+    inMemoryResourceService: InMemoryResourceService[F]
+  )
 
-  def from[G[_]: Sync, F[_]: Async: ContextShift](
+  def from[G[_]: Sync: Result ~> *[_], F[_]: Async: ContextShift: Future ~> *[_]: Either[Throwable, *] ~> *[_]](
     applicationMode: ApplicationMode,
     configObjectSource: ConfigObjectSource
-  )(implicit actorSystem: ActorSystem, functionK: ConfigReader.Result ~> G): G[ExternalComponents[F]] =
+  )(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
     applicationMode match {
       case Production =>
         for {
           redisConfiguration <- RedisConfiguration.load[G](configObjectSource)
           doobieConfiguration <- DoobieConfiguration.load[G](configObjectSource)
           kafkaClientConfiguration <- KafkaClientConfiguration.confluent[G](configObjectSource)
+          s3Configuration <- S3Configuration.load[G](configObjectSource)
         } yield
           ExternalComponents[F](
             redisClient(redisConfiguration),
             doobieTransactor[F](doobieConfiguration),
             new KafkaProducer[F](kafkaClientConfiguration),
+            new S3ResourceService[F](S3AsyncClient.create(), s3Configuration.bucket, s3Configuration.prefixKey),
             Applicative[F].unit
           )
 
@@ -60,28 +72,48 @@ object ExternalComponents {
             redisClient(redisConfiguration),
             doobieTransactor(doobieConfiguration),
             new KafkaProducer[F](kafkaClientConfiguration),
+            ???,
             Applicative[F].unit
           )
 
-      case _ => slim[G, F](applicationMode)
+      case Local =>
+        for {
+          (redisServer, redisPort) <- startEmbeddedRedisServer[G]
+          _ <- MigrationApp.migrate[G](h2DatabaseConfiguration)
+        } yield
+          ExternalComponents(
+            redisClient(RedisConfiguration("localhost", redisPort, None)),
+            h2Transactor[F],
+            new FileBasedPublisher[F](Paths.get("./file-based-messaging.txt")),
+            new S3ResourceService[F](S3AsyncClient.create(), "resources.weight-tracker.ruchij.com", ""),
+            Sync[F].delay(redisServer.stop())
+          )
+
+      case Test => testComponents[G, F]().map(_.externalComponents)
     }
 
-  def slim[G[_]: Sync, F[_]: Async: ContextShift](applicationMode: ApplicationMode)(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
+  def testComponents[G[_]: Sync, F[_]: Async: ContextShift]()(
+    implicit actorSystem: ActorSystem
+  ): G[TestExternalComponents[F]] =
     for {
       (redisServer, redisPort) <- startEmbeddedRedisServer[G]
-      _ <- MigrationApp.migrate[G](H2_DATABASE_CONFIGURATION)
+      _ <- MigrationApp.migrate[G](h2DatabaseConfiguration)
+      inMemoryPublisher = InMemoryPublisher[F]
+      inMemoryResourceService = InMemoryResourceService[F]
     } yield
-      ExternalComponents(
-        redisClient(RedisConfiguration("localhost", redisPort, None)),
-        h2Transactor[F],
-        if (applicationMode == ApplicationMode.Local)
-          new FileBasedPublisher[F](Paths.get("./file-based-messaging.txt"))
-        else
-          InMemoryPublisher.empty[F],
-        Sync[F].delay(redisServer.stop())
+      TestExternalComponents(
+        ExternalComponents(
+          redisClient(RedisConfiguration("localhost", redisPort, None)),
+          h2Transactor[F],
+          inMemoryPublisher,
+          inMemoryResourceService,
+          Sync[F].delay(redisServer.stop())
+        ),
+        inMemoryPublisher,
+        inMemoryResourceService
       )
 
-  val H2_DATABASE_CONFIGURATION: DatabaseConfiguration =
+  val h2DatabaseConfiguration: DatabaseConfiguration =
     DatabaseConfiguration(
       "jdbc:h2:mem:weight-tracker;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
       "",
@@ -92,9 +124,9 @@ object ExternalComponents {
     doobieTransactor {
       DoobieConfiguration(
         "org.h2.Driver",
-        H2_DATABASE_CONFIGURATION.url,
-        H2_DATABASE_CONFIGURATION.user,
-        H2_DATABASE_CONFIGURATION.password
+        h2DatabaseConfiguration.url,
+        h2DatabaseConfiguration.user,
+        h2DatabaseConfiguration.password
       )
     }
 

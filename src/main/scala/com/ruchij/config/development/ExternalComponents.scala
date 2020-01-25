@@ -3,18 +3,18 @@ package com.ruchij.config.development
 import java.nio.file.Paths
 
 import akka.actor.ActorSystem
-import cats.effect.{Async, ContextShift, Sync}
+import cats.effect.{Async, Blocker, Concurrent, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.development.ApplicationMode.{DockerCompose, Local, Production, Test}
-import com.ruchij.config.{DoobieConfiguration, KafkaClientConfiguration, RedisConfiguration, S3Configuration}
+import com.ruchij.config.{DoobieConfiguration, FileResourceConfiguration, KafkaClientConfiguration, RedisConfiguration, S3Configuration}
 import com.ruchij.messaging.Publisher
 import com.ruchij.messaging.file.FileBasedPublisher
 import com.ruchij.messaging.inmemory.InMemoryPublisher
 import com.ruchij.messaging.kafka.KafkaProducer
 import com.ruchij.migration.MigrationApp
 import com.ruchij.migration.config.DatabaseConfiguration
-import com.ruchij.services.resource.{InMemoryResourceService, ResourceService, S3ResourceService}
+import com.ruchij.services.resource.{FileResourceService, InMemoryResourceService, ResourceService, S3ResourceService}
 import doobie.util.transactor.Transactor
 import doobie.util.transactor.Transactor.Aux
 import pureconfig.ConfigObjectSource
@@ -42,9 +42,10 @@ object ExternalComponents {
     inMemoryResourceService: InMemoryResourceService[F]
   )
 
-  def from[G[_]: Sync: Result ~> *[_], F[_]: Async: ContextShift: Future ~> *[_]: Either[Throwable, *] ~> *[_]](
+  def from[G[_]: Sync: Result ~> *[_], F[_]: Async: ContextShift: Future ~> *[_]: Either[Throwable, *] ~> *[_]: Concurrent](
     applicationMode: ApplicationMode,
-    configObjectSource: ConfigObjectSource
+    configObjectSource: ConfigObjectSource,
+    blocker: Blocker
   )(implicit actorSystem: ActorSystem): G[ExternalComponents[F]] =
     applicationMode match {
       case Production =>
@@ -80,12 +81,13 @@ object ExternalComponents {
         for {
           (redisServer, redisPort) <- startEmbeddedRedisServer[G]
           _ <- MigrationApp.migrate[G](h2DatabaseConfiguration)
+          fileResourceConfiguration <- FileResourceConfiguration.load[G](configObjectSource)
         } yield
           ExternalComponents(
             redisClient(RedisConfiguration("localhost", redisPort, None)),
             h2Transactor[F],
             new FileBasedPublisher[F](Paths.get("./file-based-messaging.txt")),
-            InMemoryResourceService[F],
+            new FileResourceService[F](fileResourceConfiguration.fileResourceFolder, fileResourceConfiguration.metaDataFile, blocker),
             Sync[F].delay(redisServer.stop())
           )
 

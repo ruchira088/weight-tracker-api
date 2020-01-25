@@ -13,3 +13,9 @@
 {"topic":"UserCreated","value":{"id":"c87b2947-bfe4-4b31-81b0-b0e11b30693a","email":"rodger.nicolas@icloud.com","firstName":"Rodger","lastName":"Nicolas","profileImage":null}}
 {"topic":"UserCreated","value":{"id":"5eb3f861-c244-402e-ae24-a306c2e2336e","email":"deedee.champlin@gmail.com","firstName":"Deedee","lastName":"Champlin","profileImage":null}}
 {"topic":"UserCreated","value":{"id":"d4e4a74a-97c8-4400-aa04-313ebd25a51f","email":"misti.kling@icloud.com","firstName":"Misti","lastName":"Kling","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"155a7ee1-111e-41ef-8a45-76cea128c005","email":"erminia.koepp@icloud.com","firstName":"Erminia","lastName":"Koepp","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"d0b4f5ab-1546-40c0-baae-c04daebb44f9","email":"isidro.windler@live.com","firstName":"Isidro","lastName":"Windler","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"5bb87099-8f26-4754-bd9d-d114011a047c","email":"heide.mcdermott@ruchij.com","firstName":"Heide","lastName":"McDermott","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"22d14891-d704-41dc-b493-2907f8ab9c34","email":"tommie.mccullough@yahoo.com","firstName":"Tommie","lastName":"McCullough","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"25cb178e-2e3c-42aa-9538-453405855329","email":"jame.upton@ruchij.com","firstName":"Jame","lastName":"Upton","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"eaaf6045-9fb0-4178-9aa5-f92bfd065ce0","email":"vaughn.satterfield@hotmail.com","firstName":"Vaughn","lastName":"Satterfield","profileImage":null}}

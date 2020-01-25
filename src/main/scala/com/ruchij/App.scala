@@ -27,8 +27,8 @@ import org.http4s.HttpApp
 import org.http4s.server.blaze.BlazeServerBuilder
 import pureconfig.{ConfigObjectSource, ConfigSource}
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 object App extends IOApp {
 
@@ -38,14 +38,14 @@ object App extends IOApp {
   ): IO[HttpApp[IO]] = {
     implicit val actorSystem: ActorSystem = ActorSystem(BuildInfo.name)
 
-    val cpuBlockingExecutionContext: ExecutionContextExecutorService =
-      ExecutionContext.fromExecutorService(Executors.newWorkStealingPool())
+    val cpuBlocker: Blocker =
+      Blocker.liftExecutionContext(ExecutionContext.fromExecutorService(Executors.newWorkStealingPool()))
 
-    val ioBlockingExecutionContext: ExecutionContextExecutorService =
-      ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+    val ioBlocker: Blocker =
+      Blocker.liftExecutionContext(ExecutionContext.fromExecutorService(Executors.newCachedThreadPool()))
 
     ExternalComponents
-      .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource)
+      .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource, ioBlocker)
       .map { externalComponents =>
         val databaseUserDao = new DoobieUserDao(externalComponents.transactor)
         val resetPasswordTokenDao = new DoobieResetPasswordTokenDao(externalComponents.transactor)
@@ -53,12 +53,11 @@ object App extends IOApp {
         val lockedUserDao = new DoobieLockedUserDao(externalComponents.transactor)
         val authenticationFailuresDao = new DoobieAuthenticationFailureDao(externalComponents.transactor)
 
-        val passwordHashingService = new BCryptService[IO](Blocker.liftExecutionContext(cpuBlockingExecutionContext))
+        val passwordHashingService = new BCryptService[IO](cpuBlocker)
         val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
         val authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
 
-        val staticResourceService =
-          new StaticResourceService[IO](Blocker.liftExecutionContext(ioBlockingExecutionContext))
+        val staticResourceService = new StaticResourceService[IO](ioBlocker)
 
         val healthCheckService = new HealthCheckServiceImpl[IO](
           externalComponents.transactor,

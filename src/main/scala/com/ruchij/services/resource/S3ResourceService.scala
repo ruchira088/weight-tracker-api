@@ -3,12 +3,10 @@ package com.ruchij.services.resource
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.implicits._
-import cats.~>
+import cats.{Show, ~>}
 import com.ruchij.services.resource.models.Resource
 import fs2.{Chunk, Stream}
 import org.http4s.MediaType
-import org.http4s.headers.`Content-Type`
-import org.http4s.util.StringWriter
 import software.amazon.awssdk.core.internal.async.{ByteArrayAsyncRequestBody, ByteArrayAsyncResponseTransformer}
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model._
@@ -48,7 +46,7 @@ class S3ResourceService[F[_]: Sync](s3AsyncClient: S3AsyncClient, s3Bucket: Stri
               .builder()
               .bucket(s3Bucket)
               .key(key)
-              .contentType(`Content-Type`(mediaType).renderValue(new StringWriter).result)
+              .contentType(Show[MediaType].show(mediaType))
               .build()
           )
           .toScala

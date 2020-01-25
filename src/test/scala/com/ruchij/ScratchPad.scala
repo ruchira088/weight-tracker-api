@@ -1,11 +1,9 @@
 package com.ruchij
 
-import java.nio.ByteBuffer
-import java.nio.channels.{AsynchronousFileChannel, CompletionHandler}
-import java.nio.file.{Path, StandardOpenOption}
+import java.nio.file.Path
 
 import cats.data.OptionT
-import cats.effect.{Async, Blocker, ContextShift, ExitCode, IO, IOApp, Resource, Sync}
+import cats.effect.{Blocker, ContextShift, ExitCode, IO, IOApp, Sync}
 import cats.implicits._
 import com.ruchij.test.utils.RandomGenerator
 
@@ -49,21 +47,4 @@ object ScratchPad extends IOApp {
             }
         }
     }
-
-  def writeToFile[F[_]: Async](path: Path, content: Array[Byte]): F[Int] =
-    Resource.make {
-      Sync[F].delay(AsynchronousFileChannel.open(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE))
-    } { asynchronousFileChannel => Sync[F].delay(asynchronousFileChannel.close()) }
-        .use {
-          asynchronousFileChannel => Async[F].async {
-            callback =>
-              asynchronousFileChannel.write(ByteBuffer.wrap(content), 0, (): Unit, new CompletionHandler[Integer, Unit] {
-                override def completed(result: Integer, attachment: Unit): Unit =
-                  callback(Right(result))
-
-                override def failed(throwable: Throwable, attachment: Unit): Unit =
-                  callback(Left(throwable))
-              })
-          }
-        }
 }

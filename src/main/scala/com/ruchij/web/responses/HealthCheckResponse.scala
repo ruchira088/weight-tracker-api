@@ -3,9 +3,9 @@ package com.ruchij.web.responses
 import cats.Applicative
 import com.ruchij.services.health.models.HealthStatus
 import io.circe.generic.auto._
-import org.http4s.circe.jsonEncoderOf
 import org.http4s.EntityEncoder
-import shapeless.{Generic, HList, Poly, Poly1}
+import org.http4s.circe.jsonEncoderOf
+import shapeless.Generic
 
 import scala.language.higherKinds
 

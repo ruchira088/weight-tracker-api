@@ -1,9 +1,8 @@
 package com.ruchij.services.health
 
-import java.nio.file.{Path, Paths}
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import cats.data.OptionT
 import cats.effect.{Blocker, Clock, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
@@ -16,19 +15,17 @@ import com.ruchij.messaging.models.{HealthCheckProbe, Message}
 import com.ruchij.services.health.models.{HealthStatus, ServiceInformation}
 import com.ruchij.services.resource.ResourceService
 import com.ruchij.services.resource.models.Resource
-import com.ruchij.types.Random
 import com.ruchij.web.responses.HealthCheckResponse
 import doobie.implicits._
 import doobie.util.transactor.Transactor
-import fs2.io.file.readAll
-import org.http4s.MediaType
+import org.http4s.{MediaType, StaticFile}
 import org.joda.time.DateTime
 import redis.RedisClient
 
 import scala.concurrent.Future
 import scala.language.higherKinds
 
-class HealthCheckServiceImpl[F[_]: Clock: Sync: Random[*[_], UUID]: ContextShift](
+class HealthCheckServiceImpl[F[_]: Clock: Sync: ContextShift](
   transactor: Transactor.Aux[F, Unit],
   redisClient: RedisClient,
   publisher: Publisher[F, _],
@@ -77,16 +74,20 @@ class HealthCheckServiceImpl[F[_]: Clock: Sync: Random[*[_], UUID]: ContextShift
   def resourceStorage(): F[HealthStatus] =
     for {
       iconUrlOpt <- Sync[F].delay(Option(getClass.getClassLoader.getResource("favicon.ico")))
-      iconPath <- iconUrlOpt.fold[F[Path]](
-        Sync[F].raiseError(ResourceNotFoundException("Unable to find favicon.ico from class loader resources"))
-      ) { url =>
-        Sync[F].delay(Paths.get(url.toURI))
-      }
 
-      resource = Resource(MediaType.image.`x-icon`, readAll[F](iconPath, ioBlocker, 4096))
+      data <- OptionT
+        .fromOption[F](iconUrlOpt)
+        .flatMap { url =>
+          StaticFile.fromURL[F](url, ioBlocker).map(_.body)
+        }
+        .getOrElseF {
+          Sync[F].raiseError(ResourceNotFoundException("Unable to load favicon.ico from class loader resources"))
+        }
 
-      uuid <- Random[F, UUID].value
-      key = s"health-check/$uuid-favicon.ico"
+      resource = Resource(MediaType.image.`x-icon`, data)
+
+      timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
+      key = s"health-check/$timestamp-favicon.ico"
 
       _ <- resourceService.insert(key, resource)
       fetchedResource <- resourceService.fetchByKey(key).value

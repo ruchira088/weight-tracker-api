@@ -1,9 +1,13 @@
 package com.ruchij.web.middleware.exception
 
+import cats.Applicative
 import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.effect.Sync
+import cats.implicits._
 import com.ruchij.exceptions._
+import com.ruchij.logging.Logger
+import com.ruchij.web.middleware.correlation.CorrelationId.withId
 import com.ruchij.web.responses.ErrorResponse
 import org.http4s.dsl.impl.EntityResponseGenerator
 import org.http4s.{HttpApp, Request, Response, Status}
@@ -11,12 +15,22 @@ import org.http4s.{HttpApp, Request, Response, Status}
 import scala.language.higherKinds
 
 object ExceptionHandler {
+  private val logger = Logger[ExceptionHandler.type]
 
   def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
-    Kleisli[F, Request[F], Response[F]] { request =>
-      Sync[F].handleErrorWith(httpApp.run(request)) { throwable =>
-        entityResponseGenerator(throwable)(throwableErrorResponseMapper(throwable))
-      }
+    Kleisli[F, Request[F], Response[F]] {
+      case request withId correlationId =>
+        Sync[F].handleErrorWith(httpApp.run(request)) { throwable =>
+          entityResponseGenerator[F](throwable)(throwableErrorResponseMapper(throwable))
+            .flatTap { response =>
+              if (response.status == Status.InternalServerError)
+                logger.errorF(throwable)(correlationId)
+              else
+                Applicative[F].unit
+            }
+        }
+
+      case request => httpApp.run(request)
     }
 
   private def entityResponseGenerator[F[_]](throwable: Throwable): EntityResponseGenerator[F, F] =

@@ -22,11 +22,11 @@ object HealthRoutes {
     HttpRoutes.of {
       case GET -> Root withId correlationId =>
         for {
-          _ <- logger.infoF[F]("Health check request received")(correlationId)
+          _ <- logger.debugF[F]("Health check request received")(correlationId)
 
           serviceInformation <- healthCheckService.serviceInformation()
 
-          _ <- logger.infoF[F]("Health check is OK")(correlationId)
+          _ <- logger.debugF[F]("Health check is OK")(correlationId)
 
           response <- Ok(serviceInformation)
         } yield response

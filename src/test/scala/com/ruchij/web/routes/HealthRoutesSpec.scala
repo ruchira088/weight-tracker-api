@@ -62,7 +62,8 @@ class HealthRoutesSpec extends AnyFlatSpec with Matchers {
       json"""{
         "database": "Healthy",
         "redis": "Healthy",
-        "publisher": "Healthy"
+        "publisher": "Healthy",
+        "resourceStorage": "Healthy"
       }"""
 
     response must beJsonContentType

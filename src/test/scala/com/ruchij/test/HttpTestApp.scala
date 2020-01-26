@@ -63,6 +63,8 @@ object HttpTestApp {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")
 
+    val blocker = Blocker.liftExecutionContext(ExecutionContext.global)
+
     val testExternalComponents: TestExternalComponents[F] =
       UnsafeCopoint.unsafeExtract(ExternalComponents.testComponents[F, F]())
 
@@ -79,7 +81,7 @@ object HttpTestApp {
 
     val authenticationService =
       new AuthenticationServiceImpl[F](
-        new BCryptService[F](Blocker.liftExecutionContext(ExecutionContext.global)),
+        new BCryptService[F](blocker),
         testExternalComponents.inMemoryPublisher,
         userDao,
         lockedUserDao,
@@ -97,12 +99,14 @@ object HttpTestApp {
       testExternalComponents.transactor,
       testExternalComponents.redisClient,
       testExternalComponents.publisher,
+      testExternalComponents.resourceService,
+      blocker,
       ApplicationMode.Local,
       buildInformation
     )
     val authorizationService = new AuthorizationServiceImpl[F]
 
-    val staticResourceService = new StaticResourceService[F](Blocker.liftExecutionContext(ExecutionContext.global))
+    val staticResourceService = new StaticResourceService[F](blocker)
 
     val httpApp =
       Routes[F](

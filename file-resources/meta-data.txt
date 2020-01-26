@@ -1,0 +1,1 @@
+{"key":"health-check/322f3680-5e1f-4a07-a2b5-a2b039376c0c-favicon.ico","mediaType":"image/x-icon","resourcePath":"./file-resources/health-check/322f3680-5e1f-4a07-a2b5-a2b039376c0c-favicon.ico"}

@@ -63,6 +63,8 @@ object App extends IOApp {
           externalComponents.transactor,
           externalComponents.redisClient,
           externalComponents.publisher,
+          externalComponents.resourceService,
+          ioBlocker,
           serviceConfiguration.applicationMode,
           serviceConfiguration.buildInformation
         )

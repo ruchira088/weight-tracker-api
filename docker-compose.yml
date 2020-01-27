@@ -7,7 +7,7 @@ services:
     depends_on:
       - redis
       - postgres
-      - database-migration
+      - migration-application
       - kafka-broker
       - schema-registry
     ports:
@@ -16,6 +16,7 @@ services:
     volumes:
       - "~/.sbt:/root/.sbt"
       - "~/.coursier:/root/.coursier"
+      - "~/.aws:/root/.aws"
       - "/root/.sbt/1.0/plugins"
     environment:
       REDIS_HOST: redis

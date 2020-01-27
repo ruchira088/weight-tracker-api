@@ -68,12 +68,13 @@ object ExternalComponents {
           redisConfiguration <- RedisConfiguration.load[G](configObjectSource)
           doobieConfiguration <- DoobieConfiguration.load[G](configObjectSource)
           kafkaClientConfiguration <- KafkaClientConfiguration.local[G](configObjectSource)
+          s3Configuration <- S3Configuration.load[G](configObjectSource)
         } yield
           ExternalComponents(
             redisClient(redisConfiguration),
             doobieTransactor(doobieConfiguration),
             new KafkaProducer[F](kafkaClientConfiguration),
-            ???,
+            new S3ResourceService[F](S3AsyncClient.create(), s3Configuration.bucket, s3Configuration.prefixKey),
             Applicative[F].unit
           )
 

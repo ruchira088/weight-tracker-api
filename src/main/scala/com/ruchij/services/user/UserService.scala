@@ -18,8 +18,6 @@ trait UserService[F[_]] {
 
   def deleteById(id: UUID): F[User]
 
-  def updatePassword(userId: UUID, secret: String, password: String): F[User]
-
   def unlockUser(userId: UUID, unlockCode: String): F[User]
 
   def setProfileImage(userId: UUID, fileName: String, image: Resource[F]): F[User]

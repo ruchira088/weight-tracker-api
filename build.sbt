@@ -79,6 +79,7 @@ val rootDependencies =
     enumeratum,
     shapeless,
     awsS3,
+    googleAuth,
     logbackClassic,
     scalaLogging,
     akkaSlf4j,

@@ -7,6 +7,8 @@ import cats.Applicative
 import cats.effect.{Clock, Sync}
 import cats.implicits._
 import com.ruchij.config.AuthenticationConfiguration
+import com.ruchij.daos.authentication.UserAuthenticationConfigurationDao
+import com.ruchij.daos.authentication.models.UserAuthenticationConfiguration
 import com.ruchij.daos.authenticationfailure.AuthenticationFailureDao
 import com.ruchij.daos.authenticationfailure.models.DatabaseAuthenticationFailure
 import com.ruchij.daos.authtokens.AuthenticationTokenDao
@@ -16,7 +18,12 @@ import com.ruchij.daos.lockeduser.models.DatabaseLockedUser
 import com.ruchij.daos.resetpassword.ResetPasswordTokenDao
 import com.ruchij.daos.resetpassword.models.DatabaseResetPasswordToken
 import com.ruchij.daos.user.UserDao
-import com.ruchij.exceptions.{AuthenticationException, LockedUserAccountException, ResourceNotFoundException}
+import com.ruchij.exceptions.{
+  AuthenticationException,
+  InternalServiceException,
+  LockedUserAccountException,
+  ResourceNotFoundException
+}
 import com.ruchij.messaging.Publisher
 import com.ruchij.services.authentication.models.{AuthenticationToken, ResetPasswordToken}
 import com.ruchij.services.hashing.PasswordHashingService
@@ -26,12 +33,14 @@ import com.ruchij.types.Tags.EmailAddress
 import com.ruchij.types.Utils.predicate
 import org.joda.time.DateTime
 
+import scala.concurrent.duration.MILLISECONDS
 import scala.language.higherKinds
 
 class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   passwordHashingService: PasswordHashingService[F, String],
   publisher: Publisher[F, _],
   userDao: UserDao[F],
+  userAuthenticationConfigurationDao: UserAuthenticationConfigurationDao[F],
   lockedUserDao: LockedUserDao[F],
   authenticationFailureDao: AuthenticationFailureDao[F],
   resetPasswordTokenDao: ResetPasswordTokenDao[F],
@@ -39,8 +48,6 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
   authenticationSecretGenerator: AuthenticationSecretGenerator[F],
   authenticationConfiguration: AuthenticationConfiguration
 ) extends AuthenticationService[F] {
-
-  override def hashPassword(password: String): F[String] = passwordHashingService.hash(password)
 
   override def login(email: EmailAddress, password: String): F[AuthenticationToken] =
     for {
@@ -51,7 +58,15 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
       isLockedUser <- lockedUserDao.findLockedUserById(databaseUser.id).isDefined
       _ <- predicate(isLockedUser, LockedUserAccountException(databaseUser.id))
 
-      isSuccess <- passwordHashingService.checkPassword(password, databaseUser.password)
+      authentication <- userAuthenticationConfigurationDao
+        .findByUserId(databaseUser.id)
+        .getOrElseF(
+          Sync[F].raiseError(
+            InternalServiceException(s"Unable to find authentication configuration for userId=${databaseUser.id}")
+          )
+        )
+
+      isSuccess <- passwordHashingService.checkPassword(password, authentication.password)
 
       timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
       currentDateTime = new DateTime(timestamp)
@@ -163,19 +178,40 @@ class AuthenticationServiceImpl[F[_]: Sync: Clock: Random[*[_], UUID]](
 
     } yield resetPasswordToken
 
-  override def getResetPasswordToken(userId: UUID, secret: String): F[ResetPasswordToken] =
-    resetPasswordTokenDao
-      .find(userId, secret)
-      .getOrElseF(Sync[F].raiseError(ResourceNotFoundException("Reset password token not found")))
-      .map(ResetPasswordToken.fromDatabaseResetPasswordToken)
-
-  override def passwordResetCompleted(userId: UUID, secret: String): F[ResetPasswordToken] =
+  override def updatePassword(userId: UUID, secret: String, password: String): F[User] =
     for {
+      resetPasswordToken <- resetPasswordTokenDao
+        .find(userId, secret)
+        .getOrElseF(Sync[F].raiseError(ResourceNotFoundException("Reset password token not found")))
+
+      _ <- predicate(resetPasswordToken.passwordSetAt.nonEmpty, AuthenticationException("Token has already been used"))
+
+      timestamp <- Clock[F].realTime(MILLISECONDS)
+      _ <- predicate(resetPasswordToken.expiresAt.isBefore(timestamp), AuthenticationException("Token is expired"))
+
+      hashedPassword <- passwordHashingService.hash(password)
+      success <- userAuthenticationConfigurationDao.updatePassword(userId, hashedPassword)
+      _ <- predicate(!success, ResourceNotFoundException(s"Unable to update password for userId=$userId"))
+
+      resetCompleted <- resetPasswordTokenDao.resetCompleted(userId, secret, new DateTime(timestamp))
+      _ <- predicate(!resetCompleted, ResourceNotFoundException("Unable complete password reset"))
+
+      databaseUser <- userDao
+        .findById(userId)
+        .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Unable to find user for userId=$userId")))
+    } yield User.fromDatabaseUser(databaseUser)
+
+  override def setPassword(userId: UUID, password: String): F[User] =
+    for {
+      databaseUser <- userDao
+        .findById(userId)
+        .getOrElseF(Sync[F].raiseError(ResourceNotFoundException(s"Unable to find user for userId=$userId")))
+
       timestamp <- Clock[F].realTime(TimeUnit.MILLISECONDS)
-      success <- resetPasswordTokenDao.resetCompleted(userId, secret, new DateTime(timestamp))
+      hashedPassword <- passwordHashingService.hash(password)
 
-      _ <- predicate(!success, ResourceNotFoundException("Reset password token not found"))
-      resetPasswordToken <- getResetPasswordToken(userId, secret)
-    } yield resetPasswordToken
-
+      _ <- userAuthenticationConfigurationDao.insert {
+        UserAuthenticationConfiguration(userId, new DateTime(timestamp), new DateTime(timestamp), hashedPassword, None)
+      }
+    } yield User.fromDatabaseUser(databaseUser)
 }

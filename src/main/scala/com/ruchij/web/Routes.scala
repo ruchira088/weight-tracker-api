@@ -52,7 +52,7 @@ object Routes {
         Router(
           `/v1` ->
             Router(
-              `/user` -> UserRoutes(userService, weightEntryService, authorizationService),
+              `/user` -> UserRoutes(userService, weightEntryService, authenticationService, authorizationService),
               `/session` -> SessionRoutes(authenticationService, authenticationTokenExtractor),
             ),
           `/health` -> HealthRoutes(healthCheckService)

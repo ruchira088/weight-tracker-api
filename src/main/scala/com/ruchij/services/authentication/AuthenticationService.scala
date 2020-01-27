@@ -9,17 +9,15 @@ import com.ruchij.types.Tags.EmailAddress
 import scala.language.higherKinds
 
 trait AuthenticationService[F[_]] {
-  def hashPassword(password: String): F[String]
-
   def login(email: EmailAddress, password: String): F[AuthenticationToken]
 
   def logout(secret: String): F[AuthenticationToken]
+
+  def setPassword(userId: UUID, password: String): F[User]
 
   def authenticate(secret: String): F[User]
 
   def resetPassword(email: EmailAddress, frontEndUrl: String): F[ResetPasswordToken]
 
-  def getResetPasswordToken(userId: UUID, secret: String): F[ResetPasswordToken]
-
-  def passwordResetCompleted(userId: UUID, secret: String): F[ResetPasswordToken]
+  def updatePassword(userId: UUID, secret: String, password: String): F[User]
 }

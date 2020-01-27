@@ -11,6 +11,8 @@ import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfigu
 import com.ruchij.config.development.ExternalComponents.TestExternalComponents
 import com.ruchij.config.development.{ApplicationMode, ExternalComponents}
 import com.ruchij.config.{AuthenticationConfiguration, BuildInformation}
+import com.ruchij.daos.authentication.DoobieUserAuthenticationConfigurationDao
+import com.ruchij.daos.authentication.models.UserAuthenticationConfiguration
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authenticationfailure.models.DatabaseAuthenticationFailure
 import com.ruchij.daos.authtokens.models.DatabaseAuthenticationToken
@@ -30,6 +32,7 @@ import com.ruchij.services.data.WeightEntryServiceImpl
 import com.ruchij.services.hashing.BCryptService
 import com.ruchij.services.health.HealthCheckServiceImpl
 import com.ruchij.services.user.UserServiceImpl
+import com.ruchij.test.utils.RandomGenerator
 import com.ruchij.types.{Random, UnsafeCopoint}
 import com.ruchij.web.Routes
 import com.ruchij.web.assets.StaticResourceService
@@ -43,6 +46,7 @@ import scala.language.{higherKinds, implicitConversions, postfixOps}
 case class HttpTestApp[F[_]](
   httpApp: HttpApp[F],
   userDao: UserDao[F],
+  userAuthenticationConfigurationDao: DoobieUserAuthenticationConfigurationDao[F],
   authenticationTokenDao: AuthenticationTokenDao[F],
   weightEntryDao: WeightEntryDao[F],
   resetPasswordTokenDao: ResetPasswordTokenDao[F],
@@ -74,6 +78,7 @@ object HttpTestApp {
     val weightEntryDao: DoobieWeightEntryDao[F] = new DoobieWeightEntryDao[F](testExternalComponents.transactor)
     val lockedUserDao = new DoobieLockedUserDao[F](testExternalComponents.transactor)
     val authenticationFailureDao = new DoobieAuthenticationFailureDao[F](testExternalComponents.transactor)
+    val userAuthenticationConfigurationDao = new DoobieUserAuthenticationConfigurationDao[F](testExternalComponents.transactor)
 
     val buildInformation = BuildInformation(Some("master"), Some("abc1234"), None)
 
@@ -84,6 +89,7 @@ object HttpTestApp {
         new BCryptService[F](blocker),
         testExternalComponents.inMemoryPublisher,
         userDao,
+        userAuthenticationConfigurationDao,
         lockedUserDao,
         authenticationFailureDao,
         resetPasswordTokenDao,
@@ -127,6 +133,7 @@ object HttpTestApp {
     HttpTestApp(
       httpApp,
       userDao,
+      userAuthenticationConfigurationDao,
       authenticationTokenDao,
       weightEntryDao,
       resetPasswordTokenDao,
@@ -142,6 +149,18 @@ object HttpTestApp {
       self {
         UnsafeCopoint.unsafeExtract {
           httpTestApp.userDao.insert(databaseUser)
+            .product {
+              httpTestApp.userAuthenticationConfigurationDao
+                .insert {
+                  UserAuthenticationConfiguration(
+                    databaseUser.id,
+                    databaseUser.createdAt,
+                    databaseUser.lastModifiedAt,
+                    RandomGenerator.SALTED_PASSWORD,
+                    None
+                  )
+                }
+            }
         }
       }
 

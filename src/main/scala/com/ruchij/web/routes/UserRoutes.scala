@@ -7,6 +7,7 @@ import cats.effect.Sync
 import cats.implicits._
 import cats.~>
 import com.ruchij.logging.Logger
+import com.ruchij.services.authentication.AuthenticationService
 import com.ruchij.services.authorization.{AuthorizationService, Permission}
 import com.ruchij.services.data.WeightEntryService
 import com.ruchij.services.data.models.WeightEntry.weightEntryEncoder
@@ -32,6 +33,7 @@ object UserRoutes {
   def apply[F[_]: Sync](
     userService: UserService[F],
     weightEntryService: WeightEntryService[F],
+    authenticationService: AuthenticationService[F],
     authorizationService: AuthorizationService[F]
   )(
     implicit dsl: Http4sDsl[F],
@@ -76,7 +78,7 @@ object UserRoutes {
 
           _ <- logger.infoF[F](s"Resetting password for $userId...")(correlationId)
 
-          updatedUser <- userService.updatePassword(userId, secret, password)
+          updatedUser <- authenticationService.updatePassword(userId, secret, password)
 
           _ <- logger.infoF[F](s"Resetted password for $userId")(correlationId)
 

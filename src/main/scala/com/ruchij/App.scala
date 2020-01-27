@@ -8,6 +8,7 @@ import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ApiServiceConfiguration
 import com.ruchij.config.development.ExternalComponents
+import com.ruchij.daos.authentication.DoobieUserAuthenticationConfigurationDao
 import com.ruchij.daos.authenticationfailure.DoobieAuthenticationFailureDao
 import com.ruchij.daos.authtokens.RedisAuthenticationTokenDao
 import com.ruchij.daos.lockeduser.DoobieLockedUserDao
@@ -52,6 +53,7 @@ object App extends IOApp {
         val weightEntryDao = new DoobieWeightEntryDao(externalComponents.transactor)
         val lockedUserDao = new DoobieLockedUserDao(externalComponents.transactor)
         val authenticationFailuresDao = new DoobieAuthenticationFailureDao(externalComponents.transactor)
+        val userAuthenticationConfigurationDao = new DoobieUserAuthenticationConfigurationDao(externalComponents.transactor)
 
         val passwordHashingService = new BCryptService[IO](cpuBlocker)
         val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
@@ -73,6 +75,7 @@ object App extends IOApp {
           passwordHashingService,
           externalComponents.publisher,
           databaseUserDao,
+          userAuthenticationConfigurationDao,
           lockedUserDao,
           authenticationFailuresDao,
           resetPasswordTokenDao,

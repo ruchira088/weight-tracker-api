@@ -22,8 +22,8 @@ class DoobieUserDao[F[_]: Sync: Clock](transactor: Transactor.Aux[F, Unit]) exte
   override def insert(databaseUser: DatabaseUser): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into users (id, created_at, last_modified_at, email, first_name, last_name, profile_image, deleted)
-          values (
+        INSERT INTO users (id, created_at, last_modified_at, email, first_name, last_name, profile_image, deleted)
+          VALUES (
             ${databaseUser.id},
             ${databaseUser.createdAt},
             ${databaseUser.lastModifiedAt},
@@ -39,7 +39,7 @@ class DoobieUserDao[F[_]: Sync: Clock](transactor: Transactor.Aux[F, Unit]) exte
 
   override def findById(id: UUID): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select id, created_at, last_modified_at, email, first_name, last_name, profile_image from users where id = $id and deleted = false"
+      sql"SELECT id, created_at, last_modified_at, email, first_name, last_name, profile_image FROM users WHERE id = $id AND deleted = false"
         .query[DatabaseUser]
         .option
         .transact(transactor)
@@ -47,7 +47,7 @@ class DoobieUserDao[F[_]: Sync: Clock](transactor: Transactor.Aux[F, Unit]) exte
 
   override def findByEmail(email: EmailAddress): OptionT[F, DatabaseUser] =
     OptionT {
-      sql"select id, created_at, last_modified_at, email, first_name, last_name, profile_image from users where email = $email and deleted = false"
+      sql"SELECT id, created_at, last_modified_at, email, first_name, last_name, profile_image FROM users WHERE email = $email AND deleted = false"
         .query[DatabaseUser]
         .option
         .transact(transactor)
@@ -55,7 +55,7 @@ class DoobieUserDao[F[_]: Sync: Clock](transactor: Transactor.Aux[F, Unit]) exte
 
   override def deleteById(userId: UUID): F[Boolean] =
     singleUpdate {
-      sql"update users set deleted = true where id = $userId and deleted = false".update.run.transact(transactor)
+      sql"UPDATE users SET deleted = true WHERE id = $userId AND deleted = false".update.run.transact(transactor)
     }
 
   override def updateProfileImage(userId: UUID, imageKey: String): F[Boolean] =
@@ -64,8 +64,8 @@ class DoobieUserDao[F[_]: Sync: Clock](transactor: Transactor.Aux[F, Unit]) exte
         timestamp =>
           singleUpdate {
             sql"""
-             update users set profile_image = $imageKey, last_modified_at = ${new DateTime(timestamp)}
-              where id = $userId and deleted = false
+             UPDATE users SET profile_image = $imageKey, last_modified_at = ${new DateTime(timestamp)}
+              WHERE id = $userId AND deleted = false
             """
               .update.run.transact(transactor)
           }

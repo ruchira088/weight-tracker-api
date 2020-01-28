@@ -22,7 +22,7 @@ class DoobieUserAuthenticationConfigurationDao[F[_]: Bracket[*[_], Throwable]: C
   override def insert(authenticationConfiguration: UserAuthenticationConfiguration): F[Boolean] =
     singleUpdate {
       sql"""
-      INSERT INTO authentication_configuration(user_id, created_at, last_modified_at, password, totp_secret)
+      INSERT INTO authentication_configuration (user_id, created_at, last_modified_at, password, totp_secret)
         VALUES (
           ${authenticationConfiguration.userId},
           ${authenticationConfiguration.createdAt},

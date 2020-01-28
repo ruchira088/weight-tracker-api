@@ -19,8 +19,8 @@ class DoobieAuthenticationFailureDao[F[_]: Bracket[*[_], Throwable]](transactor:
   override def insert(databaseAuthenticationFailure: DatabaseAuthenticationFailure): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into authentication_failures (id, user_id, failed_at, deleted)
-          values (
+        INSERT INTO authentication_failures (id, user_id, failed_at, deleted)
+          VALUES (
             ${databaseAuthenticationFailure.id},
             ${databaseAuthenticationFailure.userId},
             ${databaseAuthenticationFailure.failedAt},
@@ -31,8 +31,8 @@ class DoobieAuthenticationFailureDao[F[_]: Bracket[*[_], Throwable]](transactor:
 
   override def findByUser(userId: UUID, after: DateTime): F[List[DatabaseAuthenticationFailure]] =
     sql"""
-      select id, user_id, failed_at, deleted from authentication_failures where user_id = $userId
-        and failed_at > $after and deleted = false
+      SELECT id, user_id, failed_at, deleted FROM authentication_failures WHERE user_id = $userId
+        AND failed_at > $after AND deleted = false
     """
       .query[DatabaseAuthenticationFailure]
       .to[List]
@@ -40,6 +40,6 @@ class DoobieAuthenticationFailureDao[F[_]: Bracket[*[_], Throwable]](transactor:
 
   override def delete(id: UUID): F[Boolean] =
     singleUpdate {
-      sql"update authentication_failures set deleted = true where id = $id".update.run.transact(transactor)
+      sql"UPDATE authentication_failures SET deleted = true WHERE id = $id".update.run.transact(transactor)
     }
 }

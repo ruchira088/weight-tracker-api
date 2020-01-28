@@ -19,8 +19,8 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
   override def insert(databaseWeightEntry: DatabaseWeightEntry): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into weight_entries (id, created_at, created_by, user_id, timestamp, weight, description, deleted)
-          values (
+        INSERT INTO weight_entries (id, created_at, created_by, user_id, timestamp, weight, description, deleted)
+          VALUES (
             ${databaseWeightEntry.id},
             ${databaseWeightEntry.createdAt},
             ${databaseWeightEntry.createdBy},
@@ -37,8 +37,8 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
   override def findById(id: UUID): OptionT[F, DatabaseWeightEntry] =
     OptionT {
       sql"""
-        select id, index, created_at, created_by, user_id, timestamp, weight, description from
-          weight_entries where id = $id and deleted = false
+        SELECT id, index, created_at, created_by, user_id, timestamp, weight, description FROM
+          weight_entries WHERE id = $id AND deleted = false
        """
         .query[DatabaseWeightEntry]
         .option
@@ -47,8 +47,8 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
 
   override def findByUser(userId: UUID, pageNumber: PageNumber, pageSize: PageSize): F[List[DatabaseWeightEntry]] =
     sql"""
-        select id, index, created_at, created_by, user_id, timestamp, weight, description from
-          weight_entries where user_id = $userId and deleted = false limit ${pageSize.toInt} offset ${pageNumber * pageSize}
+        SELECT id, index, created_at, created_by, user_id, timestamp, weight, description FROM
+          weight_entries WHERE user_id = $userId AND deleted = false LIMIT ${pageSize.toInt} OFFSET ${pageNumber * pageSize}
     """
       .query[DatabaseWeightEntry]
       .to[List]
@@ -56,7 +56,7 @@ class DoobieWeightEntryDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit]) exte
 
   override def delete(id: UUID): F[Boolean] =
     singleUpdate {
-      sql"update weight_entries set deleted = true where id = $id and deleted = false"
+      sql"UPDATE weight_entries SET deleted = true WHERE id = $id AND deleted = false"
         .update.run.transact(transactor)
     }
 }

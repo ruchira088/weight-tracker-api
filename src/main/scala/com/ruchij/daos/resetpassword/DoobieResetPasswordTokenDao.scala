@@ -19,14 +19,14 @@ class DoobieResetPasswordTokenDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit
   override def insert(databaseResetPasswordToken: DatabaseResetPasswordToken): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into reset_password_tokens (secret, user_id, created_at, expires_at, password_set_at)
-        values (
-          ${databaseResetPasswordToken.secret},
-          ${databaseResetPasswordToken.userId},
-          ${databaseResetPasswordToken.createdAt},
-          ${databaseResetPasswordToken.expiresAt},
-          ${databaseResetPasswordToken.passwordSetAt}
-        )
+        INSERT INTO reset_password_tokens (secret, user_id, created_at, expires_at, password_set_at)
+          VALUES (
+            ${databaseResetPasswordToken.secret},
+            ${databaseResetPasswordToken.userId},
+            ${databaseResetPasswordToken.createdAt},
+            ${databaseResetPasswordToken.expiresAt},
+            ${databaseResetPasswordToken.passwordSetAt}
+          )
         """
         .update.run.transact(transactor)
     }
@@ -34,8 +34,8 @@ class DoobieResetPasswordTokenDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit
   override def find(userId: UUID, secret: String): OptionT[F, DatabaseResetPasswordToken] =
     OptionT {
       sql"""
-        select user_id, secret, created_at, expires_at, password_set_at from reset_password_tokens
-          where user_id = $userId and secret = $secret
+        SELECT user_id, secret, created_at, expires_at, password_set_at FROM reset_password_tokens
+          WHERE user_id = $userId AND secret = $secret
       """
         .query[DatabaseResetPasswordToken]
         .option
@@ -45,8 +45,8 @@ class DoobieResetPasswordTokenDao[F[_]: Sync](transactor: Transactor.Aux[F, Unit
   override def resetCompleted(userId: UUID, secret: String, timestamp: DateTime): F[Boolean] =
     singleUpdate {
       sql"""
-        update reset_password_tokens set password_set_at = $timestamp
-          where user_id = $userId and secret = $secret
+        UPDATE reset_password_tokens SET password_set_at = $timestamp
+          WHERE user_id = $userId AND secret = $secret
         """.update.run.transact(transactor)
     }
 }

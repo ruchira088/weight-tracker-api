@@ -22,14 +22,17 @@ class DoobieLockedUserDao[F[_]: Bracket[*[_], Throwable]: Clock](transactor: Tra
   override def insert(databaseLockedUser: DatabaseLockedUser): F[Boolean] =
     singleUpdate {
       sql"""
-        insert into locked_users (user_id, locked_at, unlock_code)
-          values (${databaseLockedUser.userId}, ${databaseLockedUser.lockedAt}, ${databaseLockedUser.unlockCode})
+        INSERT INTO locked_users (user_id, locked_at, unlock_code)
+          VALUES (${databaseLockedUser.userId}, ${databaseLockedUser.lockedAt}, ${databaseLockedUser.unlockCode})
       """.update.run.transact(transactor)
     }
 
   override def findLockedUserById(userId: UUID): OptionT[F, DatabaseLockedUser] =
     OptionT {
-      sql"select user_id, locked_at, unlock_code, unlocked_at from locked_users where user_id = $userId and unlocked_at is null"
+      sql"""
+        SELECT user_id, locked_at, unlock_code, unlocked_at FROM locked_users
+          WHERE user_id = $userId AND unlocked_at IS NULL
+      """
         .query[DatabaseLockedUser]
         .option
         .transact(transactor)
@@ -41,10 +44,9 @@ class DoobieLockedUserDao[F[_]: Bracket[*[_], Throwable]: Clock](transactor: Tra
       .flatMap { timestamp =>
         singleUpdate {
           sql"""
-            update locked_users set unlocked_at = ${new DateTime(timestamp)} where user_id = $userId and 
-              unlock_code = $unlockCode and unlocked_at is null
+            UPDATE locked_users SET unlocked_at = ${new DateTime(timestamp)} WHERE user_id = $userId AND
+              unlock_code = $unlockCode AND unlocked_at IS NULL
           """.update.run.transact(transactor)
         }
       }
-
 }

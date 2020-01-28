@@ -19,3 +19,4 @@
 {"topic":"UserCreated","value":{"id":"22d14891-d704-41dc-b493-2907f8ab9c34","email":"tommie.mccullough@yahoo.com","firstName":"Tommie","lastName":"McCullough","profileImage":null}}
 {"topic":"UserCreated","value":{"id":"25cb178e-2e3c-42aa-9538-453405855329","email":"jame.upton@ruchij.com","firstName":"Jame","lastName":"Upton","profileImage":null}}
 {"topic":"UserCreated","value":{"id":"eaaf6045-9fb0-4178-9aa5-f92bfd065ce0","email":"vaughn.satterfield@hotmail.com","firstName":"Vaughn","lastName":"Satterfield","profileImage":null}}
+{"topic":"UserCreated","value":{"id":"afd909bc-b9d0-4c0f-b203-020cc67d2922","email":"carmela.emmerich@icloud.com","firstName":"Carmela","lastName":"Emmerich","profileImage":null}}

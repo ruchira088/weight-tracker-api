@@ -22,7 +22,7 @@ object ResourceRoutes {
       case request @ GET -> Root / `favicon.ico` => staticResourceService.serve(request, `favicon.ico`)
 
       case GET -> `resources` /: key =>
-        resourceService.fetchByKey(key.toList.mkString("/"))
+        resourceService.fetch(key.toList.mkString("/"))
           .map {
             resource =>
               Response(body = resource.data, headers = Headers.of(`Content-Type`(resource.contentType)))

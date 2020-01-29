@@ -7,21 +7,34 @@ import cats.effect.Sync
 import cats.implicits._
 import com.ruchij.services.resource.models.Resource
 
+import scala.collection.JavaConverters.mapAsScalaConcurrentMapConverter
 import scala.language.higherKinds
 
 class InMemoryResourceService[F[_]: Sync](concurrentHashMap: ConcurrentHashMap[String, Resource[F]])
     extends ResourceService[F] {
-  override def insert(key: String, resource: Resource[F]): F[String] =
+
+  override type InsertionResult = Map[String, Resource[F]]
+
+  override type DeletionResult = Resource[F]
+
+  override def insert(key: String, resource: Resource[F]): F[Map[String, Resource[F]]] =
     Sync[F]
       .delay {
         concurrentHashMap.put(key, resource)
       }
-      .as(key)
+      .as(concurrentHashMap.asScala.toMap)
 
-  override def fetchByKey(key: String): OptionT[F, Resource[F]] =
+  override def fetch(key: String): OptionT[F, Resource[F]] =
     OptionT {
       Sync[F].delay {
         Option(concurrentHashMap.get(key))
+      }
+    }
+
+  override def delete(key: String): OptionT[F, Resource[F]] =
+    OptionT {
+      Sync[F].delay {
+        Option(concurrentHashMap.remove(key))
       }
     }
 }

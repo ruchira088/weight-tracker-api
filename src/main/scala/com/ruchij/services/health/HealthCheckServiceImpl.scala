@@ -90,18 +90,16 @@ class HealthCheckServiceImpl[F[_]: Clock: Sync: ContextShift](
       key = s"health-check/$timestamp-favicon.ico"
 
       _ <- resourceService.insert(key, resource)
-      fetchedResource <- resourceService.fetchByKey(key).value
+
+      fetchedResource <- resourceService.fetch(key).value
+      fetchedResourceBytes <- OptionT.fromOption[F](fetchedResource).semiflatMap(_.data.compile.toList).value
+
+      deletionSuccess <- resourceService.delete(key).isDefined
 
       resourceBytes <- resource.data.compile.toList
-      fetchedResourceBytes <- fetchedResource
-        .map(_.data.compile.toList)
-        .fold[F[Option[List[Byte]]]](Applicative[F].pure(None)) {
-          _.map(Option.apply)
-        }
 
-      healthStatus = if (fetchedResourceBytes.contains(resourceBytes) && fetchedResource.exists(
-          _.contentType == resource.contentType
-        ))
+      healthStatus = if (fetchedResourceBytes.contains(resourceBytes) && deletionSuccess
+        && fetchedResource.exists(_.contentType == resource.contentType))
         HealthStatus.Healthy
       else
         HealthStatus.Unhealthy

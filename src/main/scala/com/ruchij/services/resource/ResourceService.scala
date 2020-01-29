@@ -6,7 +6,13 @@ import com.ruchij.services.resource.models.Resource
 import scala.language.higherKinds
 
 trait ResourceService[F[_]] {
-  def insert(key: String, resource: Resource[F]): F[String]
+  type InsertionResult
 
-  def fetchByKey(key: String): OptionT[F, Resource[F]]
+  type DeletionResult
+
+  def insert(key: String, resource: Resource[F]): F[InsertionResult]
+
+  def fetch(key: String): OptionT[F, Resource[F]]
+
+  def delete(key: String): OptionT[F, DeletionResult]
 }

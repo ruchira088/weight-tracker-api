@@ -3,7 +3,7 @@ package com.ruchij.services.resource
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Show, ~>}
+import cats.{Applicative, Show, ~>}
 import com.ruchij.services.resource.models.Resource
 import fs2.{Chunk, Stream}
 import org.http4s.MediaType
@@ -20,7 +20,11 @@ class S3ResourceService[F[_]: Sync](s3AsyncClient: S3AsyncClient, s3Bucket: Stri
   eitherFailureToF: Either[Throwable, *] ~> F
 ) extends ResourceService[F] {
 
-  override def insert(key: String, resource: Resource[F]): F[String] =
+  override type InsertionResult = CompleteMultipartUploadResponse
+
+  override type DeletionResult = HeadObjectResponse
+
+  override def insert(key: String, resource: Resource[F]): F[CompleteMultipartUploadResponse] =
     createMultipartUpload(prefixKey + key, resource.contentType)
       .flatMap { response =>
         resource.data
@@ -35,7 +39,6 @@ class S3ResourceService[F[_]: Sync](s3AsyncClient: S3AsyncClient, s3Bucket: Stri
             completeUpload(key, response.uploadId(), completedParts)
           }
       }
-      .map(_.location())
 
   def createMultipartUpload(key: String, mediaType: MediaType): F[CreateMultipartUploadResponse] =
     Sync[F].defer {
@@ -88,7 +91,7 @@ class S3ResourceService[F[_]: Sync](s3AsyncClient: S3AsyncClient, s3Bucket: Stri
       }
     }
 
-  override def fetchByKey(key: String): OptionT[F, Resource[F]] =
+  override def fetch(key: String): OptionT[F, Resource[F]] =
     fetchResourceDetails(prefixKey + key)
       .semiflatMap { headObjectResponse =>
         eitherFailureToF(MediaType.parse(headObjectResponse.contentType()))
@@ -112,8 +115,13 @@ class S3ResourceService[F[_]: Sync](s3AsyncClient: S3AsyncClient, s3Bucket: Stri
         }
       }
         .map(Option.apply)
-        .recover {
-          case _: NoSuchKeyException => None
+        .recoverWith {
+          case throwable =>
+            Option(throwable.getCause)
+              .fold[F[Option[HeadObjectResponse]]](Sync[F].raiseError(throwable)) {
+                case _: NoSuchKeyException => Applicative[F].pure(None)
+                case cause => Sync[F].raiseError(cause)
+              }
         }
     }
 
@@ -137,5 +145,17 @@ class S3ResourceService[F[_]: Sync](s3AsyncClient: S3AsyncClient, s3Bucket: Stri
       }
       .map { responseBytes =>
         Chunk.bytes(responseBytes.asByteArray())
+      }
+
+  override def delete(key: String): OptionT[F, HeadObjectResponse] =
+    fetchResourceDetails(key)
+      .productL {
+        OptionT.liftF {
+          Sync[F].defer {
+            futureToF {
+              s3AsyncClient.deleteObject(DeleteObjectRequest.builder().bucket(s3Bucket).key(key).build()).toScala
+            }
+          }
+        }
       }
 }

@@ -23,7 +23,11 @@ class FileResourceService[F[_]: Async: ContextShift: Concurrent](fileResourceFol
   implicit eitherThrowableToF: Either[Throwable, *] ~> F
 ) extends ResourceService[F] {
 
-  override def insert(key: String, resource: Resource[F]): F[String] =
+  override type InsertionResult = Path
+
+  override type DeletionResult = Path
+
+  override def insert(key: String, resource: Resource[F]): F[Path] =
     for {
       path <- Sync[F].delay(fileResourceFolder.resolve(key))
 
@@ -41,9 +45,9 @@ class FileResourceService[F[_]: Async: ContextShift: Concurrent](fileResourceFol
       _ <- resource.data.through(writeAll(path, blocker)).compile.drain
 
       _ <- insertMetaData.join
-    } yield path.toString
+    } yield path
 
-  override def fetchByKey(key: String): OptionT[F, Resource[F]] =
+  override def fetch(key: String): OptionT[F, Resource[F]] =
     OptionT {
       readAll(metaDataFile, blocker, 4096)
         .through(utf8Decode)
@@ -60,6 +64,8 @@ class FileResourceService[F[_]: Async: ContextShift: Concurrent](fileResourceFol
           }
         }
     }
+
+  override def delete(key: String): OptionT[F, Path] = ???
 }
 
 object FileResourceService {

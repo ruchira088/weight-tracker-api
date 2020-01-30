@@ -3,9 +3,9 @@ package com.ruchij.services.health
 import java.util.concurrent.TimeUnit
 
 import cats.data.OptionT
-import cats.effect.{Blocker, Clock, ContextShift, Sync}
+import cats.effect.{Blocker, Clock, Concurrent, ContextShift, Sync}
 import cats.implicits._
-import cats.{Applicative, ~>}
+import cats.~>
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.BuildInformation
 import com.ruchij.config.development.ApplicationMode
@@ -25,7 +25,7 @@ import redis.RedisClient
 import scala.concurrent.Future
 import scala.language.higherKinds
 
-class HealthCheckServiceImpl[F[_]: Clock: Sync: ContextShift](
+class HealthCheckServiceImpl[F[_]: Clock: Sync: ContextShift: Concurrent](
   transactor: Transactor.Aux[F, Unit],
   redisClient: RedisClient,
   publisher: Publisher[F, _],
@@ -108,9 +108,14 @@ class HealthCheckServiceImpl[F[_]: Clock: Sync: ContextShift](
 
   override def healthCheck(): F[HealthCheckResponse] =
     for {
-      databaseStatus <- database()
-      redisStatus <- redis()
-      publisherStatus <- publisher()
-      resourceStorageStatus <- resourceStorage()
+      databaseStatusFiber <- Concurrent[F].start(database())
+      redisStatusFiber <- Concurrent[F].start(redis())
+      publisherStatusFiber <- Concurrent[F].start(publisher())
+      resourceStorageStatusFiber <- Concurrent[F].start(resourceStorage())
+
+      databaseStatus <- databaseStatusFiber.join
+      redisStatus <- redisStatusFiber.join
+      publisherStatus <- publisherStatusFiber.join
+      resourceStorageStatus <- resourceStorageStatusFiber.join
     } yield HealthCheckResponse(databaseStatus, redisStatus, publisherStatus, resourceStorageStatus)
 }

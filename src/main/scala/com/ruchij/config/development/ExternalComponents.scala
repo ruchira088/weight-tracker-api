@@ -3,7 +3,7 @@ package com.ruchij.config.development
 import java.nio.file.Paths
 
 import akka.actor.ActorSystem
-import cats.effect.{Async, Blocker, Concurrent, ContextShift, Sync}
+import cats.effect.{Async, Blocker, Clock, Concurrent, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.development.ApplicationMode.{DockerCompose, Local, Production, Test}
@@ -42,7 +42,7 @@ object ExternalComponents {
     inMemoryResourceService: InMemoryResourceService[F]
   )
 
-  def from[G[_]: Sync: Result ~> *[_], F[_]: Async: ContextShift: Future ~> *[_]: Either[Throwable, *] ~> *[_]: Concurrent](
+  def from[G[_]: Sync: Result ~> *[_], F[_]: Async: ContextShift: Future ~> *[_]: Either[Throwable, *] ~> *[_]: Concurrent: Clock](
     applicationMode: ApplicationMode,
     configObjectSource: ConfigObjectSource,
     blocker: Blocker

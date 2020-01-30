@@ -4,7 +4,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import cats.data.ValidatedNel
-import cats.effect.{Async, Blocker, Clock, ContextShift}
+import cats.effect.{Async, Blocker, Clock, Concurrent, ContextShift}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.AuthenticationConfiguration.BruteForceProtectionConfiguration
@@ -62,7 +62,7 @@ object HttpTestApp {
   implicit def toExternalComponents[F[_]](testExternalComponents: TestExternalComponents[F]): ExternalComponents[F] =
     testExternalComponents.externalComponents
 
-  def apply[F[_]: Async: ContextShift: Clock: Random[*[_], UUID]: ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint: Either[Throwable, *] ~> *[_]]()
+  def apply[F[_]: Async: ContextShift: Concurrent: Clock: Random[*[_], UUID]: ValidatedNel[Throwable, *] ~> *[_]: Future ~> *[_]: UnsafeCopoint: Either[Throwable, *] ~> *[_]]()
     : HttpTestApp[F] = {
 
     implicit val actorSystem: ActorSystem = ActorSystem("redis-actor-system")

@@ -1,1 +1,4 @@
-{"key":"health-check/1580050225836-favicon.ico","mediaType":"image/x-icon","resourcePath":"./file-resources/health-check/1580050225836-favicon.ico"}
+{"key":"health-check/1580382228007-favicon.ico","timestamp":"2020-01-30T22:03:48.007+11:00","mediaType":"image/x-icon","resourcePath":"./file-resources/health-check/1580382228007-favicon.ico","deleted":false}
+{"key":"health-check/1580382228007-favicon.ico","timestamp":"2020-01-30T22:03:48.014+11:00","mediaType":"image/x-icon","resourcePath":"./file-resources/health-check/1580382228007-favicon.ico","deleted":true}
+{"key":"health-check/1580382228958-favicon.ico","timestamp":"2020-01-30T22:03:48.958+11:00","mediaType":"image/x-icon","resourcePath":"./file-resources/health-check/1580382228958-favicon.ico","deleted":false}
+{"key":"health-check/1580382228958-favicon.ico","timestamp":"2020-01-30T22:03:48.970+11:00","mediaType":"image/x-icon","resourcePath":"./file-resources/health-check/1580382228958-favicon.ico","deleted":true}

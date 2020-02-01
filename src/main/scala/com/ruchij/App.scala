@@ -3,7 +3,7 @@ package com.ruchij
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import cats.effect.{Blocker, ExitCode, IO, IOApp}
+import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import cats.implicits._
 import com.eed3si9n.ruchij.BuildInfo
 import com.ruchij.config.ApiServiceConfiguration
@@ -28,89 +28,90 @@ import org.http4s.HttpApp
 import org.http4s.server.blaze.BlazeServerBuilder
 import pureconfig.{ConfigObjectSource, ConfigSource}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
-
 object App extends IOApp {
 
   def application(
     serviceConfiguration: ApiServiceConfiguration,
     configObjectSource: ConfigObjectSource
-  ): IO[HttpApp[IO]] = {
-    implicit val actorSystem: ActorSystem = ActorSystem(BuildInfo.name)
-
-    val cpuBlocker: Blocker =
-      Blocker.liftExecutionContext(ExecutionContext.fromExecutorService(Executors.newWorkStealingPool()))
-
-    val ioBlocker: Blocker =
-      Blocker.liftExecutionContext(ExecutionContext.fromExecutorService(Executors.newCachedThreadPool()))
-
-    ExternalComponents
-      .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource, ioBlocker)
-      .map { externalComponents =>
-        val databaseUserDao = new DoobieUserDao(externalComponents.transactor)
-        val resetPasswordTokenDao = new DoobieResetPasswordTokenDao(externalComponents.transactor)
-        val weightEntryDao = new DoobieWeightEntryDao(externalComponents.transactor)
-        val lockedUserDao = new DoobieLockedUserDao(externalComponents.transactor)
-        val authenticationFailuresDao = new DoobieAuthenticationFailureDao(externalComponents.transactor)
-        val userAuthenticationConfigurationDao = new DoobieUserAuthenticationConfigurationDao(externalComponents.transactor)
-
-        val passwordHashingService = new BCryptService[IO](cpuBlocker)
-        val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
-        val authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
-
-        val staticResourceService = new StaticResourceService[IO](ioBlocker)
-
-        val healthCheckService = new HealthCheckServiceImpl[IO](
-          externalComponents.transactor,
-          externalComponents.redisClient,
-          externalComponents.publisher,
-          externalComponents.resourceService,
-          ioBlocker,
-          serviceConfiguration.applicationMode,
-          serviceConfiguration.buildInformation
-        )
-
-        val authenticationService = new AuthenticationServiceImpl(
-          passwordHashingService,
-          externalComponents.publisher,
-          databaseUserDao,
-          userAuthenticationConfigurationDao,
-          lockedUserDao,
-          authenticationFailuresDao,
-          resetPasswordTokenDao,
-          authenticationTokenDao,
-          authenticationSecretGenerator,
-          serviceConfiguration.authenticationConfiguration
-        )
-
-        val authorizationService = new AuthorizationServiceImpl[IO]
-
-        val userService =
-          new UserServiceImpl(
-            databaseUserDao,
-            lockedUserDao,
-            authenticationService,
-            externalComponents.publisher,
-            externalComponents.resourceService
-          )
-        val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
-
-        Runtime.getRuntime.addShutdownHook {
-          new Thread(() => externalComponents.shutdownHook.unsafeRunSync())
-        }
-
-        Routes(
-          userService,
-          weightEntryService,
-          healthCheckService,
-          authenticationService,
-          authorizationService,
-          externalComponents.resourceService,
-          staticResourceService
-        )
+  ): IO[HttpApp[IO]] =
+    Resource
+      .make(IO.delay(ActorSystem(BuildInfo.name))) { actorSystem =>
+        IO.fromFuture(IO.delay(actorSystem.terminate())).productR(IO.unit)
       }
-  }
+      .use { implicit actorSystem =>
+        Blocker
+          .fromExecutorService(IO.delay(Executors.newCachedThreadPool()))
+          .product(Blocker.fromExecutorService(IO.delay(Executors.newWorkStealingPool())))
+          .use {
+            case (ioBlocker, cpuBlocker) =>
+              ExternalComponents
+                .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource, ioBlocker)
+                .map { externalComponents =>
+                  val databaseUserDao = new DoobieUserDao(externalComponents.transactor)
+                  val resetPasswordTokenDao = new DoobieResetPasswordTokenDao(externalComponents.transactor)
+                  val weightEntryDao = new DoobieWeightEntryDao(externalComponents.transactor)
+                  val lockedUserDao = new DoobieLockedUserDao(externalComponents.transactor)
+                  val authenticationFailuresDao = new DoobieAuthenticationFailureDao(externalComponents.transactor)
+                  val userAuthenticationConfigurationDao =
+                    new DoobieUserAuthenticationConfigurationDao(externalComponents.transactor)
+
+                  val passwordHashingService = new BCryptService[IO](cpuBlocker)
+                  val authenticationTokenDao = new RedisAuthenticationTokenDao[IO](externalComponents.redisClient)
+                  val authenticationSecretGenerator = new AuthenticationSecretGeneratorImpl[IO]
+
+                  val staticResourceService = new StaticResourceService[IO](ioBlocker)
+
+                  val healthCheckService = new HealthCheckServiceImpl[IO](
+                    externalComponents.transactor,
+                    externalComponents.redisClient,
+                    externalComponents.publisher,
+                    externalComponents.resourceService,
+                    ioBlocker,
+                    serviceConfiguration.applicationMode,
+                    serviceConfiguration.buildInformation
+                  )
+
+                  val authenticationService = new AuthenticationServiceImpl(
+                    passwordHashingService,
+                    externalComponents.publisher,
+                    databaseUserDao,
+                    userAuthenticationConfigurationDao,
+                    lockedUserDao,
+                    authenticationFailuresDao,
+                    resetPasswordTokenDao,
+                    authenticationTokenDao,
+                    authenticationSecretGenerator,
+                    serviceConfiguration.authenticationConfiguration
+                  )
+
+                  val authorizationService = new AuthorizationServiceImpl[IO]
+
+                  val userService =
+                    new UserServiceImpl(
+                      databaseUserDao,
+                      lockedUserDao,
+                      authenticationService,
+                      externalComponents.publisher,
+                      externalComponents.resourceService
+                    )
+                  val weightEntryService = new WeightEntryServiceImpl(weightEntryDao)
+
+                  Runtime.getRuntime.addShutdownHook {
+                    new Thread(() => externalComponents.shutdownHook.unsafeRunSync())
+                  }
+
+                  Routes(
+                    userService,
+                    weightEntryService,
+                    healthCheckService,
+                    authenticationService,
+                    authorizationService,
+                    externalComponents.resourceService,
+                    staticResourceService
+                  )
+                }
+          }
+      }
 
   override def run(args: List[String]): IO[ExitCode] =
     for {

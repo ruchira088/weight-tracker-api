@@ -38,7 +38,6 @@ import com.ruchij.web.Routes
 import com.ruchij.web.assets.StaticResourceService
 import org.http4s.HttpApp
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.{higherKinds, implicitConversions, postfixOps}

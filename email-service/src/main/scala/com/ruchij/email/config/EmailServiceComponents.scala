@@ -4,7 +4,7 @@ import java.nio.file.Paths
 import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
-import cats.effect.{Async, ContextShift, Sync}
+import cats.effect.{Async, Blocker, ContextShift, Sync}
 import cats.implicits._
 import cats.{Applicative, ~>}
 import com.ruchij.config.KafkaClientConfiguration
@@ -34,10 +34,10 @@ object EmailServiceComponents {
           kafkaSubscriber = new KafkaSubscriber[F](kafkaClientConfiguration)
 
           sendgridConfiguration <- SendgridConfiguration.load[G](configObjectSource)
-          ioBlockingExecutionContext = ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
+          ioBlocker = Blocker.liftExecutionContext(ExecutionContext.fromExecutorService(Executors.newCachedThreadPool()))
           sendgridEmailService = new SendGridEmailService[F](
             new SendGrid(sendgridConfiguration.apiKey),
-            ioBlockingExecutionContext
+            ioBlocker
           )
         } yield EmailServiceComponents(sendgridEmailService, kafkaSubscriber)
 

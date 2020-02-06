@@ -38,3 +38,9 @@
 {"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-01-30T22:03:35.615+11:00","instanceId":null}}
 {"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-01-30T22:03:48.006+11:00","instanceId":null}}
 {"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-01-30T22:03:48.957+11:00","instanceId":null}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-02-06T17:41:47.455+11:00","instanceId":null}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-02-06T17:47:24.860+11:00","instanceId":null}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-02-06T17:48:13.284+11:00","instanceId":null}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-02-06T17:54:45.599+11:00","instanceId":null}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-02-06T18:08:27.915+11:00","instanceId":null}}
+{"topic":"HealthCheck","value":{"service":"weight-tracker-api","probedAt":"2020-02-06T18:19:22.862+11:00","instanceId":null}}

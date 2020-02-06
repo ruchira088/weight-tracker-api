@@ -33,19 +33,22 @@ object App extends IOApp {
   def application(
     serviceConfiguration: ApiServiceConfiguration,
     configObjectSource: ConfigObjectSource
-  ): IO[HttpApp[IO]] =
+  ): Resource[IO, HttpApp[IO]] =
     Resource
       .make(IO.delay(ActorSystem(BuildInfo.name))) { actorSystem =>
         IO.fromFuture(IO.delay(actorSystem.terminate())).productR(IO.unit)
       }
-      .use { implicit actorSystem =>
+      .flatMap { implicit actorSystem =>
         Blocker
           .fromExecutorService(IO.delay(Executors.newCachedThreadPool()))
           .product(Blocker.fromExecutorService(IO.delay(Executors.newWorkStealingPool())))
-          .use {
+          .flatMap {
             case (ioBlocker, cpuBlocker) =>
-              ExternalComponents
-                .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource, ioBlocker)
+              Resource
+                .make {
+                  ExternalComponents
+                    .from[IO, IO](serviceConfiguration.applicationMode, configObjectSource, ioBlocker)
+                } { _.shutdownHook }
                 .map { externalComponents =>
                   val databaseUserDao = new DoobieUserDao(externalComponents.transactor)
                   val resetPasswordTokenDao = new DoobieResetPasswordTokenDao(externalComponents.transactor)
@@ -118,15 +121,15 @@ object App extends IOApp {
       configObjectSource <- IO.delay(ConfigSource.defaultApplication)
       serviceConfiguration <- ApiServiceConfiguration.load[IO](configObjectSource)
 
-      httpApp <- application(serviceConfiguration, configObjectSource)
-
-      exitCode <- BlazeServerBuilder[IO]
-        .withHttpApp(httpApp)
-        .bindHttp(serviceConfiguration.httpConfiguration.port, "0.0.0.0")
-        .withoutBanner
-        .serve
-        .compile
-        .drain
-        .as(ExitCode.Success)
-    } yield exitCode
+      _ <- application(serviceConfiguration, configObjectSource)
+        .use { httpApp =>
+          BlazeServerBuilder[IO]
+            .withHttpApp(httpApp)
+            .bindHttp(serviceConfiguration.httpConfiguration.port, "0.0.0.0")
+            .withoutBanner
+            .serve
+            .compile
+            .drain
+        }
+    } yield ExitCode.Success
 }

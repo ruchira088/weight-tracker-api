@@ -4,8 +4,8 @@ object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
 
-  val HTTP4S_VERSION = "0.21.0-RC1"
-  val CIRCE_VERSION = "0.13.0-RC1"
+  val HTTP4S_VERSION = "0.21.0"
+  val CIRCE_VERSION = "0.13.0"
 
   lazy val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
 
@@ -31,7 +31,7 @@ object Dependencies
 
   lazy val kafkaAvroSerializer = "io.confluent" % "kafka-avro-serializer" % "5.4.0"
 
-  lazy val avro4sCore = "com.sksamuel.avro4s" %% "avro4s-core" % "3.0.4"
+  lazy val avro4sCore = "com.sksamuel.avro4s" %% "avro4s-core" % "3.0.6"
 
   lazy val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
 
@@ -53,7 +53,7 @@ object Dependencies
 
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.0.0"
 
-  lazy val awsS3 = "software.amazon.awssdk" % "s3" % "2.10.56"
+  lazy val awsS3 = "software.amazon.awssdk" % "s3" % "2.10.63"
 
   lazy val googleAuth = "com.warrenstrange" % "googleauth" % "1.4.0"
 
@@ -71,7 +71,7 @@ object Dependencies
 
   lazy val embeddedRedis = "com.github.kstyrc" % "embedded-redis" % "0.6"
 
-  lazy val javaFaker = "com.github.javafaker" % "javafaker" % "1.0.1"
+  lazy val javaFaker = "com.github.javafaker" % "javafaker" % "1.0.2"
 
   lazy val pegdown = "org.pegdown" % "pegdown" % "1.6.0"
 

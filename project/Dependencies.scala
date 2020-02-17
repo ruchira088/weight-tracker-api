@@ -4,7 +4,7 @@ object Dependencies
 {
   val SCALA_VERSION = "2.12.10"
 
-  val HTTP4S_VERSION = "0.21.0"
+  val HTTP4S_VERSION = "0.21.1"
   val CIRCE_VERSION = "0.13.0"
 
   lazy val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
@@ -53,7 +53,7 @@ object Dependencies
 
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.0.0"
 
-  lazy val awsS3 = "software.amazon.awssdk" % "s3" % "2.10.63"
+  lazy val awsS3 = "software.amazon.awssdk" % "s3" % "2.10.65"
 
   lazy val googleAuth = "com.warrenstrange" % "googleauth" % "1.4.0"
 
